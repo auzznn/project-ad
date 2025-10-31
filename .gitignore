@@ -3,3 +3,5 @@
 /backend/base/migrations/__pycache__
 /backend/base/__pycache__
 /backend/authentication/__pycache__
+*.sqlite3
+/backend/authentication/migrations/__pycache__
