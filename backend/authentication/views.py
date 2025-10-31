@@ -1,3 +1,6 @@
+
+from .models import MyUser
+from .serializer import MyTokenObtenPairSerializer
 from rest_framework_simplejwt.views import (
   TokenObtainPairView,
   TokenRefreshView
@@ -5,4 +8,4 @@ from rest_framework_simplejwt.views import (
 
 # Create your views here.
 class TokenView(TokenObtainPairView):
-  pass
+  serializer_class = MyTokenObtenPairSerializer 
