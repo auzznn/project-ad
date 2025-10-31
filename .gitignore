@@ -2,3 +2,4 @@
 /backend/env
 /backend/base/migrations/__pycache__
 /backend/base/__pycache__
+/backend/authentication/__pycache__

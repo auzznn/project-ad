@@ -1,7 +1,5 @@
-from django.urls import path
-from .views import TokenView, TokenRefreshView
+from django.urls import path, include
 
 urlpatterns = [
-  path("token/", TokenView.as_view()),
-  path("token/refresh/", TokenRefreshView.as_view())
+  path("authentication/", include("authentication.urls"))
 ]
