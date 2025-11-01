@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -134,3 +135,4 @@ REST_FRAMEWORK = {
 }
 
 AUTH_USER_MODEL = 'authentication.MyUser'
+SITE_ID = 1
