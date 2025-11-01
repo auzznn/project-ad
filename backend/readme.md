@@ -63,3 +63,4 @@ python manage.py loaddata fixtures/dummydata.json
 ```bash
 python manage.py runserver
 ```
+for the development purpose, the backend will be hosted on `localhost:8000`
