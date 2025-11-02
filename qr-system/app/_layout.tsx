@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
-import "../global.css"
+import "../global.css";
 
 export default function RootLayout() {
   return (
@@ -12,7 +12,21 @@ export default function RootLayout() {
             headerShown: false,
           }}
           initialRouteName="_entry"
-        />
+        >
+          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="login"
+            options={{
+              presentation: "modal",
+              headerShown: false,
+              gestureEnabled: true,
+              animation: "slide_from_bottom",
+              contentStyle: { backgroundColor: 'transparent' },
+            }}
+          />
+
+        </Stack>
       </AuthProvider>
     </ThemeProvider>
   );

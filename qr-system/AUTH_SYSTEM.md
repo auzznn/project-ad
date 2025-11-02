@@ -148,7 +148,7 @@ Ensures only authenticated users can access protected content.
 ```typescript
 useEffect(() => {
   if (!isLoading && !isAuthenticated) {
-    router.replace('/auth/login');
+    router.replace('/login');
   }
 }, [isAuthenticated, isLoading]);
 ```
@@ -190,7 +190,7 @@ useEffect(() => {
 1. App Launch → _entry.tsx
 2. Check Session → AsyncStorage verification
 3. Route Decision → Based on auth status
-4. Login Required → /auth/login
+4. Login Required → /login
 5. Login Success → / (home)
 6. Session Active → Persistent authentication
 ```

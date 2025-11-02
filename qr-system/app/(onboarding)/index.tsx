@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   Dimensions,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -67,11 +66,11 @@ export default function OnboardingScreen() {
   };
 
   const handleSkip = () => {
-    router.replace('/login');
+    router.push('/login');
   };
 
   const handleGetStarted = () => {
-    router.replace('/login');
+    router.push('/login');
   };
 
   const handleScroll = (event: any) => {
@@ -81,17 +80,16 @@ export default function OnboardingScreen() {
 
   const renderIndicator = () => {
     return (
-      <View style={styles.indicatorContainer}>
+      <View className="flex-row justify-center items-center my-8">
         {onboardingData.map((_, index) => (
           <View
             key={index}
-            style={[
-              styles.indicator,
-              {
-                backgroundColor: index === currentIndex ? primaryColor : mutedColor,
-                width: index === currentIndex ? 24 : 8,
-              },
-            ]}
+            className={`h-2 rounded-full mx-1 ${
+              index === currentIndex ? 'w-6' : 'w-2'
+            }`}
+            style={{
+              backgroundColor: index === currentIndex ? primaryColor : mutedColor,
+            }}
           />
         ))}
       </View>
@@ -100,17 +98,26 @@ export default function OnboardingScreen() {
 
   const renderItem = ({ item }: { item: typeof onboardingData[0] }) => {
     return (
-      <View style={[styles.slide, { width: screenWidth, backgroundColor }]}>
-        <View style={styles.contentContainer}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.icon}>{item.icon}</Text>
+      <View
+        className="flex-1 justify-center items-center"
+        style={{ width: screenWidth, backgroundColor }}
+      >
+        <View className="px-10 items-center">
+          <View className="w-30 h-30 rounded-full justify-center items-center mb-10">
+            <Text className="text-6xl">{item.icon}</Text>
           </View>
           
-          <Text style={[styles.title, { color: textColor }]}>
+          <Text
+            className="text-3xl font-bold text-center mb-5"
+            style={{ color: textColor }}
+          >
             {item.title}
           </Text>
           
-          <Text style={[styles.description, { color: mutedColor }]}>
+          <Text
+            className="text-base text-center leading-6"
+            style={{ color: mutedColor }}
+          >
             {item.description}
           </Text>
         </View>
@@ -120,11 +127,14 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={{ backgroundColor }} className="flex-1">
-      <View style={styles.container}>
+      <View className="flex-1">
         {/* Skip button */}
-        <View style={styles.header}>
+        <View className="flex-row justify-end px-5 pt-3">
           <TouchableOpacity onPress={handleSkip}>
-            <Text style={[styles.skipText, { color: mutedColor }]}>
+            <Text
+              className="text-base font-medium"
+              style={{ color: mutedColor }}
+            >
               Skip
             </Text>
           </TouchableOpacity>
@@ -146,45 +156,43 @@ export default function OnboardingScreen() {
         {renderIndicator()}
 
         {/* Action buttons */}
-        <View style={styles.footer}>
+        <View className="px-5 pb-8">
           {currentIndex < onboardingData.length - 1 ? (
-            <View style={styles.buttonContainer}>
+            <View className="flex-row justify-between">
               <TouchableOpacity
-                style={[
-                  styles.button,
-                  styles.secondaryButton,
-                  { borderColor: primaryColor, backgroundColor: 'transparent' },
-                ]}
+                className="py-4 px-6 rounded-xl items-center justify-center min-w-30 border-2"
+                style={{ borderColor: primaryColor, backgroundColor: 'transparent' }}
                 onPress={handleSkip}
               >
-                <Text style={[styles.buttonText, { color: primaryColor }]}>
+                <Text
+                  className="text-base font-semibold"
+                  style={{ color: primaryColor }}
+                >
                   Skip
                 </Text>
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={[
-                  styles.button,
-                  styles.primaryButton,
-                  { backgroundColor: primaryColor },
-                ]}
+                className="py-4 px-6 rounded-xl items-center justify-center flex-1 ml-3"
+                style={{ backgroundColor: primaryColor }}
                 onPress={handleNext}
               >
-                <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>
+                <Text
+                  className="text-base font-semibold text-white"
+                >
                   Next
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
             <TouchableOpacity
-              style={[
-                styles.button,
-                styles.getStartedButton,
-                { backgroundColor: primaryColor },
-              ]}
+              className="py-4 rounded-xl items-center justify-center w-full"
+              style={{ backgroundColor: primaryColor }}
               onPress={handleGetStarted}
             >
-              <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>
+              <Text
+                className="text-base font-semibold text-white"
+              >
                 Get Started
               </Text>
             </TouchableOpacity>
@@ -195,90 +203,4 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  skipText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  slide: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  contentContainer: {
-    paddingHorizontal: 40,
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  icon: {
-    fontSize: 60,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  description: {
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  indicatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 30,
-  },
-  indicator: {
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-  footer: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  button: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 120,
-  },
-  secondaryButton: {
-    borderWidth: 2,
-  },
-  primaryButton: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  getStartedButton: {
-    width: '100%',
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+const styles = StyleSheet.create({});
