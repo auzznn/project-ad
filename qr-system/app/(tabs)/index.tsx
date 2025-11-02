@@ -4,10 +4,9 @@ import { router } from "expo-router";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect } from 'react';
 
-export default function Index() {
-  const { isAuthenticated, user, isLoading, logout } = useAuth();
+export default function TabIndex() {
+  const { isAuthenticated, user, logout } = useAuth();
   const backgroundColor = useThemeColor('background');
   const textColor = useThemeColor('text');
   const accentColor = useThemeColor('accent');
@@ -16,27 +15,6 @@ export default function Index() {
   const borderColor = useThemeColor('border');
   const mutedColor = useThemeColor('muted');
   const { themeMode, toggleTheme, isSystemTheme, useSystemTheme } = useTheme();
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace('/login');
-    }
-  }, [isAuthenticated, isLoading]);
-
-  // Show loading screen while checking authentication
-  if (isLoading) {
-    return (
-      <SafeAreaView style={{ backgroundColor }} className="flex-1 items-center justify-center">
-        <Text style={{ color: mutedColor }}>Loading...</Text>
-      </SafeAreaView>
-    );
-  }
-
-  // Redirect to login if not authenticated (useEffect handles this)
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <SafeAreaView style={{ backgroundColor }} className="flex-1">
@@ -139,7 +117,7 @@ export default function Index() {
         <TouchableOpacity
           className="px-6 py-3 rounded-lg mb-3"
           style={[styles.actionButton, { backgroundColor: primaryColor }]}
-          onPress={() => router.push('/login')}
+          onPress={() => router.push('/(auth)/login')}
         >
           <Text
             className="text-center font-semibold text-white"
@@ -151,7 +129,7 @@ export default function Index() {
         <TouchableOpacity
           className="px-6 py-3 rounded-lg border"
           style={[styles.actionButton, { borderColor, backgroundColor: 'transparent' }]}
-          onPress={() => router.push('/login')}
+          onPress={() => router.push('/(auth)/login')}
         >
           <Text
             className="text-center font-semibold"

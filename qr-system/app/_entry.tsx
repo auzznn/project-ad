@@ -28,9 +28,9 @@ export default function EntryScreen() {
 
   // Redirect to appropriate screen based on authentication status
   if (isAuthenticated) {
-    return <Redirect href="/" />;
+    return <Redirect href="/(tabs)" />;
   }
 
-  // Show login screen for unauthenticated users
-  return <Redirect href="/login" />;
+  // Show onboarding for unauthenticated users
+  return <Redirect href="/(onboarding)" />;
 }
