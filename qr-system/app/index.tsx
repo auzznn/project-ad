@@ -1,8 +1,13 @@
 import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from "expo-router";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect } from 'react';
 
 export default function Index() {
+  const { isAuthenticated, user, isLoading, logout } = useAuth();
   const backgroundColor = useThemeColor('background');
   const textColor = useThemeColor('text');
   const accentColor = useThemeColor('accent');
@@ -12,13 +17,35 @@ export default function Index() {
   const mutedColor = useThemeColor('muted');
   const { themeMode, toggleTheme, isSystemTheme, useSystemTheme } = useTheme();
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading]);
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <SafeAreaView style={{ backgroundColor }} className="flex-1 items-center justify-center">
+        <Text style={{ color: mutedColor }}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Redirect to login if not authenticated (useEffect handles this)
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
-    <View
-      className="flex-1 items-center justify-center"
-      style={[styles.container, { backgroundColor }]}
-    >
+    <SafeAreaView style={{ backgroundColor }} className="flex-1">
       <View
-        className="p-6 rounded-xl shadow-lg"
+        className="flex-1 items-center justify-center"
+        style={[styles.container]}
+      >
+      <View
+        className="p-6 rounded-xl shadow-lg mb-6"
         style={[styles.card, { backgroundColor: cardColor, borderColor }]}
       >
         <Text
@@ -32,6 +59,20 @@ export default function Index() {
           style={{ color: textColor }}
         >
           Welcome to the Malaysian-inspired school app!
+        </Text>
+        <Text
+          className="text-center mb-2 text-sm"
+          style={{ color: mutedColor }}
+        >
+          Logged in as: {user?.username}
+        </Text>
+        <Text
+          className="text-center mb-2 text-sm"
+          style={{ color: mutedColor }}
+        >
+          Role: {user?.role === 'teacher' ? 'Teacher' :
+                 user?.role === 'guardian' ? 'Guardian' :
+                 user?.role === 'admin' ? 'Administrator' : 'User'}
         </Text>
         <Text
           className="text-center mb-2 text-sm"
@@ -83,7 +124,58 @@ export default function Index() {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+
+      <View
+        className="p-6 rounded-xl shadow-lg"
+        style={[styles.card, { backgroundColor: cardColor, borderColor }]}
+      >
+        <Text
+          className="text-lg font-semibold mb-4 text-center"
+          style={{ color: textColor }}
+        >
+          Quick Actions
+        </Text>
+        
+        <TouchableOpacity
+          className="px-6 py-3 rounded-lg mb-3"
+          style={[styles.actionButton, { backgroundColor: primaryColor }]}
+          onPress={() => router.push('/login')}
+        >
+          <Text
+            className="text-center font-semibold text-white"
+          >
+            Sign In
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          className="px-6 py-3 rounded-lg border"
+          style={[styles.actionButton, { borderColor, backgroundColor: 'transparent' }]}
+          onPress={() => router.push('/login')}
+        >
+          <Text
+            className="text-center font-semibold"
+            style={{ color: primaryColor }}
+          >
+            Login Page Demo
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          className="px-6 py-3 rounded-lg border mt-3"
+          style={[styles.actionButton, { borderColor, backgroundColor: 'transparent' }]}
+          onPress={logout}
+        >
+          <Text
+            className="text-center font-semibold"
+            style={{ color: primaryColor }}
+          >
+            Sign Out
+          </Text>
+        </TouchableOpacity>
+      </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -106,5 +198,9 @@ const styles = StyleSheet.create({
   },
   themeToggle: {
     borderWidth: 1,
+  },
+  actionButton: {
+    borderWidth: 1,
+    borderRadius: 8,
   },
 });
