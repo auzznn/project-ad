@@ -1,3 +1,4 @@
+from rest_framework.serializers import ModelSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.reverse import reverse
 from django.contrib.sites.models import Site
@@ -19,3 +20,16 @@ class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
       'refresh': f'https://{domain}{reverse(TOKEN_REFRESH_PATH_NAME)}'
     }
     return token
+
+class MyUserRetrieveSerializer(ModelSerializer):
+  class Meta:
+    model = MyUser
+    fields = ['first_name', 'last_name']
+
+class MyUserCreateSerializer(ModelSerializer):
+  class Meta:
+    model = MyUser
+    fields = ['username', 'first_name', 'last_name', 'email', 'password', 'role']
+    extra_kwargs = {
+      'password': {'write_only': True}
+    }
