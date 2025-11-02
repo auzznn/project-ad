@@ -6,7 +6,7 @@ Role-based navigation sidebar
 
 CRUD user operations (mocked with JSON + localStorage)
 
-
+-------------------------------------------------------------------
 
 When pulling from GitHub for the first time,
 
