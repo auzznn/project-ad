@@ -10,8 +10,10 @@ class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
   @classmethod
   def get_token(cls, user: MyUser) -> dict[str, any]:
     domain = Site.objects.get_current().domain
-    
     token = super().get_token(user)
+    
+    token['first_name'] = user.first_name
+    token['last_name'] = user.last_name
     token['role'] = user.role
     token['url'] = {
       'refresh': f'https://{domain}{reverse(TOKEN_REFRESH_PATH_NAME)}'
