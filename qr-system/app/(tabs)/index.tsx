@@ -117,7 +117,7 @@ export default function TabIndex() {
         <TouchableOpacity
           className="px-6 py-3 rounded-lg mb-3"
           style={[styles.actionButton, { backgroundColor: primaryColor }]}
-          onPress={() => router.push('/(auth)/login')}
+          onPress={() => router.push('/login')}
         >
           <Text
             className="text-center font-semibold text-white"
@@ -129,7 +129,7 @@ export default function TabIndex() {
         <TouchableOpacity
           className="px-6 py-3 rounded-lg border"
           style={[styles.actionButton, { borderColor, backgroundColor: 'transparent' }]}
-          onPress={() => router.push('/(auth)/login')}
+          onPress={() => router.push('/login')}
         >
           <Text
             className="text-center font-semibold"

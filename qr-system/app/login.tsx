@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,71 +10,70 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useThemeColor } from '../hooks/useThemeColor';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { useThemeColor } from "../hooks/useThemeColor";
+import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{
+    username?: string;
+    password?: string;
+  }>({});
   const { login, isLoading } = useAuth();
 
-  const backgroundColor = useThemeColor('background');
-  const cardColor = useThemeColor('card');
-  const textColor = useThemeColor('text');
-  const primaryColor = useThemeColor('primary');
-  const accentColor = useThemeColor('accent');
-  const secondaryColor = useThemeColor('secondary');
-  const borderColor = useThemeColor('border');
-  const errorColor = useThemeColor('error');
-  const mutedColor = useThemeColor('muted');
+  const backgroundColor = useThemeColor("background");
+  const cardColor = useThemeColor("card");
+  const textColor = useThemeColor("text");
+  const primaryColor = useThemeColor("primary");
+  const accentColor = useThemeColor("accent");
+  const secondaryColor = useThemeColor("secondary");
+  const borderColor = useThemeColor("border");
+  const errorColor = useThemeColor("error");
+  const mutedColor = useThemeColor("muted");
   const { themeMode } = useTheme();
 
   const validateForm = () => {
     const newErrors: { username?: string; password?: string } = {};
-    
+
     if (!username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = "Username is required";
     }
-    
+
     if (!password.trim()) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleLogin = async () => {
     if (!validateForm()) return;
-    
+
     try {
       const success = await login(username, password);
-      
+
       if (success) {
-        Alert.alert(
-          'Login Successful',
-          'Welcome to the School App!',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                router.replace('/(tabs)');
-              },
+        Alert.alert("Login Successful", "Welcome to the School App!", [
+          {
+            text: "OK",
+            onPress: () => {
+              router.replace("/(tabs)");
             },
-          ]
-        );
+          },
+        ]);
       } else {
-        Alert.alert('Login Failed', 'Invalid credentials. Please try again.');
+        Alert.alert("Login Failed", "Invalid credentials. Please try again.");
       }
     } catch (error) {
-      Alert.alert('Login Failed', 'An error occurred. Please try again.');
+      Alert.alert("Login Failed", "An error occurred. Please try again.");
     }
   };
 
@@ -82,17 +81,17 @@ export default function LoginScreen() {
     <View
       style={{
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
       }}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{
           flex: 1,
           backgroundColor: backgroundColor,
           borderTopLeftRadius: 28,
           borderTopRightRadius: 28,
-          shadowColor: '#000',
+          shadowColor: "#000",
           shadowOffset: {
             width: 0,
             height: -6,
@@ -107,61 +106,26 @@ export default function LoginScreen() {
           <TouchableOpacity
             onPress={() => router.back()}
             className="w-12 h-12 rounded-full items-center justify-center"
-            style={{ backgroundColor: secondaryColor + '20' }}
+            style={{ backgroundColor: secondaryColor + "20" }}
           >
-            <Text style={{ color: secondaryColor }} className="text-xl font-semibold">✕</Text>
+            <Text
+              style={{ color: secondaryColor }}
+              className="text-xl font-semibold"
+            >
+              ✕
+            </Text>
           </TouchableOpacity>
         </SafeAreaView>
-        
-        <View className="flex-1 px-6 pb-8 justify-center">
-          {/* Logo/Title Section */}
-          <View className="items-center mb-10">
-            <View
-              className="w-24 h-24 rounded-3xl items-center justify-center mb-6 shadow-lg"
-              style={{
-                backgroundColor: primaryColor,
-                shadowColor: primaryColor,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-            >
-              <Text className="text-white text-4xl font-bold">SA</Text>
-            </View>
-            <Text
-              className="text-3xl font-bold text-center mb-3"
-              style={{ color: textColor }}
-            >
-              SK Sri Siakap
-            </Text>
-            <View className="flex-row items-center">
-              <View
-                className="h-0.5 flex-1 mr-3"
-                style={{ backgroundColor: borderColor }}
-              />
-              <Text
-                className="text-sm px-2"
-                style={{ color: accentColor }}
-              >
-                Sign in to continue
-              </Text>
-              <View
-                className="h-0.5 flex-1 ml-3"
-                style={{ backgroundColor: borderColor }}
-              />
-            </View>
-          </View>
 
+        <View className="flex-1 px-6  justify-between">
           {/* Login Form */}
           <View className="w-full">
             <Text
               className="text-2xl font-bold mb-8 text-center"
               style={{ color: textColor }}
             >
-              Welcome Back
+              Welcome Back!
             </Text>
-
             {/* Username Input */}
             <View className="mb-6">
               <Text
@@ -176,8 +140,13 @@ export default function LoginScreen() {
                   style={[
                     styles.input,
                     {
-                      backgroundColor: themeMode === 'dark' ? '#2A2A2A' : '#F8F8F8',
-                      borderColor: errors.username ? errorColor : (username.length > 0 ? accentColor : borderColor),
+                      backgroundColor:
+                        themeMode === "dark" ? "#2A2A2A" : "#F8F8F8",
+                      borderColor: errors.username
+                        ? errorColor
+                        : username.length > 0
+                          ? accentColor
+                          : borderColor,
                       color: textColor,
                       fontSize: 16,
                       borderWidth: username.length > 0 ? 2 : 1,
@@ -222,8 +191,13 @@ export default function LoginScreen() {
                   style={[
                     styles.input,
                     {
-                      backgroundColor: themeMode === 'dark' ? '#2A2A2A' : '#F8F8F8',
-                      borderColor: errors.password ? errorColor : (password.length > 0 ? accentColor : borderColor),
+                      backgroundColor:
+                        themeMode === "dark" ? "#2A2A2A" : "#F8F8F8",
+                      borderColor: errors.password
+                        ? errorColor
+                        : password.length > 0
+                          ? accentColor
+                          : borderColor,
                       color: textColor,
                       fontSize: 16,
                       borderWidth: password.length > 0 ? 2 : 1,
@@ -277,7 +251,7 @@ export default function LoginScreen() {
               ) : (
                 <Text
                   className="font-bold text-lg"
-                  style={{ color: '#FFFFFF' }}
+                  style={{ color: "#FFFFFF" }}
                 >
                   Sign In
                 </Text>
@@ -285,7 +259,10 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Help Text */}
-            <View className="items-center bg-opacity-10 rounded-2xl p-4" style={{ backgroundColor: accentColor + '15' }}>
+            <View
+              className="items-center bg-opacity-10 rounded-2xl p-4"
+              style={{ backgroundColor: accentColor + "15" }}
+            >
               <Text
                 className="text-sm font-semibold text-center mb-3"
                 style={{ color: secondaryColor }}
@@ -298,10 +275,7 @@ export default function LoginScreen() {
                     className="w-2 h-2 rounded-full mr-2"
                     style={{ backgroundColor: secondaryColor }}
                   />
-                  <Text
-                    className="text-sm"
-                    style={{ color: textColor }}
-                  >
+                  <Text className="text-sm" style={{ color: textColor }}>
                     Teacher: admin / admin123
                   </Text>
                 </View>
@@ -310,15 +284,23 @@ export default function LoginScreen() {
                     className="w-2 h-2 rounded-full mr-2"
                     style={{ backgroundColor: accentColor }}
                   />
-                  <Text
-                    className="text-sm"
-                    style={{ color: textColor }}
-                  >
+                  <Text className="text-sm" style={{ color: textColor }}>
                     Guardian: user / user123
                   </Text>
                 </View>
               </View>
             </View>
+          </View>
+          <View className="mt-4 items-center bg-opacity-10 rounded-2xl p-4">
+            <Text
+              className="text-sm font-bold text-center mb-2"
+              style={{ color: secondaryColor }}
+            >
+              Created by
+            </Text>
+            <Text className="text-sm text-center mb-2" style={{ color: textColor }}>
+              Team 2 - SECJ3104-01
+            </Text>
           </View>
         </View>
       </KeyboardAvoidingView>

@@ -24,6 +24,17 @@ export default function TabLayout() {
           tabBarIcon: () => null, // You can add icons here
         }}
       />
+      {/*
+        Add your tabs here once backend is ready
+        Example:
+        <Tabs.Screen
+          name="yourModel"
+          options={{
+            title: 'Your Model',
+            tabBarIcon: () => null, // You can add icons here
+          }}
+        />
+      */}
     </Tabs>
   );
 }
