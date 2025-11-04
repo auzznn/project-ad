@@ -1,0 +1,4 @@
+/backend/env
+*.sqlite3
+*.pyc
+*.sqlite3
