@@ -300,7 +300,7 @@ export default function LoginScreen() {
               Created by
             </Text>
             <Text className="text-sm text-center mb-2" style={{ color: textColor }}>
-              Team 2 - SECJ3104-01
+              Anak Indo - SECJ3104-01
             </Text>
           </View>
         </View>
