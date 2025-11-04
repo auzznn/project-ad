@@ -16,6 +16,7 @@ import { router } from "expo-router";
 import { useThemeColor } from "../hooks/useThemeColor";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
+import { authApi } from "../api/authApi";
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
@@ -58,10 +59,10 @@ export default function LoginScreen() {
     if (!validateForm()) return;
 
     try {
-      const success = await login(username, password);
+      const success = await authApi.login({username, password});
 
       if (success) {
-        Alert.alert("Login Successful", "Welcome to the School App!", [
+        Alert.alert("Login Successful", "Welcome to the App!", [
           {
             text: "OK",
             onPress: () => {
