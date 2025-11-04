@@ -1,0 +1,161 @@
+/* Global Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f9; /* Light background for the main content */
+}
+
+/* Custom Bootstrap Overrides (if needed) */
+.btn-primary {
+  background-color: #007bff; /* Example primary color */
+  border-color: #007bff;
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+/* Card/Panel Styling */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Header/Navbar Styling */
+.top-navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-navbar .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #007bff; /* Adjust color to match screenshot */
+}
+
+.top-navbar .user-info {
+  display: flex;
+  align-items: center;
+}
+
+.top-navbar .user-info span {
+  margin-right: 15px;
+  color: #333;
+}
+
+.top-navbar .user-info .icon-group i {
+  margin-left: 15px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #555;
+}
+
+/* Utility Classes (based on screenshots) */
+.text-success-custom {
+  color: #28a745; /* Green for Active/Dalam Senarai Putih */
+}
+
+.text-danger-custom {
+  color: #dc3545; /* Red for Tidak Hadir/Tidak Disenaraikan */
+}
+
+.text-warning-custom {
+  color: #ffc107; /* Yellow for Lewat */
+}
+
+.badge-custom {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+
+.badge-active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badge-inactive {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.badge-late {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+/* Table Styling */
+.table-custom {
+  border-collapse: separate;
+  border-spacing: 0 10px; /* Space between rows */
+}
+
+.table-custom th {
+  font-weight: 600;
+  color: #6c757d;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table-custom td {
+  background-color: #ffffff;
+  border-top: 1px solid #e9ecef;
+}
+
+.table-custom tr:first-child td {
+  border-top: none;
+}
+
+.table-custom tr:hover td {
+  background-color: #f8f9fa;
+}
+
+/* Sidebar Specific (to be moved to SideBar.css later) */
+.sidebar-logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 30px;
+  padding: 0 10px;
+}
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  margin-bottom: 5px;
+  border-radius: 8px;
+  color: #ffffff;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.sidebar-menu a i {
+  margin-right: 15px;
+  font-size: 1.2rem;
+}
+
+.sidebar-menu a:hover {
+  background-color: #374151;
+}
+
+.sidebar-menu a.active {
+  background-color: #3b82f6; /* A bright blue for active state */
+  font-weight: 600;
+}
+
+.sidebar-logout {
+  position: absolute;
+  bottom: 20px;
+  width: 210px;
+}
