@@ -252,17 +252,18 @@ export default function OnboardingScreen() {
             </TouchableOpacity>
           </Animated.View>
         )}
+        
+        {/* Skip button - show on all pages except last */}
+        {currentIndex < onboardingData.length - 1 && (
+          <View style={styles.skipButtonContainer}>
+            <TouchableOpacity
+              onPress={handleSkip}
+            >
+              <Text style={[styles.skipButtonText, { color: mutedColor }]}>Skip</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
-      
-      {/* Skip button - positioned outside the navigation container to ensure visibility */}
-      {currentIndex < onboardingData.length - 1 && (
-        <TouchableOpacity
-          onPress={handleSkip}
-          style={styles.skipButton}
-        >
-          <Text style={[styles.skipButtonText, { color: mutedColor }]}>Skip</Text>
-        </TouchableOpacity>
-      )}
       
       <View style={styles.slidesContainer}>
         <FlatList
@@ -351,13 +352,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  skipButton: {
-    position: 'absolute',
-    right: 20,
-    top: 50, // Adjusted to align with back button, accounting for safe area
-    zIndex: 10, // Higher z-index to ensure it's above all other elements
-    backgroundColor: 'transparent', // Ensure background is transparent
-    padding: 5, // Add some padding for better touch area
+  skipButtonContainer: {
+    alignSelf: 'flex-end', // Align to the right
   },
   skipButtonText: {
     fontSize: 16,
