@@ -2,3 +2,4 @@
 *.sqlite3
 *.pyc
 *.sqlite3
+/backend/media
