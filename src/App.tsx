@@ -21,7 +21,7 @@ function AppContent({
 }) {
   const location = useLocation();
 
-  // 🔁 Every time route changes, recheck token in localStorage
+  // Check token every route change
   useEffect(() => {
     const token = localStorage.getItem("access");
     setIsAuthenticated(!!token);

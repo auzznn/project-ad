@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./Pengguna.css";
 
 interface User {
   id: number;
@@ -33,14 +34,14 @@ async function addUser(newUser: Omit<User, "id">): Promise<User[]> {
 
 async function deleteUser(id: number): Promise<User[]> {
   const users = await getUsers();
-  const updated = users.filter(u => u.id !== id);
+  const updated = users.filter((u) => u.id !== id);
   await saveUsers(updated);
   return updated;
 }
 
 async function updateUser(updatedUser: User): Promise<User[]> {
   const users = await getUsers();
-  const updated = users.map(u => (u.id === updatedUser.id ? updatedUser : u));
+  const updated = users.map((u) => (u.id === updatedUser.id ? updatedUser : u));
   await saveUsers(updated);
   return updated;
 }
@@ -84,61 +85,116 @@ export default function Pengguna() {
     setRole(user.role);
   };
 
+  const handleCancel = () => {
+    setEditId(null);
+    setName("");
+    setEmail("");
+    setRole("teacher");
+  };
+
   return (
-    <div style={{ padding: "20px", color: "#333" }}>
-      <h2>Manage Users</h2>
+    <div className="pengguna-container">
+      <div className="pengguna-header">
+        <h1>Pengurusan Pengguna</h1>
+        <p>Urus pengguna sistem dan peranan mereka</p>
+      </div>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-        <input
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={{ marginRight: "10px" }}
-        />
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ marginRight: "10px" }}
-        />
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          style={{ marginRight: "10px" }}
-        >
-          <option value="teacher">Teacher</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button type="submit">{editId ? "Update" : "Add"}</button>
-      </form>
+      {/* Form Section */}
+      <div className="form-section">
+        <h2>{editId ? "Kemaskini Pengguna" : "Tambah Pengguna Baru"}</h2>
+        <form onSubmit={handleSubmit} className="user-form">
+          <div className="form-group">
+            <label htmlFor="name">Nama Pengguna</label>
+            <input
+              id="name"
+              type="text"
+              placeholder="Masukkan nama pengguna"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="form-control"
+            />
+          </div>
 
-      <table border={1} cellPadding={10}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id}>
-              <td>{u.name}</td>
-              <td>{u.email}</td>
-              <td>{u.role}</td>
-              <td>
-                <button onClick={() => handleEdit(u)}>Edit</button>
-                <button onClick={() => handleDelete(u.id)} style={{ marginLeft: "8px" }}>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="Masukkan email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="form-control"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="role">Peranan</label>
+            <select value={role} onChange={(e) => setRole(e.target.value)} className="form-control">
+              <option value="teacher">Guru</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary">
+              {editId ? "Kemaskini" : "Tambah"}
+            </button>
+            {editId && (
+              <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+                Batal
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Users Table */}
+      <div className="table-section">
+        <h2>Senarai Pengguna</h2>
+        <div className="table-container">
+          <table className="table table-custom">
+            <thead>
+              <tr>
+                <th>Nama Pengguna</th>
+                <th>Email</th>
+                <th>Peranan</th>
+                <th>Tindakan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td>{u.name}</td>
+                  <td>{u.email}</td>
+                  <td>
+                    <span className={`role-badge role-${u.role}`}>
+                      {u.role === "admin" ? "Admin" : "Guru"}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => handleEdit(u)}
+                      title="Edit"
+                    >
+                      <i className="bi bi-pencil"></i> Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleDelete(u.id)}
+                      title="Delete"
+                    >
+                      <i className="bi bi-trash"></i> Padam
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
