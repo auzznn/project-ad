@@ -3,7 +3,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.reverse import reverse
 from django.contrib.sites.models import Site
 
-from .models import MyUser
+from .models import MyUser, Student
 from .const import TOKEN_REFRESH_PATH_NAME
 
 class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
@@ -33,3 +33,13 @@ class MyUserCreateSerializer(ModelSerializer):
     extra_kwargs = {
       'password': {'write_only': True}
     }
+  
+  def create(self, validated_data: dict[str, any]) -> MyUser:
+    instance = MyUser.objects.create(**validated_data)
+    if instance.role == 'student':
+      student_instance_data = {
+        'user': instance,
+      }
+      student_instance = Student.objects.create(**student_instance_data)
+      student_instance.save()
+    return instance
