@@ -19,7 +19,7 @@ class MyUser(AbstractUser):
 
 class Classroom(models.Model):
   name = models.CharField(max_length=10, blank=False)
-  supervisor = models.CharField(blank=True)
+  supervisor = models.CharField(blank=True, null=True, max_length=50)
 
 class Student(models.Model):
   QR_IMAGE_FORMAT = "jpeg"
