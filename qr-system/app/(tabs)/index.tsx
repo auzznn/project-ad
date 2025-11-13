@@ -154,6 +154,9 @@ export default function TabIndex() {
             Sign Out
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("../scanner")}>
+          <Text>Scanner</Text>
+        </TouchableOpacity>
       </View>
       </View>
     </SafeAreaView>
