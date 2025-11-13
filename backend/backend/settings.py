@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 AUTH_USER_MODEL = 'authentication.MyUser'
 
@@ -86,11 +89,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'eduqr_db',
-        'USER': 'root',
-        'PASSWORD': 'admin123',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': os.getenv("MYSQL_DB_NAME"),
+        'USER': os.getenv("MYSQL_USER"),
+        'PASSWORD': os.getenv("MYSQL_PASSWORD"),
+        'HOST': os.getenv("MYSQL_HOST"),
+        'PORT': os.getenv("MYSQL_PORT"),
 
     }
 }
