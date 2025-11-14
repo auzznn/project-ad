@@ -11,6 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+AUTH_USER_MODEL = 'authentication.MyUser'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,6 +53,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,8 +88,13 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("MYSQL_DB_NAME"),
+        'USER': os.getenv("MYSQL_USER"),
+        'PASSWORD': os.getenv("MYSQL_PASSWORD"),
+        'HOST': os.getenv("MYSQL_HOST"),
+        'PORT': os.getenv("MYSQL_PORT"),
+
     }
 }
 
@@ -122,6 +134,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = str(Path(BASE_DIR).joinpath('media'))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -129,10 +143,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': {
-      'rest_framework_simplejwt.authentication.JWTAuthentication'
-    }
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+      'rest_framework_simplejwt.authentication.JWTAuthentication',
+      'rest_framework.authentication.SessionAuthentication',
+    ]
 }
 
-AUTH_USER_MODEL = 'authentication.MyUser'
 SITE_ID = 1
+
+CORS_ALLOWED_ORIGINS = [
+  'http://localhost:3000'
+]
