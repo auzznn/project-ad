@@ -11,7 +11,7 @@ export default function RootLayout() {
           screenOptions={{
             headerShown: false,
           }}
-          initialRouteName="_entry"
+          initialRouteName="index"
         >
           <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

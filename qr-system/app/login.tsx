@@ -43,6 +43,7 @@ export default function LoginScreen() {
 
     try {
       const success = await login(username, password);
+      
 
       if (success) {
         console.log("LOGIN RESPONSE:", success);

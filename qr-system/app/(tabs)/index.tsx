@@ -14,6 +14,7 @@ export default function TabIndex() {
   
   // Using placeholder username as requested
   const username = user?.username || "User";
+  const role = user?.role;
   
   // Get theme colors
   const backgroundColor = useThemeColor("background");
@@ -31,13 +32,25 @@ export default function TabIndex() {
     { label: "Messages", value: "2", icon: "chatbubble", color: primaryColor },
   ];
 
+  // Logout handler function
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(onboarding)");
+  };
+
   // Quick actions
   const quickActions = [
-    { 
-      title: "Scan QR Code", 
-      icon: "qr-code-outline", 
+    {
+      title: "Scan QR Code",
+      icon: "qr-code-outline",
       onPress: () => router.push("/scanner"),
-      primary: true 
+      primary: true
+    },
+    {
+      title: "Log Out",
+      icon: "log-out-outline",
+      onPress: handleLogout,
+      primary: true
     }
   ];
 
@@ -48,6 +61,7 @@ export default function TabIndex() {
   const getTextClassName = (primary: boolean) => {
     return `text-base font-semibold text-center${primary ? ' text-white' : ''}`;
   };
+
 
   return (
     <SafeAreaView className="flex-1 pt-8" style={{ backgroundColor }}>
@@ -63,7 +77,7 @@ export default function TabIndex() {
             </View>
             <View className="flex-1">
               <Text className="text-3xl font-semibold mb-1" style={{ color: textColor }}>
-                Hey, {username} 👋
+                Hey, {username} 👋 You are a {role}
               </Text>
               <Text className="text-base opacity-80" style={{ color: mutedColor }}>
                 Welcome back to your dashboard

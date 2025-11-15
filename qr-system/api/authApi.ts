@@ -12,7 +12,7 @@ export interface LoginData {
 
 export const authApi = {
   login: (data: LoginData): Promise<LoginResponse> =>
-    apiRequest.post('/authentication/token/', data),
+    apiRequest.post('/authentication/token', data),
 };
 
 
