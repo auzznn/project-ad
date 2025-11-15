@@ -1,0 +1,6 @@
+MYSQL_ROOT_PASSWORD = "admin123"
+
+MYSQL_DATABASE = "eduqr_db"
+MYSQL_USER = "root"
+MYSQL_HOST = "project-ad-mysql_database-1"
+MYSQL_PORT = "3306"
