@@ -7,7 +7,6 @@ import {
 import { router } from "expo-router";
 import { useThemeColor } from "../hooks/useThemeColor";
 import { useAuth } from "../context/AuthContext";
-import { authApi } from "../api/authApi";
 import { ModalWrapper, FormField, LoadingButton } from "../components";
 
 export default function LoginScreen() {
@@ -43,9 +42,11 @@ export default function LoginScreen() {
     if (!validateForm()) return;
 
     try {
-      const success = await authApi.login({username, password});
+      const success = await login(username, password);
 
       if (success) {
+        console.log("LOGIN RESPONSE:", success);
+
         Alert.alert("Login Successful", "Welcome to the App!", [
           {
             text: "OK",

@@ -25,10 +25,11 @@ export default function RootLayout() {
               contentStyle: { backgroundColor: 'transparent' },
             }}
           />
-                    <Stack.Screen
+            <Stack.Screen
             name="scanner"
             options={{
-              headerShown: false
+              headerShown: false,
+              presentation: 'modal'
             }}
           />
 

@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authApi } from "../api/authApi";
 
 interface User {
   username: string;
-  role: 'teacher' | 'guardian';
+  role: string
   // Add other user properties as needed
 }
 
@@ -15,15 +16,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-// Hardcoded admin credentials
-const ADMIN_CREDENTIALS = {
-  teacher: { username: 'admin', password: 'admin123' },
-  guardian: { username: 'user', password: 'user123' },
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,12 +28,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem('user_data');
-        if (storedUser) {
+        const storedUser = await AsyncStorage.getItem("user_data");
+        const storedToken = await AsyncStorage.getItem("access_token");
+
+        // Only restore user session if both user data and token exist
+        if (storedUser && storedToken) {
           setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.log('Error checking auth status:', error);
+        console.log("Error checking auth status:", error);
       } finally {
         setIsLoading(false);
       }
@@ -45,45 +45,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuthStatus();
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (
+    username: string,
+    password: string
+  ): Promise<boolean> => {
     try {
-      // Simulate brief loading for better UX
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Check against hardcoded credentials
-      if (username === ADMIN_CREDENTIALS.teacher.username && password === ADMIN_CREDENTIALS.teacher.password) {
-        const userData: User = { username, role: 'teacher' };
-        
-        // Store user session
-        await AsyncStorage.setItem('user_data', JSON.stringify(userData));
-        setUser(userData);
-        
-        return true;
-      }
-      
-      if (username === ADMIN_CREDENTIALS.guardian.username && password === ADMIN_CREDENTIALS.guardian.password) {
-        const userData: User = { username, role: 'guardian' };
-        
-        // Store user session
-        await AsyncStorage.setItem('user_data', JSON.stringify(userData));
-        setUser(userData);
-        
-        return true;
-      }
-      
-      return false;
+      setIsLoading(true);
+
+      // Make API request
+
+      const response = await authApi.login({ username, password });
+
+      // Example API response:
+      // { access: "...", refresh: "...", user: { username: "...", role: "..." } }
+      // For now, we'll assume the API returns just tokens
+      const userData: User = {
+        username,
+        role: "guardian" // This should be determined from API response when available
+      };
+
+      // Save user + tokens
+      await AsyncStorage.setItem("user_data", JSON.stringify(userData));
+      await AsyncStorage.setItem("access_token", response.access);
+      await AsyncStorage.setItem("refresh_token", response.refresh);
+      // Also save as authToken for axiosClient interceptor
+      await AsyncStorage.setItem("authToken", response.access);
+
+      setUser(userData);
+      return true;
     } catch (error) {
-      console.log('Login error:', error);
+      console.log("Login error:", error);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async (): Promise<void> => {
     try {
-      await AsyncStorage.removeItem('user_data');
+      await AsyncStorage.removeItem("user_data");
+      await AsyncStorage.removeItem("access_token");
+      await AsyncStorage.removeItem("refresh_token");
+      await AsyncStorage.removeItem("authToken");
       setUser(null);
     } catch (error) {
-      console.log('Logout error:', error);
+      console.log("Logout error:", error);
     }
   };
 
@@ -95,17 +101,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAuthenticated: !!user,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

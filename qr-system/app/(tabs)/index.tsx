@@ -1,190 +1,183 @@
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function TabIndex() {
+  const router = useRouter();
+  const { theme, themeMode } = useTheme();
   const { isAuthenticated, user, logout } = useAuth();
-  const backgroundColor = useThemeColor('background');
-  const textColor = useThemeColor('text');
-  const accentColor = useThemeColor('accent');
-  const primaryColor = useThemeColor('primary');
-  const cardColor = useThemeColor('card');
-  const borderColor = useThemeColor('border');
-  const mutedColor = useThemeColor('muted');
-  const { themeMode, toggleTheme, isSystemTheme, useSystemTheme } = useTheme();
+  
+  // Using placeholder username as requested
+  const username = user?.username || "User";
+  
+  // Get theme colors
+  const backgroundColor = useThemeColor("background");
+  const cardColor = useThemeColor("card");
+  const textColor = useThemeColor("text");
+  const mutedColor = useThemeColor("muted");
+  const primaryColor = useThemeColor("primary");
+  const borderColor = useThemeColor("border");
+  const successColor = useThemeColor("success");
+
+  // Quick stats data (placeholder)
+  const quickStats = [
+    { label: "Today's Check-ins", value: "3", icon: "checkmark-circle", color: successColor },
+    { label: "Pending Tasks", value: "5", icon: "time", color: primaryColor },
+    { label: "Messages", value: "2", icon: "chatbubble", color: primaryColor },
+  ];
+
+  // Quick actions
+  const quickActions = [
+    { 
+      title: "Scan QR Code", 
+      icon: "qr-code-outline", 
+      onPress: () => router.push("/scanner"),
+      primary: true 
+    }
+  ];
+
+  const getActionClassName = (primary: boolean) => {
+    return `rounded-2xl p-5 mb-3 items-center shadow-lg ${primary ? 'border-0' : 'border'}`;
+  };
+
+  const getTextClassName = (primary: boolean) => {
+    return `text-base font-semibold text-center${primary ? ' text-white' : ''}`;
+  };
 
   return (
-    <SafeAreaView style={{ backgroundColor }} className="flex-1">
-      <View
-        className="flex-1 items-center justify-center"
-        style={[styles.container]}
-      >
-      <View
-        className="p-6 rounded-xl shadow-lg mb-6"
-        style={[styles.card, { backgroundColor: cardColor, borderColor }]}
-      >
-        <Text
-          className="text-2xl font-bold mb-4 text-center"
-          style={{ color: primaryColor }}
-        >
-          School App
-        </Text>
-        <Text
-          className="text-center mb-6"
-          style={{ color: textColor }}
-        >
-          Welcome to the Malaysian-inspired school app!
-        </Text>
-        <Text
-          className="text-center mb-2 text-sm"
-          style={{ color: mutedColor }}
-        >
-          Logged in as: {user?.username}
-        </Text>
-        <Text
-          className="text-center mb-2 text-sm"
-          style={{ color: mutedColor }}
-        >
-          Role: {user?.role === 'teacher' ? 'Teacher' :
-                 user?.role === 'guardian' ? 'Guardian' :
-                 user?.role === 'admin' ? 'Administrator' : 'User'}
-        </Text>
-        <Text
-          className="text-center mb-2 text-sm"
-          style={{ color: mutedColor }}
-        >
-          Current theme: {themeMode}
-        </Text>
-        <Text
-          className="text-center mb-4 text-xs"
-          style={{ color: mutedColor }}
-        >
-          {isSystemTheme ? 'Following system settings' : 'Manual selection'}
-        </Text>
-        <View
-          className="px-4 py-2 rounded-lg mb-4"
-          style={{ backgroundColor: accentColor }}
-        >
-          <Text
-            className="text-center font-semibold"
-            style={{ color: primaryColor }}
-          >
-            Get Started
-          </Text>
+    <SafeAreaView className="flex-1 pt-8" style={{ backgroundColor }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
+        {/* Header Section */}
+        <View className="px-5 pt-5 pb-8">
+          <View className="flex-row items-center">
+            <View 
+              className="w-16 h-16 rounded-full justify-center items-center mr-4 shadow-md border"
+              style={{ backgroundColor: cardColor, borderColor }}
+            >
+              <Text className="text-2xl">👤</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-3xl font-semibold mb-1" style={{ color: textColor }}>
+                Hey, {username} 👋
+              </Text>
+              <Text className="text-base opacity-80" style={{ color: mutedColor }}>
+                Welcome back to your dashboard
+              </Text>
+            </View>
+          </View>
         </View>
-        
-        <TouchableOpacity
-          className="px-4 py-2 rounded-lg border mb-2"
-          style={[styles.themeToggle, { borderColor, backgroundColor: 'transparent' }]}
-          onPress={toggleTheme}
-        >
-          <Text
-            className="text-center font-semibold"
-            style={{ color: textColor }}
-          >
-            Switch to {themeMode === 'light' ? 'Dark' : 'Light'} Mode
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          className="px-4 py-2 rounded-lg border"
-          style={[styles.themeToggle, { borderColor, backgroundColor: isSystemTheme ? primaryColor : 'transparent' }]}
-          onPress={useSystemTheme}
-        >
-          <Text
-            className="text-center font-semibold"
-            style={{ color: isSystemTheme ? accentColor : textColor }}
-          >
-            Use System Theme
-          </Text>
-        </TouchableOpacity>
-      </View>
 
-      <View
-        className="p-6 rounded-xl shadow-lg"
-        style={[styles.card, { backgroundColor: cardColor, borderColor }]}
-      >
-        <Text
-          className="text-lg font-semibold mb-4 text-center"
-          style={{ color: textColor }}
-        >
-          Quick Actions
-        </Text>
-        
-        <TouchableOpacity
-          className="px-6 py-3 rounded-lg mb-3"
-          style={[styles.actionButton, { backgroundColor: primaryColor }]}
-          onPress={() => router.push('/login')}
-        >
-          <Text
-            className="text-center font-semibold text-white"
-          >
-            Sign In
+        {/* Quick Stats */}
+        <View className="mb-8">
+          <Text className="text-xl font-semibold mb-4 px-5" style={{ color: textColor }}>
+            Quick Overview
           </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          className="px-6 py-3 rounded-lg border"
-          style={[styles.actionButton, { borderColor, backgroundColor: 'transparent' }]}
-          onPress={() => router.push('/login')}
-        >
-          <Text
-            className="text-center font-semibold"
-            style={{ color: primaryColor }}
-          >
-            Login Page Demo
+          <View className="flex-row justify-between px-5">
+            {quickStats.map((stat, index) => (
+              <View 
+                key={index}
+                className="w-[30%] rounded-2xl p-4 items-center shadow-md border"
+                style={{ backgroundColor: cardColor, borderColor }}
+              >
+                <Ionicons 
+                  name={stat.icon as any} 
+                  size={24} 
+                  color={stat.color} 
+                  className="mb-2" 
+                />
+                <Text className="text-2xl font-bold mb-1" style={{ color: textColor }}>
+                  {stat.value}
+                </Text>
+                <Text className="text-xs text-center" style={{ color: mutedColor }}>
+                  {stat.label}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View className="mb-8">
+          <Text className="text-xl font-semibold mb-4 px-5" style={{ color: textColor }}>
+            Quick Actions
           </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          className="px-6 py-3 rounded-lg border mt-3"
-          style={[styles.actionButton, { borderColor, backgroundColor: 'transparent' }]}
-          onPress={async () => {
-            await logout();
-            router.replace('/(onboarding)');
-          }}
+          <View className="px-5">
+            {quickActions.map((action, index) => (
+              <TouchableOpacity
+                key={index}
+                className={getActionClassName(action.primary)}
+                style={action.primary 
+                  ? { backgroundColor: primaryColor }
+                  : { backgroundColor: cardColor, borderColor }
+                }
+                onPress={action.onPress}
+              >
+                <Ionicons 
+                  name={action.icon as any} 
+                  size={28} 
+                  color={action.primary ? "white" : primaryColor} 
+                  className="mb-2" 
+                />
+                <Text 
+                  className={getTextClassName(action.primary)}
+                  style={action.primary ? {} : { color: textColor }}
+                >
+                  {action.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Recent Activity */}
+        <View 
+          className="mx-5 rounded-2xl p-5 shadow-md border"
+          style={{ backgroundColor: cardColor, borderColor }}
         >
-          <Text
-            className="text-center font-semibold"
-            style={{ color: primaryColor }}
-          >
-            Sign Out
+          <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
+            Recent Activity
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("../scanner")}>
-          <Text>Scanner</Text>
-        </TouchableOpacity>
-      </View>
-      </View>
+          <View className="mt-4">
+            <View className="flex-row items-center mb-4">
+              <View 
+                className="w-8 h-8 rounded-full justify-center items-center mr-3"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <Ionicons name="checkmark" size={16} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-medium mb-1" style={{ color: textColor }}>
+                  Check-in completed
+                </Text>
+                <Text className="text-sm opacity-70" style={{ color: mutedColor }}>
+                  2 hours ago
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row items-center">
+              <View 
+                className="w-8 h-8 rounded-full justify-center items-center mr-3"
+                style={{ backgroundColor: successColor }}
+              >
+                <Ionicons name="trophy" size={16} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-medium mb-1" style={{ color: textColor }}>
+                  Achievement unlocked
+                </Text>
+                <Text className="text-sm opacity-70" style={{ color: mutedColor }}>
+                  Yesterday
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 300,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  themeToggle: {
-    borderWidth: 1,
-  },
-  actionButton: {
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-});

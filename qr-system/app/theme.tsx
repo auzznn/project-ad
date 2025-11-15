@@ -1,104 +1,156 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useTheme } from '@/context/ThemeContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function ThemeShowcase() {
-  const { theme, themeMode, toggleTheme } = useTheme();
+export default function ThemePage() {
+  const { theme, themeMode, toggleTheme, setThemeMode, isSystemTheme, useSystemTheme } = useTheme();
   
-  // Get all theme colors
-  const colors = {
-    primary: useThemeColor('primary'),
-    secondary: useThemeColor('secondary'),
-    accent: useThemeColor('accent'),
-    background: useThemeColor('background'),
-    card: useThemeColor('card'),
-    text: useThemeColor('text'),
-    muted: useThemeColor('muted'),
-    border: useThemeColor('border'),
-    success: useThemeColor('success'),
-    error: useThemeColor('error'),
-    warning: useThemeColor('warning'),
+  // Get theme colors
+  const backgroundColor = useThemeColor('background');
+  const cardColor = useThemeColor('card');
+  const textColor = useThemeColor('text');
+  const mutedColor = useThemeColor('muted');
+  const primaryColor = useThemeColor('primary');
+  const borderColor = useThemeColor('border');
+
+  const handleSystemThemeToggle = () => {
+    if (isSystemTheme) {
+      // Switch to manual mode with current theme
+      setThemeMode(themeMode);
+    } else {
+      // Switch to system theme
+      useSystemTheme();
+    }
   };
 
-  const ColorBox = ({ name, color }: { name: string; color: string }) => (
-    <View style={[styles.colorContainer, { backgroundColor: color }]}>
-      <Text style={[styles.colorName, { color: name === 'background' || name === 'card' ? colors.text : '#FFFFFF' }]}>
-        {name}
-      </Text>
-      <Text style={[styles.colorValue, { color: name === 'background' || name === 'card' ? colors.text : '#FFFFFF' }]}>
-        {color}
-      </Text>
-    </View>
-  );
+  const handleManualThemeToggle = () => {
+    if (!isSystemTheme) {
+      toggleTheme();
+    }
+  };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Theme Showcase</Text>
-        <Text style={[styles.subtitle, { color: colors.muted }]}>
-          Current Theme: {themeMode.charAt(0).toUpperCase() + themeMode.slice(1)}
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Brand Colors</Text>
-        <View style={styles.colorGrid}>
-          <ColorBox name="primary" color={colors.primary} />
-          <ColorBox name="secondary" color={colors.secondary} />
-          <ColorBox name="accent" color={colors.accent} />
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      <View style={styles.content}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: textColor }]}>
+            Theme Settings
+          </Text>
+          <Text style={[styles.subtitle, { color: mutedColor }]}>
+            Choose your preferred theme mode
+          </Text>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Surface Colors</Text>
-        <View style={styles.colorGrid}>
-          <ColorBox name="background" color={colors.background} />
-          <ColorBox name="card" color={colors.card} />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Text Colors</Text>
-        <View style={styles.colorGrid}>
-          <ColorBox name="text" color={colors.text} />
-          <ColorBox name="muted" color={colors.muted} />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Status Colors</Text>
-        <View style={styles.colorGrid}>
-          <ColorBox name="success" color={colors.success} />
-          <ColorBox name="error" color={colors.error} />
-          <ColorBox name="warning" color={colors.warning} />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Other Colors</Text>
-        <View style={styles.colorGrid}>
-          <ColorBox name="border" color={colors.border} />
-        </View>
-      </View>
-
-      <View style={[styles.demoCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.demoTitle, { color: colors.text }]}>Demo Card</Text>
-        <Text style={[styles.demoText, { color: colors.muted }]}>
-          This is how a card looks with the current theme. The border and text colors automatically adapt to the theme.
-        </Text>
-        <View style={styles.buttonContainer}>
-          <View style={[styles.button, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Primary Button</Text>
-          </View>
-          <View style={[styles.button, { backgroundColor: colors.secondary }]}>
-            <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Secondary Button</Text>
+        {/* System Theme Toggle */}
+        <View style={[styles.card, { backgroundColor: cardColor, borderColor }]}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="phone-portrait" 
+                size={24} 
+                color={primaryColor} 
+                style={styles.icon} 
+              />
+              <View style={styles.textContainer}>
+                <Text style={[styles.settingTitle, { color: textColor }]}>
+                  Use System Theme
+                </Text>
+                <Text style={[styles.settingDescription, { color: mutedColor }]}>
+                  Automatically follow device's appearance settings
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={isSystemTheme}
+              onValueChange={handleSystemThemeToggle}
+              trackColor={{ false: borderColor, true: primaryColor }}
+              thumbColor={isSystemTheme ? primaryColor : textColor}
+              ios_backgroundColor={cardColor}
+            />
           </View>
         </View>
+
+        {/* Manual Theme Selection */}
+        <View style={[styles.card, { backgroundColor: cardColor, borderColor }]}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Ionicons 
+                name="color-palette" 
+                size={24} 
+                color={isSystemTheme ? mutedColor : primaryColor} 
+                style={styles.icon} 
+              />
+              <View style={styles.textContainer}>
+                <Text style={[
+                  styles.settingTitle, 
+                  { color: isSystemTheme ? mutedColor : textColor }
+                ]}>
+                  Manual Theme
+                </Text>
+                <Text style={[styles.settingDescription, { color: mutedColor }]}>
+                  {isSystemTheme 
+                    ? "Enable manual mode to select theme" 
+                    : `Currently using ${themeMode} mode`
+                  }
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={!isSystemTheme}
+              onValueChange={() => setThemeMode(themeMode)}
+              trackColor={{ false: borderColor, true: primaryColor }}
+              thumbColor={!isSystemTheme ? primaryColor : mutedColor}
+              ios_backgroundColor={cardColor}
+              disabled={isSystemTheme}
+            />
+          </View>
+        </View>
+
+        {/* Theme Toggle Button */}
+        {!isSystemTheme && (
+          <TouchableOpacity
+            style={[styles.toggleButton, { backgroundColor: primaryColor }]}
+            onPress={handleManualThemeToggle}
+          >
+            <Ionicons 
+              name={themeMode === 'light' ? 'moon' : 'sunny'} 
+              size={20} 
+              color="white" 
+              style={styles.buttonIcon} 
+            />
+            <Text style={styles.buttonText}>
+              Switch to {themeMode === 'light' ? 'Dark' : 'Light'} Mode
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Current Status */}
+        <View style={[styles.statusCard, { backgroundColor: cardColor, borderColor }]}>
+          <Text style={[styles.statusText, { color: textColor }]}>
+            Current Status
+          </Text>
+          <View style={styles.statusRow}>
+            <Text style={[styles.statusLabel, { color: mutedColor }]}>
+              Mode:
+            </Text>
+            <Text style={[styles.statusValue, { color: primaryColor }]}>
+              {isSystemTheme ? 'System' : 'Manual'}
+            </Text>
+          </View>
+          <View style={styles.statusRow}>
+            <Text style={[styles.statusLabel, { color: mutedColor }]}>
+              Theme:
+            </Text>
+            <Text style={[styles.statusValue, { color: primaryColor }]}>
+              {themeMode.charAt(0).toUpperCase() + themeMode.slice(1)}
+            </Text>
+          </View>
+        </View>
       </View>
-      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -107,15 +159,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
+  content: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
+    padding: 20,
   },
   header: {
-    padding: 20,
     alignItems: 'center',
+    marginBottom: 30,
   },
   title: {
     fontSize: 28,
@@ -124,65 +174,94 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
+    textAlign: 'center',
   },
-  section: {
-    margin: 16,
+  card: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  colorGrid: {
+  settingRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  colorContainer: {
-    width: '48%',
-    height: 100,
-    borderRadius: 8,
-    padding: 12,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'space-between',
   },
-  colorName: {
-    fontSize: 16,
+  settingInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  icon: {
+    marginRight: 16,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  settingTitle: {
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 4,
   },
-  colorValue: {
-    fontSize: 12,
-    opacity: 0.8,
-  },
-  demoCard: {
-    margin: 16,
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  demoTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  demoText: {
+  settingDescription: {
     fontSize: 14,
     lineHeight: 20,
-    marginBottom: 16,
   },
-  buttonContainer: {
+  toggleButton: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  button: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 6,
+  buttonIcon: {
+    marginRight: 8,
   },
   buttonText: {
-    fontSize: 14,
-    fontWeight: '500',
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  statusCard: {
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    marginTop: 10,
+  },
+  statusText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statusLabel: {
+    fontSize: 16,
+  },
+  statusValue: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
