@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     
     'base',
     'authentication',
+    'student_attendance'
 ]
 
 MIDDLEWARE = [
@@ -123,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kuala_Lumpur'
 
 USE_I18N = True
 
@@ -151,6 +152,4 @@ REST_FRAMEWORK = {
 
 SITE_ID = 1
 
-CORS_ALLOWED_ORIGINS = [
-  'http://localhost:3000'
-]
+ALLOWED_HOSTS = ["*"]
