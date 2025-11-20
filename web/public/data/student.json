@@ -1,0 +1,77 @@
+[
+  {
+    "student_id": 201,
+    "user_id": 101,
+    "class": "1A"
+  },
+  {
+    "student_id": 202,
+    "user_id": 102,
+    "class": "1B"
+  },
+  {
+    "student_id": 203,
+    "user_id": 103,
+    "class": "1C"
+  },
+  {
+    "student_id": 204,
+    "user_id": 104,
+    "class": "2A"
+  },
+  {
+    "student_id": 205,
+    "user_id": 105,
+    "class": "2B"
+  },
+  {
+    "student_id": 206,
+    "user_id": 106,
+    "class": "2C"
+  },
+  {
+    "student_id": 207,
+    "user_id": 107,
+    "class": "3A"
+  },
+  {
+    "student_id": 208,
+    "user_id": 108,
+    "class": "3B"
+  },
+  {
+    "student_id": 209,
+    "user_id": 109,
+    "class": "3C"
+  },
+  {
+    "student_id": 210,
+    "user_id": 110,
+    "class": "4A"
+  },
+  {
+    "student_id": 211,
+    "user_id": 111,
+    "class": "4B"
+  },
+  {
+    "student_id": 212,
+    "user_id": 112,
+    "class": "4C"
+  },
+  {
+    "student_id": 213,
+    "user_id": 113,
+    "class": "5A"
+  },
+  {
+    "student_id": 214,
+    "user_id": 114,
+    "class": "5B"
+  },
+  {
+    "student_id": 215,
+    "user_id": 115,
+    "class": "5C"
+  }
+]
