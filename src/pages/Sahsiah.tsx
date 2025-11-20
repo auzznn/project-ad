@@ -24,7 +24,6 @@ function Sahsiah() {
   const [endDate, setEndDate] = useState("2025-02-03");
 
   useEffect(() => {
-    // Generate mock data
     const mockRecords: SahsiahRecord[] = [
       {
         id: 1,
@@ -69,7 +68,6 @@ function Sahsiah() {
     ];
     setSahsiahRecords(mockRecords);
 
-    // Generate mock rankings
     const mockRankings: StudentRanking[] = [
       { rank: 1, student_name: "Tan Mei Ling", total_marks: 150 },
       { rank: 2, student_name: "Ahmad Faris", total_marks: 130 },
@@ -91,7 +89,6 @@ function Sahsiah() {
         <p>Rekod dan jejak mata perkembangan sahsiah</p>
       </div>
 
-      {/* Filters Section */}
       <div className="filters-section">
         <div className="filter-item">
           <label>Penapis Kelas</label>
@@ -113,7 +110,6 @@ function Sahsiah() {
         </div>
       </div>
 
-      {/* Add Button */}
       <div className="action-buttons">
         <button className="btn btn-primary" onClick={handleAddRecord}>
           <i className="bi bi-plus-circle"></i> Tambah Rekod Sahsiah
@@ -121,7 +117,6 @@ function Sahsiah() {
       </div>
 
       <div className="content-grid">
-        {/* Sahsiah Records */}
         <div className="records-section">
           <h2>Nama Pelajar</h2>
           <table className="table table-custom">
@@ -148,7 +143,6 @@ function Sahsiah() {
           </table>
         </div>
 
-        {/* Student Rankings */}
         <div className="rankings-section">
           <h2>
             <i className="bi bi-trophy"></i> Papan Pendahulu

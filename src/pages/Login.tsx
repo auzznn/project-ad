@@ -22,26 +22,33 @@ function Login({ setIsAuthenticated }: LoginProps) {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/authentication/token/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
 
-      if (!response.ok) {
-        throw new Error("Invalid credentials");
-      }
+      // 
+      // const response = await fetch("http://127.0.0.1:8000/api/authentication/token/", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ username, password }),
+      // });
 
-      const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error("Invalid credentials");
+      // }
 
-      // Save tokens
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
-      const decoded = jwtDecode<{ role: string }>(data.access);
-      localStorage.setItem("role", decoded.role);
+      // const data = await response.json();
+
+      // // Save tokens
+      // localStorage.setItem("access", data.access);
+      // localStorage.setItem("refresh", data.refresh);
+      // const decoded = jwtDecode<{ role: string }>(data.access);
+      // localStorage.setItem("role", decoded.role);
 
       setIsAuthenticated(true);
       window.location.href = "/dashboard";
+
+      // Temporary 
+      localStorage.setItem("access", "wdiwdjidwjidwjijwdij");
+      localStorage.setItem("role", "admin");
+
     } catch (err: any) {
       setError(err.message);
     }

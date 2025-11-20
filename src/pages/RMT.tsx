@@ -32,13 +32,11 @@ function RMT() {
         setStudents(data);
         setTotalStudents(data.length);
 
-        // Calculate RMT stats
         const received = Math.round(data.length * 0.8);
         setRmtReceived(received);
         setRmtPending(data.length - received);
         setRmtCompletionRate(Math.round((received / data.length) * 100));
 
-        // Generate mock RMT records
         const mockRecords: RMTRecord[] = data.slice(0, 6).map((s: Student, idx: number) => ({
           id: idx + 1,
           student_name: s.name,
@@ -66,7 +64,6 @@ function RMT() {
         <p>Urus rekod pengedaran RMT</p>
       </div>
 
-      {/* Statistics Section */}
       <div className="rmt-stats">
         <div className="stat-box">
           <h3>Statistik RMT</h3>
@@ -103,14 +100,12 @@ function RMT() {
         </div>
       </div>
 
-      {/* Add Student Button */}
       <div className="action-buttons">
         <button className="btn btn-primary" onClick={handleAddStudent}>
           <i className="bi bi-plus-circle"></i> Tambah Pelajar Secara Manual
         </button>
       </div>
 
-      {/* RMT Records Table */}
       <div className="table-section">
         <h2>Senarai Pelajar RMT</h2>
         <table className="table table-custom">
