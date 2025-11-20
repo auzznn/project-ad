@@ -32,7 +32,7 @@ export default function scanner() {
     // Parse student QR format: STD:id:name:grade:class
     if (qrData.startsWith('STD:')) {
       const parts = qrData.split(':');
-      if (parts.length === 4) {
+      if (parts.length === 5) {
         return {
           id: parts[1],
           name: parts[2],

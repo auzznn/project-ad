@@ -83,6 +83,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="qr-test"
+        options={{
+          title: 'QR Test',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? 'flask' : 'flask-outline'}
+              size={size || 22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="theme"
         options={{
           title: 'Theme',
