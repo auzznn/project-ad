@@ -1,0 +1,30 @@
+
+services:
+  mysql_database:
+    image: mysql:8.0
+    restart: always
+    ports: 
+      - 3306:3306
+    env_file:
+    - backend/.env
+    volumes:
+      - mysql-db:/var/lib/mysql
+
+  backend:
+    restart: always
+    build:
+      dockerfile: dockerfile
+      context: backend/
+    ports:
+      - 8080:8080
+    environment:
+      - MYSQL_HOST
+    env_file: 
+      - path: backend/.env
+    depends_on:
+      - mysql_database
+    volumes:
+      - backend:/var/lib/backend
+volumes:
+  mysql-db:
+  backend:

@@ -47,6 +47,12 @@ export default function TabIndex() {
       primary: true
     },
     {
+      title: "Generate QR Code",
+      icon: "add-circle-outline",
+      onPress: () => router.push("/(tabs)/qr-generator"),
+      primary: true
+    },
+    {
       title: "Log Out",
       icon: "log-out-outline",
       onPress: handleLogout,
@@ -195,3 +201,4 @@ export default function TabIndex() {
     </SafeAreaView>
   );
 }
+

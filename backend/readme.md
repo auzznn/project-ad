@@ -20,7 +20,9 @@ Before starting, ensure you have the following installed:
 | Python | 3.10+ | `python --version` |
 | pip | Latest | `pip --version` |
 | Git | Latest | `git --version` |
-| Virtualenv (optional but recommended) | Latest | `pip install virtualenv` |
+| MySQL | 9.1.0 | `mysql --version` |
+
+**note**: make sure your MySQL is already running before running the django file ([How to run MySQL Server](https://phoenixnap.com/kb/start-mysql-server))
 
 ---
 
