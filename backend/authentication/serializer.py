@@ -1,9 +1,10 @@
 from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.reverse import reverse
 from django.contrib.sites.models import Site
 
-from .models import MyUser, Student
+from .models import MyUser, Student, Classroom
 from .const import TOKEN_REFRESH_PATH_NAME
 
 class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
@@ -43,3 +44,15 @@ class MyUserCreateSerializer(ModelSerializer):
       student_instance = Student.objects.create(**student_instance_data)
       student_instance.save()
     return instance
+
+class StudentSerializer(ModelSerializer):
+  fullname = serializers.SerializerMethodField()
+  student_id = serializers.IntegerField(source="user.id")
+  class_room = serializers.CharField(source="class_room.name")
+  
+  class Meta:
+    model = Student
+    fields =  ["student_id", "fullname", "class_room"]
+  
+  def get_fullname(self, obj: Student) -> str:
+    return f"{obj.user.first_name} {obj.user.last_name}"

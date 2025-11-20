@@ -13,6 +13,318 @@
   }
 },
 {
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-11-20T16:19:43.043Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "miftah + <built-in method date of datetime.datetime object at 0x74b83a3deb80>",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2025-11-20T16:29:36.461Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "miftah 20/19/2025",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2025-11-20T16:29:44.696Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "miftah 20/19/2025",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2025-11-20T16:29:49.101Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "miftah 20/19/2025",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2025-11-20T16:29:57.576Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "1",
+    "object_repr": "miftah 20/19/2025",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2025-11-20T16:35:02.995Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "2",
+    "object_repr": "miftah 21/34/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2025-11-20T16:38:58.773Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "3",
+    "object_repr": "miftah 22/38/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2025-11-20T17:05:49.212Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "1",
+    "object_repr": "Classroom object (1)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2025-11-20T17:05:56.271Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "1",
+    "object_repr": "Muhammad Nur Miftahul Rahman",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class room\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2025-11-20T17:41:28.143Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "miftah",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2025-11-20T17:42:50.914Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "3",
+    "object_repr": "alice01",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2025-11-20T17:44:42.351Z",
+    "user": 1,
+    "content_type": 7,
+    "object_id": "2",
+    "object_repr": "Classroom object (2)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 14,
+  "fields": {
+    "action_time": "2025-11-20T17:45:17.852Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "6",
+    "object_repr": "Emily Davis",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class room\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 15,
+  "fields": {
+    "action_time": "2025-11-20T17:45:21.036Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "5",
+    "object_repr": "David Brown",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class room\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 16,
+  "fields": {
+    "action_time": "2025-11-20T17:45:24.056Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "4",
+    "object_repr": "Clara Williams",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class room\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 17,
+  "fields": {
+    "action_time": "2025-11-20T17:45:26.850Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "3",
+    "object_repr": "Alice Johnson",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class room\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 18,
+  "fields": {
+    "action_time": "2025-11-20T17:45:29.857Z",
+    "user": 1,
+    "content_type": 9,
+    "object_id": "2",
+    "object_repr": "Brian Smith",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class room\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 19,
+  "fields": {
+    "action_time": "2025-11-20T17:46:08.617Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "4",
+    "object_repr": "Alice01 21/46/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 20,
+  "fields": {
+    "action_time": "2025-11-20T17:46:18.292Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "5",
+    "object_repr": "Brian01 21/46/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 21,
+  "fields": {
+    "action_time": "2025-11-20T17:46:22.179Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "6",
+    "object_repr": "Clara01 21/46/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 22,
+  "fields": {
+    "action_time": "2025-11-20T17:46:25.550Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "7",
+    "object_repr": "David1 21/46/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 23,
+  "fields": {
+    "action_time": "2025-11-20T17:46:28.655Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "8",
+    "object_repr": "Emily1 21/46/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 24,
+  "fields": {
+    "action_time": "2025-11-20T17:46:44.489Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "9",
+    "object_repr": "Brian01 20/46/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 25,
+  "fields": {
+    "action_time": "2025-11-20T17:47:05.333Z",
+    "user": 1,
+    "content_type": 10,
+    "object_id": "10",
+    "object_repr": "Clara01 20/46/2025",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
   "model": "auth.permission",
   "pk": 1,
   "fields": {
@@ -337,6 +649,42 @@
   }
 },
 {
+  "model": "auth.permission",
+  "pk": 37,
+  "fields": {
+    "name": "Can add student attendance",
+    "content_type": 10,
+    "codename": "add_studentattendance"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 38,
+  "fields": {
+    "name": "Can change student attendance",
+    "content_type": 10,
+    "codename": "change_studentattendance"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 39,
+  "fields": {
+    "name": "Can delete student attendance",
+    "content_type": 10,
+    "codename": "delete_studentattendance"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 40,
+  "fields": {
+    "name": "Can view student attendance",
+    "content_type": 10,
+    "codename": "view_studentattendance"
+  }
+},
+{
   "model": "contenttypes.contenttype",
   "pk": 1,
   "fields": {
@@ -409,6 +757,22 @@
   }
 },
 {
+  "model": "contenttypes.contenttype",
+  "pk": 10,
+  "fields": {
+    "app_label": "student_attendance",
+    "model": "studentattendance"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "2q9jeg6f2znh80p34phq07oqae3xwtl3",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2pABxAGX7j0DGWaoVA1NSrsy3l2bdKHb_977L5VoXWpae5nTKOqsjDr8bpn4UdoG5E7tNmme2jKPWW-K3mnX10nK87K7fweVev3WfMrIMFDOGIUEgiAGMAEHYy16sByik4JFLKDz1uUoxTFGf2TrAdT7A-vpN3Q:1vM63k:0nYPFS92ZHFogItH_ll-DipWxpVTdKsY2Uz5Q2_60G8",
+    "expire_date": "2025-12-04T14:54:56.893Z"
+  }
+},
+{
   "model": "sessions.session",
   "pk": "fyw4ucknotpib3jdopyrxdt0033kmrcc",
   "fields": {
@@ -441,6 +805,232 @@
     "role": "student",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "authentication.myuser",
+  "pk": 4,
+  "fields": {
+    "password": "a",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Brian01",
+    "first_name": "Brian",
+    "last_name": "Smith",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-20T17:42:58.213Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "authentication.myuser",
+  "pk": 5,
+  "fields": {
+    "password": "a",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Alice01",
+    "first_name": "Alice",
+    "last_name": "Johnson",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-20T17:43:26.112Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "authentication.myuser",
+  "pk": 6,
+  "fields": {
+    "password": "a",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Clara01",
+    "first_name": "Clara",
+    "last_name": "Williams",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-20T17:43:52.091Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "authentication.myuser",
+  "pk": 7,
+  "fields": {
+    "password": "a",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "David1",
+    "first_name": "David",
+    "last_name": "Brown",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-20T17:44:08.207Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "authentication.myuser",
+  "pk": 8,
+  "fields": {
+    "password": "a",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Emily1",
+    "first_name": "Emily",
+    "last_name": "Davis",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-11-20T17:44:24.963Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "authentication.classroom",
+  "pk": 1,
+  "fields": {
+    "name": "1A",
+    "supervisor": null
+  }
+},
+{
+  "model": "authentication.classroom",
+  "pk": 2,
+  "fields": {
+    "name": "1B",
+    "supervisor": null
+  }
+},
+{
+  "model": "authentication.student",
+  "pk": 2,
+  "fields": {
+    "user": 4,
+    "class_room": 2,
+    "qr_code": "qrcodes/Brian01.jpeg"
+  }
+},
+{
+  "model": "authentication.student",
+  "pk": 3,
+  "fields": {
+    "user": 5,
+    "class_room": 2,
+    "qr_code": "qrcodes/Alice01.jpeg"
+  }
+},
+{
+  "model": "authentication.student",
+  "pk": 4,
+  "fields": {
+    "user": 6,
+    "class_room": 1,
+    "qr_code": "qrcodes/Clara01.jpeg"
+  }
+},
+{
+  "model": "authentication.student",
+  "pk": 5,
+  "fields": {
+    "user": 7,
+    "class_room": 1,
+    "qr_code": "qrcodes/David1.jpeg"
+  }
+},
+{
+  "model": "authentication.student",
+  "pk": 6,
+  "fields": {
+    "user": 8,
+    "class_room": 1,
+    "qr_code": "qrcodes/Emily1.jpeg"
+  }
+},
+{
+  "model": "student_attendance.studentattendance",
+  "pk": 4,
+  "fields": {
+    "student_id": 3,
+    "status": "absent",
+    "created_at": "2025-11-20T17:46:01Z",
+    "updated_at": "2025-11-20T17:46:01Z"
+  }
+},
+{
+  "model": "student_attendance.studentattendance",
+  "pk": 5,
+  "fields": {
+    "student_id": 2,
+    "status": "absent",
+    "created_at": "2025-11-20T17:46:10Z",
+    "updated_at": "2025-11-20T17:46:10Z"
+  }
+},
+{
+  "model": "student_attendance.studentattendance",
+  "pk": 6,
+  "fields": {
+    "student_id": 4,
+    "status": "absent",
+    "created_at": "2025-11-20T17:46:19Z",
+    "updated_at": "2025-11-20T17:46:19Z"
+  }
+},
+{
+  "model": "student_attendance.studentattendance",
+  "pk": 7,
+  "fields": {
+    "student_id": 5,
+    "status": "absent",
+    "created_at": "2025-11-20T17:46:23Z",
+    "updated_at": "2025-11-20T17:46:23Z"
+  }
+},
+{
+  "model": "student_attendance.studentattendance",
+  "pk": 8,
+  "fields": {
+    "student_id": 6,
+    "status": "absent",
+    "created_at": "2025-11-20T17:46:26Z",
+    "updated_at": "2025-11-20T17:46:26Z"
+  }
+},
+{
+  "model": "student_attendance.studentattendance",
+  "pk": 9,
+  "fields": {
+    "student_id": 2,
+    "status": "absent",
+    "created_at": "2025-11-19T17:46:29Z",
+    "updated_at": "2025-11-19T17:46:29Z"
+  }
+},
+{
+  "model": "student_attendance.studentattendance",
+  "pk": 10,
+  "fields": {
+    "student_id": 4,
+    "status": "absent",
+    "created_at": "2025-11-19T17:46:49Z",
+    "updated_at": "2025-11-19T17:46:49Z"
   }
 }
 ]
