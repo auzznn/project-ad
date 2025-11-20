@@ -8,16 +8,16 @@ import QRCode from 'react-native-qrcode-svg';
 
 // Sample student data for QR generation
 const sampleStudents = [
-  { id: '2023001', name: 'Ahmad bin Iskandar', grade: 'Grade 5', class: 'Class A' },
-  { id: '2023002', name: 'Siti Nurhaliza', grade: 'Grade 6', class: 'Class B' },
-  { id: '2023003', name: 'Muhammad Rafi', grade: 'Grade 4', class: 'Class A' },
-  { id: '2023004', name: 'Nurul Aini', grade: 'Grade 5', class: 'Class C' },
-  { id: '2023005', name: 'Zulkifli bin Hassan', grade: 'Grade 6', class: 'Class A' },
+  { id: '2023001', name: 'Ahmad bin Iskandar', grade: '5', class: 'Class A', eligible_rmt: true },
+  { id: '2023002', name: 'Siti Nurhaliza', grade: '6', class: 'Class B', eligible_rmt: false },
+  { id: '2023003', name: 'Muhammad Rafi', grade: '4', class: 'Class A', eligible_rmt: true },
+  { id: '2023004', name: 'Nurul Aini', grade: '5', class: 'Class C', eligible_rmt: false },
+  { id: '2023005', name: 'Zulkifli bin Hassan', grade: '6', class: 'Class A', eligible_rmt: true },
 ];
 
 // Student QR code format that supports all three modules
 const generateStudentQR = (student: typeof sampleStudents[0]) => {
-  return `STD:${student.id}:${student.name}:${student.grade}:${student.class}`;
+  return `STD:${student.id}:${student.name}:${student.grade}:${student.class}:${student.eligible_rmt}`;
 };
 
 export default function QRTest() {
@@ -143,6 +143,9 @@ export default function QRTest() {
                 <Text className="text-xs" style={{ color: mutedColor }}>
                   Class: {sampleStudents[selectedStudent].class}
                 </Text>
+                <Text className="text-xs" style={{ color: mutedColor }}>
+                  RMT Eligible: {sampleStudents[selectedStudent].eligible_rmt ? 'Yes' : 'No'}
+                </Text>
               </View>
             </View>
             
@@ -151,7 +154,7 @@ export default function QRTest() {
                 QR Code Format:
               </Text>
               <Text className="text-xs font-mono bg-gray-100 p-2 rounded" style={{ color: textColor }}>
-                STD:id:name:grade:class
+                STD:id:name:grade:class:eligible_rmt
               </Text>
             </View>
           </View>

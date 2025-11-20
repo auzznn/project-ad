@@ -1,148 +1,503 @@
-import { Button, View, Text, StyleSheet, Vibration, TouchableOpacity, Modal, FlatList, ScrollView } from 'react-native'
+import { Button, View, Text, StyleSheet, Vibration, TouchableOpacity, Alert, Dimensions, Alert as RNAlert } from 'react-native'
 import { CameraView, Camera, useCameraPermissions } from 'expo-camera';
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Student, studentApi } from '../api/studentApi';
+import StudentModal from '../components/StudentModal';
+import SahsiahForm from '../components/SahsiahForm';
 
-interface ScannedItem {
-  id: string;
-  data: string;
-  timestamp: Date;
-  studentInfo?: StudentInfo | null;
+interface StudentActions {
+  attendance: boolean;
+  rmt: boolean;
+  sahsiah: boolean;
 }
 
-interface StudentInfo {
-  id: string;
-  name: string;
-  grade: string;
-  class: string;
+interface LoadingStates {
+  attendance: boolean;
+  rmt: boolean;
+  sahsiah: boolean;
+}
+
+interface ToastState {
+  visible: boolean;
+  message: string;
+  type: 'success' | 'error' | 'info';
 }
 
 export default function scanner() {
   const [permission, requestPermission] = useCameraPermissions()
-  const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
-  const [isScanning, setIsScanning] = useState(true)
+  const [isCameraActive, setIsCameraActive] = useState(true)
   const [facing, setFacing] = useState<'back' | 'front'>('back')
-  const [showActionModal, setShowActionModal] = useState(false)
-  const [selectedOption, setSelectedOption] = useState<string | null>(null)
-  const [lastScannedTime, setLastScannedTime] = useState<number>(0)
-  const [mode, setMode] = useState<'attendance' | 'rmt' | 'sahsiah'>('attendance')
-
-  const parseStudentQR = (qrData: string): StudentInfo | null => {
-    // Parse student QR format: STD:id:name:grade:class
-    if (qrData.startsWith('STD:')) {
-      const parts = qrData.split(':');
-      if (parts.length === 5) {
-        return {
-          id: parts[1],
-          name: parts[2],
-          grade: parts[3],
-          class: parts[4]
-        };
-      }
-    }
-    return null;
+  const [qrData, setQrData] = useState<string | null>(null)
+  const [student, setStudent] = useState<Student | null>(null)
+  const [showStudentModal, setShowStudentModal] = useState(false)
+  const [showSahsiahForm, setShowSahsiahForm] = useState(false)
+  const [lastScan, setLastScan] = useState("")
+  const [cooldown, setCooldown] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
+  const [actionsMap, setActionsMap] = useState<Record<string, StudentActions>>({})
+  const [loading, setLoading] = useState<LoadingStates>({
+    attendance: false,
+    rmt: false,
+    sahsiah: false
+  })
+  const [toast, setToast] = useState<ToastState>({
+    visible: false,
+    message: '',
+    type: 'info'
+  })
+  const [sahsiahCount, setSahsiahCount] = useState(0)
+  
+  // Get screen dimensions for scan area calculation
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const scanAreaSize = 250; // Size of the square scanning area
+  const scanAreaBounds = {
+    x: (screenWidth - scanAreaSize) / 2,
+    y: (screenHeight - scanAreaSize) / 2,
+    width: scanAreaSize,
+    height: scanAreaSize
   };
 
-  const handleBarcodeScanned = ({ type, data }: { type: string; data: string }) => {
-    if (isScanning) {
-      // Prevent duplicate scans within 1 second
-      const now = Date.now()
-      if (now - lastScannedTime < 1000) {
-        return
-      }
+  // Load persisted actions on component mount
+  useEffect(() => {
+    loadPersistedActions();
+  }, []);
+
+  // Function to load persisted actions from AsyncStorage
+  const loadPersistedActions = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+      const lastResetDate = await AsyncStorage.getItem('last_actions_reset_date');
       
-      // Vibrate to indicate successful scan
-      Vibration.vibrate(100)
-      
-      // Check if this QR code was already scanned
-      const isDuplicate = scannedItems.some(item => item.data === data)
-      
-      if (!isDuplicate) {
-        const studentInfo = parseStudentQR(data);
-        const newItem: ScannedItem = {
-          id: `${now}-${Math.random().toString(36).substr(2, 9)}`,
-          data,
-          timestamp: new Date(),
-          studentInfo
+      // If this is a new day, clear yesterday's actions
+      if (lastResetDate !== today) {
+        // Clear old actions
+        const keys = await AsyncStorage.getAllKeys();
+        const actionKeys = keys.filter(key => key.startsWith('student_actions_') && key !== `student_actions_${today}`);
+        if (actionKeys.length > 0) {
+          await AsyncStorage.multiRemove(actionKeys);
         }
         
-        setScannedItems(prev => [...prev, newItem])
-        
-        // Different behavior based on current mode
-        switch(mode) {
-          case 'attendance':
-            console.log('Attendance mode: Scanned student for attendance', studentInfo)
-            break
-          case 'rmt':
-            console.log('RMT mode: Scanned student for RMT', studentInfo)
-            break
-          case 'sahsiah':
-            console.log('Sahsiah mode: Scanned student for sahsiah', studentInfo)
-            break
-        }
+        // Update the last reset date
+        await AsyncStorage.setItem('last_actions_reset_date', today);
       }
       
-      setLastScannedTime(now)
+      // Load today's actions
+      const storedActions = await AsyncStorage.getItem(`student_actions_${today}`);
       
-      // Brief pause to prevent immediate re-scanning
-      setIsScanning(false)
-      setTimeout(() => {
-        setIsScanning(true)
-      }, 500)
+      if (storedActions) {
+        const parsedActions = JSON.parse(storedActions);
+        setActionsMap(parsedActions);
+      }
+    } catch (error) {
+      console.error('Failed to load persisted actions:', error);
     }
-  }
+  };
 
-  const handleOptionSelect = (option: string) => {
-    setSelectedOption(option)
-    setShowActionModal(false)
-    // Process all scanned items with the selected action
-    console.log(`Processing ${scannedItems.length} items for ${option}`)
+  // Function to persist actions to AsyncStorage
+  const persistActions = async (updatedActions: Record<string, StudentActions>) => {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+      await AsyncStorage.setItem(`student_actions_${today}`, JSON.stringify(updatedActions));
+    } catch (error) {
+      console.error('Failed to persist actions:', error);
+    }
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ visible: true, message, type });
+    // Show alert instead of toast for guaranteed visibility
+    RNAlert.alert(
+      type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Info',
+      message,
+      [{ text: 'OK', onPress: () => {} }]
+    );
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, visible: false }));
+  };
+
+  const getStudentActions = (studentId: string): StudentActions => {
+    return actionsMap[studentId] || {
+      attendance: false,
+      rmt: false,
+      sahsiah: false
+    };
+  };
+
+  const updateStudentAction = (studentId: string, action: keyof StudentActions, completed: boolean) => {
+    setActionsMap(prev => {
+      const updatedActions = {
+        ...prev,
+        [studentId]: {
+          ...getStudentActions(studentId),
+          [action]: completed
+        }
+      };
+      
+      // Persist the updated actions immediately
+      persistActions(updatedActions);
+      
+      return updatedActions;
+    });
+  };
+
+  const parseStudentQR = (qrData: string): Student | null => {
+    try {
+      // Parse JSON format QR code
+      const parsed = JSON.parse(qrData);
+      return {
+        student_id: parsed.student_id,
+        name: parsed.name,
+        program: parsed.program,
+        eligible_rmt: parsed.eligible_rmt,
+        timestamp: parsed.timestamp
+      };
+    } catch (error) {
+      // Fallback to STD format: STD:id:name:grade:class:eligible_rmt
+      if (qrData.startsWith('STD:')) {
+        const parts = qrData.split(':');
+        if (parts.length === 6) {
+          // New format with eligible_rmt
+          return {
+            student_id: parts[1],
+            name: parts[2],
+            program: parts[4], // Using class as program since that's what's available
+            eligible_rmt: parts[5] === 'true', // Convert string to boolean
+            timestamp: new Date().toISOString()
+          };
+        } else if (parts.length === 5) {
+          // Old format without eligible_rmt
+          return {
+            student_id: parts[1],
+            name: parts[2],
+            program: parts[3],
+            eligible_rmt: false, // Default to false for old format
+            timestamp: new Date().toISOString()
+          };
+        }
+      }
+      return null;
+    }
+  };
+
+  const handleBarcodeScanned = useCallback((scanningResult: any) => {
+    if (!isCameraActive) return;
     
-    // Navigate based on selected option
-    switch(option) {
-      case 'attendance':
-        // Process all items for attendance
-        console.log('Process attendance for:', scannedItems)
-        break
-      case 'sahsiah':
-        // Process all items for sahsiah
-        console.log('Process sahsiah for:', scannedItems)
-        break
-      case 'rmt':
-        // Process all items for RMT
-        console.log('Process RMT for:', scannedItems)
-        break
+    // Prevent duplicate scans within cooldown period
+    if (cooldown) return;
+    
+    const { type, data } = scanningResult;
+    
+    console.log('QR Scanned:', { data });
+    
+    // Allow scanning the same QR code again after cooldown period
+    setLastScan(data);
+    setCooldown(true);
+    
+    // Reset cooldown after 2 seconds to prevent accidental double scans
+    setTimeout(() => setCooldown(false), 2000);
+    
+    // Vibrate to indicate successful scan
+    Vibration.vibrate(100);
+    
+    // Parse QR data
+    const parsedStudent = parseStudentQR(data);
+    if (parsedStudent) {
+      setQrData(data);
+      setStudent(parsedStudent);
+      setIsCameraActive(false);
+      setShowStudentModal(true);
+      setShowSahsiahForm(false);
+      // Reset sahsiah count for new student
+      setSahsiahCount(0);
+    } else {
+      showToast('Invalid QR Code. This is not a valid student QR code.', 'error');
+    }
+  }, [isCameraActive, cooldown]);
+
+  const handleAttendance = () => {
+    if (!student) return;
+    
+    setLoading(prev => ({ ...prev, attendance: true }));
+    
+    // Only update local state, no backend call
+    setTimeout(() => {
+      updateStudentAction(student.student_id, 'attendance', true);
+      showToast('Attendance recorded', 'success');
+      setLoading(prev => ({ ...prev, attendance: false }));
+    }, 300);
+  };
+
+  const handleRMT = () => {
+    if (!student) return;
+    
+    setLoading(prev => ({ ...prev, rmt: true }));
+    
+    // Always show toast based on QR data, regardless of other actions
+    if (student.eligible_rmt) {
+      showToast('Eligible for RMT', 'success');
+    } else {
+      showToast('Not eligible for RMT', 'error');
     }
     
-    // Clear scanned items after processing
-    setScannedItems([])
-  }
+    // Update state immediately after showing toast
+    updateStudentAction(student.student_id, 'rmt', true);
+    setLoading(prev => ({ ...prev, rmt: false }));
+  };
 
-  const closeActionModal = () => {
-    setShowActionModal(false)
-    setSelectedOption(null)
-  }
+  /**
+   * Handles the recording of good deeds (Sahsiah) for students
+   * This is the central function that manages the complete data flow from SahsiahForm to storage
+   *
+   * Data Flow:
+   * 1. Receives deed data from SahsiahForm (deedType, notes, points)
+   * 2. Creates comprehensive sahsiah record with all student information
+   * 3. Stores the record in AsyncStorage for historical tracking
+   * 4. Updates student points (total and daily)
+   * 5. Updates today's deeds list for leaderboard display
+   * 6. Updates class statistics for reporting
+   * 7. Marks the sahsiah action as completed for the day
+   *
+   * @param deedType - The type of good deed performed
+   * @param notes - Optional notes about the good deed
+   * @param points - Points awarded for this good deed
+   */
+  const handleSahsiah = async (deedType: string, notes: string, points?: number) => {
+    if (!student) return;
+    
+    setLoading(prev => ({ ...prev, sahsiah: true }));
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const timestamp = new Date().toISOString();
+      
+      // Create comprehensive sahsiah record with all student data
+      // This ensures we have complete information for the leaderboard and reporting
+      const sahsiahKey = `sahsiah_${student.student_id}_${today}_${timestamp}`;
+      const sahsiahData = {
+        student_id: student.student_id,
+        student_name: student.name,
+        program: student.program,
+        eligible_rmt: student.eligible_rmt,
+        deed_type: deedType,
+        notes: notes,
+        points: points || 0, // Points will be determined in SahsiahForm
+        timestamp: timestamp
+      };
+      
+      // Store the sahsiah record for historical tracking
+      await AsyncStorage.setItem(sahsiahKey, JSON.stringify(sahsiahData));
+      
+      // Update student points if points are provided
+      if (points && points > 0) {
+        // Update the student's total and daily points
+        await updateStudentPoints(student.student_id, points);
+        
+        // Add to today's deeds list for leaderboard display
+        // This ensures the leaderboard shows the most recent activities
+        await updateTodayDeeds(student.student_id, student.name, student.program, deedType, points, timestamp);
+        
+        // Update class statistics for reporting and analytics
+        await updateClassStatistics(student.program, points);
+      }
+      
+      // Increment sahsiah count for this student (for UI display)
+      setSahsiahCount(prev => prev + 1);
+      
+      // Mark sahsiah action as completed for today
+      // This prevents duplicate recordings and tracks daily progress
+      updateStudentAction(student.student_id, 'sahsiah', true);
+      
+      showToast('Good deed recorded successfully', 'success');
+      setShowSahsiahForm(false);
+    } catch (error) {
+      showToast('Failed to record good deed', 'error');
+      console.error('Sahsiah error:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, sahsiah: false }));
+    }
+  };
 
-  const clearScannedItems = () => {
-    setScannedItems([])
-  }
+  /**
+   * Updates student points in AsyncStorage
+   * Maintains both total points and daily points for each student
+   *
+   * Storage Structure:
+   * Key: student_points_{studentId}
+   * Value: {
+   *   totalPoints: number,        // Cumulative points across all time
+   *   dailyPoints: {              // Daily breakdown of points
+   *     "YYYY-MM-DD": number
+   *   },
+   *   lastUpdated: string          // ISO timestamp of last update
+   * }
+   *
+   * @param studentId - The student's ID
+   * @param points - Points to add (positive number)
+   */
+  const updateStudentPoints = async (studentId: string, points: number) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `student_points_${studentId}`;
+      const existingData = await AsyncStorage.getItem(key);
+      
+      // Initialize or load existing student points data
+      let studentPoints = existingData ? JSON.parse(existingData) : {
+        totalPoints: 0,
+        dailyPoints: {},
+        lastUpdated: null
+      };
+      
+      // Update cumulative total points
+      studentPoints.totalPoints += points;
+      
+      // Update daily points (creates new entry if doesn't exist)
+      if (!studentPoints.dailyPoints[today]) {
+        studentPoints.dailyPoints[today] = 0;
+      }
+      studentPoints.dailyPoints[today] += points;
+      
+      // Update timestamp for tracking
+      studentPoints.lastUpdated = new Date().toISOString();
+      
+      // Save updated points data
+      await AsyncStorage.setItem(key, JSON.stringify(studentPoints));
+      console.log(`Updated ${studentId} points: +${points}, Total: ${studentPoints.totalPoints}`);
+    } catch (error) {
+      console.error('Error updating student points:', error);
+    }
+  };
 
-  const removeScannedItem = (id: string) => {
-    setScannedItems(prev => prev.filter(item => item.id !== id))
-  }
+  /**
+   * Updates today's deeds list for leaderboard display
+   * This creates a chronological list of all good deeds performed today
+   *
+   * Storage Structure:
+   * Key: today_deeds_YYYY-MM-DD
+   * Value: Array of {
+   *   studentId: string,
+   *   studentName: string,
+   *   program: string,
+   *   deedName: string,
+   *   points: number,
+   *   timestamp: string
+   * }
+   *
+   * This data is used by the leaderboard to show recent activities and
+   * ensure all students with deeds are displayed, even if they have 0 points
+   *
+   * @param studentId - The student's ID
+   * @param studentName - The student's name
+   * @param program - The student's program/class
+   * @param deedName - Name of the good deed performed
+   * @param points - Points awarded for the deed
+   * @param timestamp - ISO timestamp of when the deed was recorded
+   */
+  const updateTodayDeeds = async (studentId: string, studentName: string, program: string, deedName: string, points: number, timestamp: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `today_deeds_${today}`;
+      const existingDeeds = await AsyncStorage.getItem(key);
+      
+      // Load existing deeds or initialize empty array
+      let deedsList = existingDeeds ? JSON.parse(existingDeeds) : [];
+      
+      // Add new deed to the list
+      deedsList.push({
+        studentId,
+        studentName,
+        program,
+        deedName,
+        points,
+        timestamp
+      });
+      
+      // Save updated deeds list
+      await AsyncStorage.setItem(key, JSON.stringify(deedsList));
+      console.log(`Added to today's deeds: ${studentName} - ${deedName} (+${points} points)`);
+    } catch (error) {
+      console.error('Error updating today\'s deeds:', error);
+    }
+  };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
-  }
+  /**
+   * Updates class statistics for reporting and analytics
+   * Tracks total points and deed count for each class per day
+   *
+   * Storage Structure:
+   * Key: class_stats_{className}_YYYY-MM-DD
+   * Value: {
+   *   totalPoints: number,     // Total points earned by the class today
+   *   deedCount: number,       // Number of deeds performed by the class today
+   *   topStudents: string[]    // Array of top performing student IDs (for future use)
+   * }
+   *
+   * This data can be used for class-level reporting and competitions
+   *
+   * @param className - The name of the class/program
+   * @param points - Points to add to the class total
+   */
+  const updateClassStatistics = async (className: string, points: number) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `class_stats_${className}_${today}`;
+      const existingStats = await AsyncStorage.getItem(key);
+      
+      // Load existing stats or initialize new structure
+      let classStats = existingStats ? JSON.parse(existingStats) : {
+        totalPoints: 0,
+        deedCount: 0,
+        topStudents: []
+      };
+      
+      // Update class statistics
+      classStats.totalPoints += points;
+      classStats.deedCount += 1;
+      
+      // Save updated statistics
+      await AsyncStorage.setItem(key, JSON.stringify(classStats));
+      console.log(`Updated class stats for ${className}: +${points} points, ${classStats.deedCount} deeds`);
+    } catch (error) {
+      console.error('Error updating class statistics:', error);
+    }
+  };
+
+  const handleOpenSahsiahForm = () => {
+    setShowStudentModal(false); // Close the student modal first
+    setShowSahsiahForm(true);
+  };
+
+  const handleBackFromSahsiah = () => {
+    setShowSahsiahForm(false);
+    setShowStudentModal(true); // Reopen the student modal when going back
+  };
+
+  const closeModal = () => {
+    setShowStudentModal(false);
+    setShowSahsiahForm(false);
+    setStudent(null);
+    setQrData(null);
+    // Resume scanning after modal close
+    setTimeout(() => {
+      setIsCameraActive(true);
+    }, 500);
+  };
+
+  const closeAllAndReturnToScanner = () => {
+    setShowStudentModal(false);
+    setShowSahsiahForm(false);
+    setStudent(null);
+    setQrData(null);
+    // Resume scanning immediately
+    setIsCameraActive(true);
+  };
 
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'))
-  }
+  };
 
   if (!permission) {
     return (
@@ -153,7 +508,6 @@ export default function scanner() {
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
@@ -162,237 +516,89 @@ export default function scanner() {
     );
   }
 
+  const studentActions = student ? getStudentActions(student.student_id) : {
+    attendance: false,
+    rmt: false,
+    sahsiah: false
+  };
+  
+  // Check if all actions are completed for the current student
+  // Note: Sahsiah can be recorded multiple times, so we don't include it in the completion check
+  const allActionsCompleted = Boolean(student &&
+    studentActions.attendance &&
+    studentActions.rmt);
+
   return (
     <SafeAreaView style={styles.container}>
-      <CameraView
-        style={styles.camera}
-        facing={facing}
-        onBarcodeScanned={isScanning ? handleBarcodeScanned : undefined}
-        barcodeScannerSettings={{
-          barcodeTypes: ['qr'],
-        }}
-      />
-      
-      {/* Scanned Items List */}
-      {scannedItems.length > 0 && (
-        <View style={styles.scannedItemsContainer}>
-          <View style={styles.scannedItemsHeader}>
-            <Text style={styles.scannedItemsTitle}>
-              Scanned Items ({scannedItems.length})
-            </Text>
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={clearScannedItems}
-            >
-              <Ionicons name="trash-outline" size={20} color="#FF5252" />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.scannedItemsList}
-          >
-            {scannedItems.map((item) => (
-              <View key={item.id} style={styles.scannedItem}>
-                <TouchableOpacity
-                  style={styles.removeItemButton}
-                  onPress={() => removeScannedItem(item.id)}
-                >
-                  <Ionicons name="close-circle" size={16} color="#FF5252" />
-                </TouchableOpacity>
-                {item.studentInfo ? (
-                  <View style={styles.studentInfoContainer}>
-                    <Text style={styles.studentName} numberOfLines={1}>
-                      {item.studentInfo.name}
-                    </Text>
-                    <Text style={styles.studentDetails} numberOfLines={1}>
-                      {item.studentInfo.grade} • {item.studentInfo.class}
-                    </Text>
-                    <Text style={styles.studentId}>
-                      ID: {item.studentInfo.id}
-                    </Text>
-                  </View>
-                ) : (
-                  <View>
-                    <Text style={styles.scannedItemText} numberOfLines={2}>
-                      {item.data}
-                    </Text>
-                    <Text style={styles.scannedItemTime}>
-                      {formatTime(item.timestamp)}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            ))}
-          </ScrollView>
-          
-          <View style={styles.actionButtonsContainer}>
-            <TouchableOpacity
-              style={styles.continueScanningButton}
-              onPress={() => setIsScanning(true)}
-            >
-              <Ionicons name="add-circle" size={20} color="white" />
-              <Text style={styles.continueScanningText}>Continue Scanning</Text>
-            </TouchableOpacity>
+        {/* Main content container */}
+        <View style={styles.mainContent}>
+          {/* Camera container - just the square viewfinder */}
+          <View style={[styles.cameraContainer, {
+            width: scanAreaSize,
+            height: scanAreaSize,
+          }]}>
+            <CameraView
+              style={styles.camera}
+              facing={facing}
+              onBarcodeScanned={isCameraActive ? handleBarcodeScanned : undefined}
+              barcodeScannerSettings={{
+                barcodeTypes: ['qr'],
+              }}
+            />
             
-            <TouchableOpacity
-              style={styles.processItemsButton}
-              onPress={() => setShowActionModal(true)}
-            >
-              <Ionicons name="checkmark-done-circle" size={20} color="white" />
-              <Text style={styles.processItemsText}>Process Items</Text>
-            </TouchableOpacity>
+            {/* Scan frame overlay */}
+            <View style={[styles.scanFrame, {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderColor: isCameraActive ? '#4CAF50' : 'white'
+            }]} />
           </View>
+          
+          {/* Instructions */}
+          {isCameraActive && (
+            <View style={styles.instructionContainer}>
+              <Text style={styles.instructionText}>Position QR code within the frame to scan</Text>
+            </View>
+          )}
         </View>
-      )}
-      
-      <View style={styles.overlay}>
-        <View style={styles.scanFrame} />
-        {scannedItems.length === 0 && (
-          <View style={styles.hintContainer}>
-            <Text style={styles.hintText}>Scan QR codes to add items</Text>
+        
+        {/* Camera flip button */}
+        <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
+          <Ionicons name="camera-reverse" size={24} color="white" />
+        </TouchableOpacity>
+
+        {/* Student Modal */}
+        <StudentModal
+          visible={showStudentModal}
+          student={student}
+          actions={studentActions}
+          loading={loading}
+          allActionsCompleted={allActionsCompleted}
+          sahsiahCount={sahsiahCount}
+          onClose={closeModal}
+          onAttendance={handleAttendance}
+          onRMT={handleRMT}
+          onSahsiah={handleSahsiah}
+          onOpenSahsiahForm={handleOpenSahsiahForm}
+        />
+
+        {/* Sahsiah Form as a separate overlay */}
+        {showSahsiahForm && student && (
+          <View style={styles.sahsiahFormOverlay}>
+            <SahsiahForm
+              student={student}
+              onSubmit={async (deedType, notes, points) => {
+                await handleSahsiah(deedType, notes, points);
+                closeAllAndReturnToScanner();
+              }}
+              onCancel={handleBackFromSahsiah}
+              loading={loading.sahsiah}
+            />
           </View>
         )}
-      </View>
-      
-      {/* Mode Selection Buttons */}
-      <SafeAreaView style={styles.modeButtonsContainer}>
-        <TouchableOpacity
-          style={[
-            styles.modeButton,
-            mode === 'attendance' && styles.activeModeButton
-          ]}
-          onPress={() => setMode('attendance')}
-        >
-          <Ionicons
-            name="checkmark-circle"
-            size={24}
-            color={mode === 'attendance' ? '#fff' : '#4CAF50'}
-          />
-          <Text style={[
-            styles.modeButtonText,
-            mode === 'attendance' && styles.activeModeButtonText
-          ]}>
-            Attendance
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            styles.modeButton,
-            mode === 'rmt' && styles.activeModeButton
-          ]}
-          onPress={() => setMode('rmt')}
-        >
-          <Ionicons
-            name="restaurant"
-            size={24}
-            color={mode === 'rmt' ? '#fff' : '#FF9800'}
-          />
-          <Text style={[
-            styles.modeButtonText,
-            mode === 'rmt' && styles.activeModeButtonText
-          ]}>
-            RMT
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            styles.modeButton,
-            mode === 'sahsiah' && styles.activeModeButton
-          ]}
-          onPress={() => setMode('sahsiah')}
-        >
-          <Ionicons
-            name="school"
-            size={24}
-            color={mode === 'sahsiah' ? '#fff' : '#2196F3'}
-          />
-          <Text style={[
-            styles.modeButtonText,
-            mode === 'sahsiah' && styles.activeModeButtonText
-          ]}>
-            Sahsiah
-          </Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-
-      {/* Action Options Modal */}
-      <Modal
-        visible={showActionModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={closeActionModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Select Action for {scannedItems.length} Items
-              </Text>
-              <TouchableOpacity style={styles.closeButton} onPress={closeActionModal}>
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.scannedItemsPreview}>
-              <Text style={styles.previewTitle}>Items to process:</Text>
-              <FlatList
-                data={scannedItems}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-                renderItem={({ item, index }) => (
-                  <View style={styles.previewItem}>
-                    <Text style={styles.previewIndex}>{index + 1}.</Text>
-                    {item.studentInfo ? (
-                      <View style={styles.previewStudentInfo}>
-                        <Text style={styles.previewStudentName}>
-                          {item.studentInfo.name}
-                        </Text>
-                        <Text style={styles.previewStudentDetails}>
-                          {item.studentInfo.grade} • {item.studentInfo.class}
-                        </Text>
-                      </View>
-                    ) : (
-                      <Text style={styles.previewData} numberOfLines={1}>
-                        {item.data}
-                      </Text>
-                    )}
-                  </View>
-                )}
-              />
-            </View>
-            
-            <View style={styles.optionsContainer}>
-              <TouchableOpacity
-                style={styles.optionButton}
-                onPress={() => handleOptionSelect('attendance')}
-              >
-                <Ionicons name="checkmark-circle" size={32} color="#4CAF50" />
-                <Text style={styles.optionText}>Mark Attendance</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.optionButton}
-                onPress={() => handleOptionSelect('sahsiah')}
-              >
-                <Ionicons name="school" size={32} color="#2196F3" />
-                <Text style={styles.optionText}>Record Sahsiah</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.optionButton}
-                onPress={() => handleOptionSelect('rmt')}
-              >
-                <Ionicons name="restaurant" size={32} color="#FF9800" />
-                <Text style={styles.optionText}>Process RMT</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   )
 }
@@ -408,298 +614,61 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
   },
-  camera: {
+  mainContent: {
     flex: 1,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scanFrame: {
-    width: 250,
-    height: 250,
-    borderWidth: 2,
-    borderColor: 'white',
-    backgroundColor: 'transparent',
-    borderRadius: 10,
-  },
-  hintContainer: {
-    position: 'absolute',
-    bottom: 320,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  hintText: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  cameraControls: {
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  flipButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  flipButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  scannedItemsContainer: {
-    position: 'absolute',
-    bottom: 100,
-    left: 20,
-    right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  cameraContainer: {
     borderRadius: 15,
-    padding: 15,
-    maxHeight: 200,
-  },
-  scannedItemsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  scannedItemsTitle: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  clearButton: {
-    padding: 5,
-  },
-  scannedItemsList: {
-    maxHeight: 80,
-    marginBottom: 10,
-  },
-  scannedItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 10,
-    marginRight: 10,
-    minWidth: 150,
-    maxWidth: 150,
-    position: 'relative',
-  },
-  removeItemButton: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 10,
-  },
-  scannedItemText: {
-    color: 'white',
-    fontSize: 12,
-    marginBottom: 5,
-  },
-  scannedItemTime: {
-    color: '#cccccc',
-    fontSize: 10,
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  continueScanningButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(76, 175, 80, 0.8)',
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  continueScanningText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 5,
-  },
-  processItemsButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(33, 150, 243, 0.8)',
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  processItemsText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 20,
-    width: '90%',
-    maxWidth: 400,
-    maxHeight: '80%',
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: '#4CAF50',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 10,
+    elevation: 8,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  closeButton: {
-    padding: 8,
-  },
-  scannedItemsPreview: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
-    maxHeight: 150,
-  },
-  previewTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
-  },
-  previewItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 5,
-  },
-  previewIndex: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    marginRight: 8,
-    minWidth: 20,
-  },
-  previewData: {
-    fontSize: 14,
-    color: '#333',
+  camera: {
     flex: 1,
   },
-  optionsContainer: {
-    flexDirection: 'column',
-    gap: 15,
-  },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
+  scanFrame: {
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    backgroundColor: 'transparent',
     borderRadius: 12,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e9ecef',
   },
-  optionText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginLeft: 12,
+  instructionContainer: {
+    marginTop: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
   },
-  studentInfoContainer: {
-    flex: 1,
-  },
-  studentName: {
+  instructionText: {
     color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 2,
+    fontSize: 16,
+    textAlign: 'center',
   },
-  studentDetails: {
-    color: '#cccccc',
-    fontSize: 12,
-    marginBottom: 2,
-  },
-  studentId: {
-    color: '#999999',
-    fontSize: 10,
-  },
-  previewStudentInfo: {
-    flex: 1,
-  },
-  previewStudentName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 2,
-  },
-  previewStudentDetails: {
-    fontSize: 12,
-    color: '#666',
-  },
-  modeButtonsContainer: {
+  flipButton: {
     position: 'absolute',
-    bottom: 0,
+    top: 50,
+    right: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 10,
+    borderRadius: 25,
+  },
+  sahsiahFormOverlay: {
+    position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  modeButton: {
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    marginHorizontal: 5,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  activeModeButton: {
-    backgroundColor: 'rgba(76, 175, 80, 0.8)',
-    borderColor: 'rgba(76, 175, 80, 0.8)',
-  },
-  modeButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 5,
-  },
-  activeModeButtonText: {
-    color: 'white',
+    bottom: 0,
+    backgroundColor: 'black',
+    zIndex: 1000,
   },
 });

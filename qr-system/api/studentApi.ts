@@ -1,28 +1,44 @@
-// TODO: Implement once backend is ready
-// This file will contain API methods for your specific data models
-// Example structure:
-//
-// import { apiRequest } from './axiosClient';
-//
-// export interface YourModel {
-//   id: number;
-//   // Add your model fields here
-// }
-//
-// export const yourModelApi = {
-//   getAll: async (): Promise<YourModel[]> => {
-//     return apiRequest.get('/your-endpoint/');
-//   },
-//   getById: async (id: number): Promise<YourModel> => {
-//     return apiRequest.get(`/your-endpoint/${id}/`);
-//   },
-//   create: async (data: Partial<YourModel>): Promise<YourModel> => {
-//     return apiRequest.post('/your-endpoint/', data);
-//   },
-//   update: async (id: number, data: Partial<YourModel>): Promise<YourModel> => {
-//     return apiRequest.patch(`/your-endpoint/${id}/`, data);
-//   },
-//   delete: async (id: number): Promise<void> => {
-//     return apiRequest.delete(`/your-endpoint/${id}/`);
-//   },
-// };
+import { apiRequest } from './axiosClient';
+
+export interface Student {
+  student_id: string;
+  name: string;
+  program: string;
+  eligible_rmt: boolean;
+  timestamp?: string;
+  points?: number;
+}
+
+export interface AttendanceRecord {
+  student_id: string;
+  timestamp: string;
+}
+
+export interface SahsiahRecord {
+  student_id: string;
+  deed_type: string;
+  notes?: string;
+  timestamp: string;
+}
+
+export const studentApi = {
+  // Mark attendance for a student
+  markAttendance: async (studentId: string): Promise<any> => {
+    return apiRequest.post('/attendance/mark', { student_id: studentId });
+  },
+  
+  // Record sahsiah (behavior/conduct) for a student
+  recordSahsiah: async (data: SahsiahRecord): Promise<any> => {
+    return apiRequest.post('/sahsiah/record', data);
+  },
+  
+  // Check RMT eligibility (though this will be determined from QR data)
+  checkRMTEligibility: async (studentId: string): Promise<any> => {
+    return apiRequest.get(`/rmt/check/${studentId}`);
+  },
+  
+  // Reset all sahsiah data
+  resetSahsiah: async (): Promise<any> => {
+    return apiRequest.post('/sahsiah/reset');
+  }
+};

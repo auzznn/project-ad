@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
+import { studentApi } from "@/api/studentApi";
 
 export default function TabIndex() {
   const router = useRouter();
@@ -32,6 +34,70 @@ export default function TabIndex() {
     { label: "Messages", value: "2", icon: "chatbubble", color: primaryColor },
   ];
 
+  // Function to reset student data
+  const resetStudentData = async () => {
+    Alert.alert(
+      "Reset Student Data",
+      "Are you sure you want to reset all student action data? This will clear all attendance, RMT, Sahsiah records, and points for today.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Reset",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const today = new Date().toISOString().split('T')[0];
+              
+              // Try to reset sahsiah data via API first
+              try {
+                await studentApi.resetSahsiah();
+              } catch (apiError) {
+                console.log('API reset failed, falling back to local storage reset:', apiError);
+                // If API fails, continue with local storage reset
+              }
+              
+              // Get all keys to remove student-related data
+              const allKeys = await AsyncStorage.getAllKeys();
+              
+              // More comprehensive filter to catch all sahsiah related keys
+              const sahsiahKeys = allKeys.filter(key =>
+                key.startsWith('sahsiah_') ||
+                key.includes('sahsiah')
+              );
+              
+              const keysToRemove = [
+                ...allKeys.filter(key =>
+                  key.startsWith('student_actions_') ||
+                  key.startsWith('student_points_') ||
+                  key.startsWith('today_deeds_') ||
+                  key.startsWith('class_stats_') ||
+                  key === 'last_actions_reset_date'
+                ),
+                ...sahsiahKeys
+              ];
+              
+              // Remove duplicates by converting to Set and back to array
+              const uniqueKeysToRemove = Array.from(new Set(keysToRemove));
+              
+              // Remove all related keys
+              if (uniqueKeysToRemove.length > 0) {
+                await AsyncStorage.multiRemove(uniqueKeysToRemove);
+              }
+              
+              Alert.alert("Success", "Student data, points, and Sahsiah records have been reset successfully.");
+            } catch (error) {
+              console.error('Failed to reset student data:', error);
+              Alert.alert("Error", "Failed to reset student data. Please try again.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Logout handler function
   const handleLogout = async () => {
     await logout();
@@ -51,6 +117,12 @@ export default function TabIndex() {
       icon: "add-circle-outline",
       onPress: () => router.push("/(tabs)/qr-generator"),
       primary: true
+    },
+    {
+      title: "Reset Student Data",
+      icon: "refresh-outline",
+      onPress: resetStudentData,
+      primary: false
     },
     {
       title: "Log Out",

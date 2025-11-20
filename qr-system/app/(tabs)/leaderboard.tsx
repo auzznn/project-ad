@@ -1,27 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
 
-// Mock data for students
-const mockStudents = [
-  { id: 1, name: 'Ahmad bin Iskandar', grade: 'Grade 5', class: 'Class A', points: 450 },
-  { id: 2, name: 'Siti Nurhaliza', grade: 'Grade 6', class: 'Class B', points: 420 },
-  { id: 3, name: 'Muhammad Rafi', grade: 'Grade 4', class: 'Class A', points: 380 },
-  { id: 4, name: 'Nurul Aini', grade: 'Grade 5', class: 'Class C', points: 360 },
-  { id: 5, name: 'Zulkifli bin Hassan', grade: 'Grade 6', class: 'Class A', points: 340 },
-  { id: 6, name: 'Fatimah bt Ahmad', grade: 'Grade 3', class: 'Class B', points: 320 },
-  { id: 7, name: 'Rizal bin Salleh', grade: 'Grade 4', class: 'Class C', points: 310 },
-  { id: 8, name: 'Aisha bt Rahman', grade: 'Grade 5', class: 'Class B', points: 290 },
-  { id: 9, name: 'Danial bin Mohd', grade: 'Grade 2', class: 'Class A', points: 270 },
-  { id: 10, name: 'Maya bt Kassim', grade: 'Grade 3', class: 'Class C', points: 250 },
-  { id: 11, name: 'Hakim bin Yusoff', grade: 'Grade 4', class: 'Class B', points: 240 },
-  { id: 12, name: 'Sarah bt Aziz', grade: 'Grade 1', class: 'Class A', points: 220 },
-  { id: 13, name: 'Amir bin Hamzah', grade: 'Grade 2', class: 'Class B', points: 200 },
-  { id: 14, name: 'Liyana bt Omar', grade: 'Grade 3', class: 'Class A', points: 180 },
-  { id: 15, name: 'Fahmi bin Zainal', grade: 'Grade 1', class: 'Class C', points: 160 },
-];
+// Dynamic student data structure
+interface StudentData {
+  id: number;
+  student_id: string;
+  name: string;
+  grade: string;
+  class: string;
+  points: number;
+}
 
 const grades = ['All Grades', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
 const classes = ['All Classes', 'Class A', 'Class B', 'Class C'];
@@ -31,6 +24,8 @@ export default function Leaderboard() {
   const [selectedClass, setSelectedClass] = useState('All Classes');
   const [gradeDropdownOpen, setGradeDropdownOpen] = useState(false);
   const [classDropdownOpen, setClassDropdownOpen] = useState(false);
+  const [students, setStudents] = useState<StudentData[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Theme colors
   const backgroundColor = useThemeColor('background');
@@ -42,15 +37,125 @@ export default function Leaderboard() {
   const accentColor = useThemeColor('accent');
   const successColor = useThemeColor('success');
   
+  // Load student data from AsyncStorage on component mount
+  useEffect(() => {
+    loadStudentData();
+  }, []);
+  
+  /**
+   * Refresh data when the screen is focused (after navigating back from other tabs)
+   * This ensures the leaderboard always shows the latest data after:
+   * - Recording new good deeds in scanner
+   * - Adding new students
+   * - Manual refresh via refresh button
+   *
+   * useFocusEffect from expo-router ensures this runs every time the tab becomes active
+   */
+  useFocusEffect(
+    React.useCallback(() => {
+      loadStudentData();
+    }, [])
+  );
+  
+  const loadStudentData = async () => {
+    try {
+      setLoading(true);
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Load today's deeds first to get the most recent student activities
+      const todayDeedsKey = `today_deeds_${today}`;
+      const todayDeedsData = await AsyncStorage.getItem(todayDeedsKey);
+      
+      // Also load all student points to ensure we have complete data
+      const allKeys = await AsyncStorage.getAllKeys();
+      const studentPointKeys = allKeys.filter(key => key.startsWith('student_points_'));
+      
+      const uniqueStudents: { [key: string]: StudentData } = {};
+      
+      // Process today's deeds to get recent student activities
+      if (todayDeedsData) {
+        const todayDeeds = JSON.parse(todayDeedsData);
+        
+        todayDeeds.forEach((deed: any) => {
+          if (!uniqueStudents[deed.studentId]) {
+            uniqueStudents[deed.studentId] = {
+              id: Object.keys(uniqueStudents).length + 1,
+              student_id: deed.studentId,
+              name: deed.studentName || `Student ${deed.studentId}`,
+              grade: 'Unknown', // Default grade since not available in deed data
+              class: deed.program || 'Unknown',
+              points: 0
+            };
+          }
+        });
+      }
+      
+      // Process all student points to ensure complete data coverage
+      for (const key of studentPointKeys) {
+        const studentId = key.replace('student_points_', '');
+        const pointsData = await AsyncStorage.getItem(key);
+        
+        if (pointsData) {
+          const parsedData = JSON.parse(pointsData);
+          
+          // Only include students with points > 0
+          if (parsedData.totalPoints > 0) {
+            // If student not in uniqueStudents yet, add them
+            if (!uniqueStudents[studentId]) {
+              uniqueStudents[studentId] = {
+                id: Object.keys(uniqueStudents).length + 1,
+                student_id: studentId,
+                name: `Student ${studentId}`,
+                grade: 'Unknown',
+                class: 'Unknown',
+                points: 0
+              };
+            }
+            
+            // Update the points
+            uniqueStudents[studentId].points = parsedData.totalPoints;
+            
+            // Try to get more detailed student info from sahsiah records
+            const sahsiahKeys = allKeys.filter(key => key.startsWith('sahsiah_') && key.includes(studentId));
+            
+            for (const sahsiahKey of sahsiahKeys) {
+              const sahsiahData = await AsyncStorage.getItem(sahsiahKey);
+              if (sahsiahData) {
+                const parsedSahsiah = JSON.parse(sahsiahData);
+                if (parsedSahsiah.student_name && uniqueStudents[studentId].name === `Student ${studentId}`) {
+                  uniqueStudents[studentId].name = parsedSahsiah.student_name;
+                }
+                if (parsedSahsiah.program && uniqueStudents[studentId].class === 'Unknown') {
+                  uniqueStudents[studentId].class = parsedSahsiah.program;
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // Convert to array and sort by points (descending)
+      const studentsArray = Object.values(uniqueStudents).sort((a, b) => b.points - a.points);
+      
+      console.log(`Loaded ${studentsArray.length} students for leaderboard`);
+      setStudents(studentsArray);
+      
+    } catch (error) {
+      console.error('Error loading student data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // Filter and sort students
   const filteredStudents = useMemo(() => {
-    return mockStudents
+    return students
       .filter(student =>
         (selectedGrade === 'All Grades' || student.grade === selectedGrade) &&
         (selectedClass === 'All Classes' || student.class === selectedClass)
       )
       .sort((a, b) => b.points - a.points);
-  }, [selectedGrade, selectedClass]);
+  }, [students, selectedGrade, selectedClass]);
   
   // Get rank badge color based on position
   const getRankBadgeColor = (rank: number) => {
@@ -85,12 +190,23 @@ export default function Leaderboard() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
         {/* Header */}
         <View className="px-5 pt-5 pb-6">
-          <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
-            Leaderboard
-          </Text>
-          <Text className="text-base" style={{ color: mutedColor }}>
-            Top performing students this month
-          </Text>
+          <View className="flex-row justify-between items-center">
+            <View>
+              <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
+                Leaderboard
+              </Text>
+              <Text className="text-base" style={{ color: mutedColor }}>
+                Top performing students this month
+              </Text>
+            </View>
+            <TouchableOpacity
+              className="p-3 rounded-full"
+              style={{ backgroundColor: cardColor }}
+              onPress={loadStudentData}
+            >
+              <Ionicons name="refresh" size={20} color={primaryColor} />
+            </TouchableOpacity>
+          </View>
         </View>
         
         {/* Filters */}
@@ -134,7 +250,17 @@ export default function Leaderboard() {
         
         {/* Leaderboard List */}
         <View className="px-5">
-          {filteredStudents.length > 0 ? (
+          {loading ? (
+            <View
+              className="rounded-2xl p-8 items-center justify-center"
+              style={{ backgroundColor: cardColor, borderColor, borderWidth: 1 }}
+            >
+              <Ionicons name="refresh" size={40} color={mutedColor} />
+              <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
+                Loading leaderboard data...
+              </Text>
+            </View>
+          ) : filteredStudents.length > 0 ? (
             filteredStudents.map((student, index) => {
               const rank = index + 1;
               return (

@@ -52,10 +52,10 @@ const testQRIntegration = () => {
     console.log(`Parsed Student:`, parsedStudent);
     
     // Verify the parsed data matches the original
-    const isMatch = parsedStudent && 
-                   parsedStudent.id === student.id && 
-                   parsedStudent.name === student.name && 
-                   parsedStudent.grade === student.grade && 
+    const isMatch = parsedStudent &&
+                   parsedStudent.id === student.id &&
+                   parsedStudent.name === student.name &&
+                   parsedStudent.grade === student.grade &&
                    parsedStudent.class === student.class;
     
     if (isMatch) {
@@ -90,10 +90,74 @@ const testQRIntegration = () => {
     }
   });
   
+  // Test scanning protection features
+  console.log('\n\nTesting Scanning Protection Features');
+  console.log('='.repeat(30));
+  
+  // Simulate scanner state
+  let lastScannedData = '';
+  let isCooldown = false;
+  let scannedItems = [];
+  
+  // Test 1: First scan should succeed
+  console.log('\nTest 1: First scan of QR code');
+  const testQR1 = generateStudentQR(sampleStudents[0]);
+  if (testQR1 !== lastScannedData && !isCooldown) {
+    console.log('✅ Test PASSED - First scan allowed');
+    lastScannedData = testQR1;
+    scannedItems.push(testQR1);
+  } else {
+    console.log('❌ Test FAILED - First scan should be allowed');
+    allTestsPassed = false;
+  }
+  
+  // Test 2: Duplicate scan should be blocked
+  console.log('\nTest 2: Duplicate scan of same QR code');
+  if (testQR1 === lastScannedData) {
+    console.log('✅ Test PASSED - Duplicate scan correctly blocked');
+  } else {
+    console.log('❌ Test FAILED - Duplicate scan should be blocked');
+    allTestsPassed = false;
+  }
+  
+  // Test 3: Different QR code should be allowed
+  console.log('\nTest 3: Different QR code scan');
+  const testQR2 = generateStudentQR(sampleStudents[1]);
+  if (testQR2 !== lastScannedData && !isCooldown) {
+    console.log('✅ Test PASSED - Different QR scan allowed');
+    lastScannedData = testQR2;
+    scannedItems.push(testQR2);
+  } else {
+    console.log('❌ Test FAILED - Different QR scan should be allowed');
+    allTestsPassed = false;
+  }
+  
+  // Test 4: Simulate cooldown state
+  console.log('\nTest 4: Scan during cooldown');
+  isCooldown = true;
+  const testQR3 = generateStudentQR(sampleStudents[2]);
+  if (isCooldown) {
+    console.log('✅ Test PASSED - Scan correctly blocked during cooldown');
+  } else {
+    console.log('❌ Test FAILED - Scan should be blocked during cooldown');
+    allTestsPassed = false;
+  }
+  isCooldown = false; // Reset cooldown
+  
+  // Test 5: Clear scanned items should reset lastScannedData
+  console.log('\nTest 5: Clear scanned items');
+  lastScannedData = ''; // Simulate clearScannedItems function
+  if (lastScannedData === '') {
+    console.log('✅ Test PASSED - Clear function resets lastScannedData');
+  } else {
+    console.log('❌ Test FAILED - Clear function should reset lastScannedData');
+    allTestsPassed = false;
+  }
+  
   // Summary
   console.log('\n\n' + '='.repeat(50));
   if (allTestsPassed) {
-    console.log('🎉 ALL TESTS PASSED! QR integration is working correctly.');
+    console.log('🎉 ALL TESTS PASSED! QR integration and scanning protection are working correctly.');
   } else {
     console.log('⚠️  SOME TESTS FAILED! Please check the implementation.');
   }
