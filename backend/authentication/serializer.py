@@ -4,7 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.reverse import reverse
 from django.contrib.sites.models import Site
 
-from .models import MyUser, Student
+from .models import MyUser, Student, Classroom
 from .const import TOKEN_REFRESH_PATH_NAME
 
 class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
