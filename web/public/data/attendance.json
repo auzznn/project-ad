@@ -1,0 +1,92 @@
+[
+  {
+    "id": 201,
+    "attendance_status": "hadir",
+    "attendance_time": "07:02 AM",
+    "note": ""
+  },
+  {
+    "id": 202,
+    "attendance_status": "tidak_hadir",
+    "attendance_time": "",
+    "note": ""
+  },
+  {
+    "id": 203,
+    "attendance_status": "lewat",
+    "attendance_time": "07:15 AM",
+    "note": ""
+  },
+  {
+    "id": 204,
+    "attendance_status": "hadir",
+    "attendance_time": "06:55 AM",
+    "note": ""
+  },
+  {
+    "id": 205,
+    "attendance_status": "hadir",
+    "attendance_time": "07:00 AM",
+    "note": ""
+  },
+  {
+    "id": 206,
+    "attendance_status": "tidak_hadir",
+    "attendance_time": "",
+    "note": ""
+  },
+  {
+    "id": 207,
+    "attendance_status": "hadir",
+    "attendance_time": "06:58 AM",
+    "note": ""
+  },
+  {
+    "id": 208,
+    "attendance_status": "lewat",
+    "attendance_time": "07:12 AM",
+    "note": ""
+  },
+  {
+    "id": 209,
+    "attendance_status": "hadir",
+    "attendance_time": "07:03 AM",
+    "note": ""
+  },
+  {
+    "id": 210,
+    "attendance_status": "tidak_hadir",
+    "attendance_time": "",
+    "note": ""
+  },
+  {
+    "id": 211,
+    "attendance_status": "hadir",
+    "attendance_time": "07:00 AM",
+    "note": ""
+  },
+  {
+    "id": 212,
+    "attendance_status": "lewat",
+    "attendance_time": "07:18 AM",
+    "note": ""
+  },
+  {
+    "id": 213,
+    "attendance_status": "hadir",
+    "attendance_time": "06:59 AM",
+    "note": ""
+  },
+  {
+    "id": 214,
+    "attendance_status": "hadir",
+    "attendance_time": "07:01 AM",
+    "note": ""
+  },
+  {
+    "id": 215,
+    "attendance_status": "tidak_hadir",
+    "attendance_time": "",
+    "note": ""
+  }
+]
