@@ -4,6 +4,7 @@ import SideBar from "./components/SideBar";
 import Dashboard from "./pages/Dashboard";
 import Kehadiran from "./pages/Kehadiran";
 import RMT from "./pages/RMT";
+import PapanPendahulu from "./pages/PapanPendahulu";
 import Sahsiah from "./pages/Sahsiah";
 import Pengguna from "./pages/Pengguna";
 import Login from "./pages/Login";
@@ -55,6 +56,10 @@ function AppContent({
         <Route
           path="/rmt"
           element={<PrivateRoute isAuthenticated={isAuthenticated} element={<RMT />} />}
+        />
+        <Route
+          path="/papanpendahulu"
+          element={<PrivateRoute isAuthenticated={isAuthenticated} element={<PapanPendahulu />} />}
         />
         <Route
           path="/sahsiah"

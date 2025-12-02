@@ -8,12 +8,10 @@ interface User {
   email: string;
 }
 
-// --- Mock API layer ---
 async function getUsers(): Promise<User[]> {
   const stored = localStorage.getItem("users");
   if (stored) return JSON.parse(stored);
 
-  // fetch from public/data/users.json only once (initial)
   const res = await fetch("/data/users.json");
   const data = await res.json();
   localStorage.setItem("users", JSON.stringify(data));
@@ -46,7 +44,6 @@ async function updateUser(updatedUser: User): Promise<User[]> {
   return updated;
 }
 
-// --- Main Component ---
 export default function Pengguna() {
   const [users, setUsers] = useState<User[]>([]);
   const [name, setName] = useState("");
@@ -150,7 +147,6 @@ export default function Pengguna() {
         </form>
       </div>
 
-      {/* Users Table */}
       <div className="table-section">
         <h2>Senarai Pengguna</h2>
         <div className="table-container">

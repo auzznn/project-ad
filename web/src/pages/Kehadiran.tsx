@@ -6,9 +6,9 @@ interface AttendanceRecord {
   created_at: string;
   updated_at: string;
   student: {
-    id: string;
-    name: string;
-    class: string;
+    student_id: string;
+    fullname: string;
+    class_room: string;
   };
 }
 
@@ -20,7 +20,7 @@ const [loading, setLoading] = useState(true);
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/data/attendance-2025-11-19.json");
+        const res = await fetch("http://127.0.0.1:8080/api/student_attendance/");
         const data = await res.json();
         setAttendance(data);
       } catch (err) {
@@ -72,10 +72,19 @@ const [loading, setLoading] = useState(true);
 
       <tbody>
         {attendance.map((item, index) => (
-          <tr key={index}>
+          <tr 
+          key={index}
+          className={
+              item.status === "absent"
+                ? "status-absent"
+                : item.status === "late"
+                ? "status-late"
+                : "status-present"
+            }
+          >
             <td>{item.status}</td>
-            <td>{item.student.name}</td>
-            <td>{item.student.class}</td>
+            <td>{item.student.fullname}</td>
+            <td>{item.student.class_room}</td>
             <td>{item.created_at}</td>
           </tr>
         ))}
