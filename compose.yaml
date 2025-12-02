@@ -5,11 +5,8 @@ services:
     restart: always
     ports: 
       - 3306:3306
-    environment:
-      - MYSQL_ROOT_PASSWORD
-      - MYSQL_DATABASE
     env_file: 
-      - path: backend/.env
+      - backend/.env
     volumes:
       - mysql-db:/var/lib/mysql
 
@@ -26,9 +23,6 @@ services:
       - path: backend/.env
     depends_on:
       - mysql_database
-    volumes:
-      - backend:/var/lib/backend
 
 volumes:
   mysql-db:
-  backend:

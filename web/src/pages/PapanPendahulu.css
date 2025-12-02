@@ -1,15 +1,15 @@
-.kehadiran-container {
+.sahsiah-container {
   padding: 20px 30px;
   background-color: #f4f7f9;
   min-height: calc(100vh - 80px);
   flex-grow: 1;
 }
 
-.kehadiran-header {
+.sahsiah-header {
   margin-bottom: 30px;
 }
 
-.kehadiran-header h1 {
+.sahsiah-header h1 {
   font-size: 2rem;
   font-weight: 700;
   color: #1e293b;
@@ -17,57 +17,48 @@
   margin-bottom: 5px;
 }
 
-.kehadiran-header p {
+.sahsiah-header p {
   color: #64748b;
   font-size: 0.95rem;
   margin: 0;
 }
 
-.attendance-overview {
+.filters-section {
   background-color: #ffffff;
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.overview-item {
+.filter-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.overview-item label {
+.filter-item label {
   font-weight: 600;
   color: #1e293b;
   font-size: 0.9rem;
 }
 
-.overview-item .form-control {
+.filter-item .form-control {
   padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 0.95rem;
   color: #1e293b;
+  background-color: #ffffff;
 }
 
-.overview-item .form-control:focus {
+.filter-item .form-control:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   outline: none;
-}
-
-.time-config {
-  padding: 10px 12px;
-  background-color: #f8fafc;
-  border-radius: 6px;
-  color: #64748b;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
 }
 
 .action-buttons {
@@ -85,24 +76,37 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  border: none;
 }
 
 .action-buttons .btn-primary {
   background-color: #0891b2;
   color: white;
-  border: none;
 }
 
 .action-buttons .btn-primary:hover {
   background-color: #0e7490;
 }
 
-.table-container {
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.records-section {
   background-color: #ffffff;
   border-radius: 10px;
-  padding: 20px;
+  padding: 25px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  overflow-x: auto;
+}
+
+.records-section h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  margin-bottom: 20px;
 }
 
 .table-custom {
@@ -141,111 +145,111 @@
   font-size: 0.95rem;
 }
 
-.status-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-
-.text-success {
-  color: #10b981;
-}
-
-.text-danger {
-  color: #ef4444;
-}
-
-.text-warning {
-  color: #f59e0b;
-}
-
-.badge {
+.marks-badge {
   display: inline-block;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.badge-success {
+  padding: 6px 12px;
   background-color: #d1fae5;
   color: #065f46;
-}
-
-.badge-danger {
-  background-color: #fee2e2;
-  color: #7f1d1d;
-}
-
-.badge-warning {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.badge-secondary {
-  background-color: #e2e8f0;
-  color: #475569;
-}
-
-.btn-sm {
-  padding: 6px 10px;
-  font-size: 0.85rem;
   border-radius: 4px;
-  border: 1px solid;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.rankings-section {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.rankings-section h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  margin-bottom: 20px;
+  display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
 }
 
-.btn-outline-primary {
+.rankings-section i {
+  color: #f59e0b;
+  font-size: 1.3rem;
+}
+
+.rankings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.ranking-item:hover {
+  background-color: #f1f5f9;
+}
+
+.ranking-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3b82f6, #0891b2);
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.ranking-info {
+  flex: 1;
+}
+
+.ranking-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.ranking-marks {
+  text-align: right;
+}
+
+.marks-value {
   color: #3b82f6;
-  border-color: #3b82f6;
-  background-color: transparent;
+  font-weight: 700;
+  margin: 0;
+  font-size: 0.95rem;
 }
 
-.btn-outline-primary:hover {
-  background-color: #eff6ff;
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
 }
-
-.btn-outline-danger {
-  color: #ef4444;
-  border-color: #ef4444;
-  background-color: transparent;
-}
-
-.btn-outline-danger:hover {
-  background-color: #fef2f2;
-}
-
-.status-absent {
-  background-color: #ffcccc !important; 
-  border-left: 6px solid rgb(255, 112, 112);
-}
-
-.status-late {
-  background-color: #fff3cd !important; 
-  border-left: 6px solid rgb(255, 204, 108);
-}
-
-.status-present {
-  background-color: #d4edda !important; 
-  border-left: 6px solid rgb(163, 255, 163);
-}
-
 
 @media (max-width: 768px) {
-  .kehadiran-container {
+  .sahsiah-container {
     padding: 15px 20px;
   }
 
-  .kehadiran-header h1 {
+  .sahsiah-header h1 {
     font-size: 1.5rem;
   }
 
-  .attendance-overview {
+  .filters-section {
     grid-template-columns: 1fr;
   }
 
