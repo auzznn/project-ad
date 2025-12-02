@@ -4,3 +4,4 @@
 *.sqlite3
 /backend/media
 backend/.env
+/backend/authentication/migrations/__pycache__

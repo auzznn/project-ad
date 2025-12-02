@@ -5,8 +5,8 @@ services:
     restart: always
     ports: 
       - 3306:3306
-    environment:
-      MYSQL_ROOT_PASSWORD: admin123
+    env_file: 
+      - backend/.env
     volumes:
       - mysql-db:/var/lib/mysql
 

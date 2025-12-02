@@ -21,38 +21,43 @@ function Login({ setIsAuthenticated }: LoginProps) {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
+   try {
+  const response = await fetch("http://127.0.0.1:8080/api/authentication/token", {
 
-      // 
-      // const response = await fetch("http://127.0.0.1:8000/api/authentication/token/", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ username, password }),
-      // });
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
 
-      // if (!response.ok) {
-      //   throw new Error("Invalid credentials");
-      // }
+  const data = await response.json();
 
-      // const data = await response.json();
+  if (!response.ok) {
+    return setError(data.detail || "Invalid credentials");
+  }
 
-      // // Save tokens
-      // localStorage.setItem("access", data.access);
-      // localStorage.setItem("refresh", data.refresh);
-      // const decoded = jwtDecode<{ role: string }>(data.access);
-      // localStorage.setItem("role", decoded.role);
+  if (!data.access || !data.refresh) {
+    return setError("Token not provided by server");
+  }
 
-      setIsAuthenticated(true);
-      window.location.href = "/dashboard";
+  localStorage.setItem("access", data.access);
+  localStorage.setItem("refresh", data.refresh);
 
-      // Temporary 
-      localStorage.setItem("access", "wdiwdjidwjidwjijwdij");
-      localStorage.setItem("role", "admin");
+  const decoded = jwtDecode<{ role?: string }>(data.access);
 
-    } catch (err: any) {
-      setError(err.message);
-    }
-    };
+  if (!decoded.role) {
+    console.warn("No role found in token");
+  } else {
+    localStorage.setItem("role", decoded.role);
+  }
+
+  setIsAuthenticated(true);
+  window.location.href = "/dashboard";
+
+} catch (err: any) {
+  console.error(err);
+  setError("Network error or server is down");
+}
+  }
   
 
   return (
