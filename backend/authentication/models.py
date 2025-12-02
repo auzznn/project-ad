@@ -17,6 +17,10 @@ class MyUser(AbstractUser):
 
   role = models.CharField(max_length=20, choices=ROLE_CHOICE, default="student")
 
+  @property
+  def fullname(self) -> str:
+    return f"{self.first_name} {self.last_name}"
+  
 class Classroom(models.Model):
   name = models.CharField(max_length=10, blank=False)
   supervisor = models.CharField(blank=True, null=True, max_length=50)

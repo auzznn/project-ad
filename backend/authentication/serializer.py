@@ -25,7 +25,7 @@ class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
 class MyUserRetrieveSerializer(ModelSerializer):
   class Meta:
     model = MyUser
-    fields = ['first_name', 'last_name']
+    fields = ['id', 'fullname']
 
 class MyUserCreateSerializer(ModelSerializer):
   class Meta:
@@ -46,13 +46,10 @@ class MyUserCreateSerializer(ModelSerializer):
     return instance
 
 class StudentSerializer(ModelSerializer):
-  fullname = serializers.SerializerMethodField()
+  fullname = serializers.CharField(source="user.fullname")
   student_id = serializers.IntegerField(source="user.id")
   class_room = serializers.CharField(source="class_room.name")
   
   class Meta:
     model = Student
     fields =  ["student_id", "fullname", "class_room"]
-  
-  def get_fullname(self, obj: Student) -> str:
-    return f"{obj.user.first_name} {obj.user.last_name}"
