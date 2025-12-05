@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     
     'base',
     'authentication',
-    'student_attendance'
+    'student_attendance',
+    'sahsiah'
 ]
 
 MIDDLEWARE = [
