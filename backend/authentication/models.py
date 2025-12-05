@@ -28,7 +28,7 @@ class Classroom(models.Model):
 class Student(models.Model):
   QR_IMAGE_FORMAT = "jpeg"
   
-  user = models.OneToOneField(MyUser, on_delete=models.CASCADE, blank=False)
+  user = models.OneToOneField(MyUser, on_delete=models.CASCADE, primary_key=True)
   class_room = models.ForeignKey(Classroom, on_delete=models.CASCADE, blank=True, null=True)
   qr_code = models.ImageField(upload_to='qrcodes/', blank=True, null=True)
 
