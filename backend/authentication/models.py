@@ -53,6 +53,7 @@ class Student(models.Model):
   user = models.OneToOneField(MyUser, on_delete=models.CASCADE, primary_key=True)
   class_room = models.ForeignKey(Classroom, on_delete=models.CASCADE, blank=True, null=True, related_name='student')
   qr_code = models.ImageField(upload_to='qrcodes/', blank=True, null=True)
+  rmt_elligible = models.BooleanField(default=False, blank=False, null=True)
 
   @classmethod
   def generate_qr_image(cls, url_link: str) -> File:

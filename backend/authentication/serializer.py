@@ -27,6 +27,7 @@ class MyUserRetrieveSerializer(ModelSerializer):
     model = MyUser
     fields = ['id', 'fullname']
 
+
 class MyUserCreateSerializer(ModelSerializer):
   class Meta:
     model = MyUser
@@ -57,4 +58,4 @@ class StudentSerializer(ModelSerializer):
   
   class Meta:
     model = Student
-    fields =  ["student_id", "name", "grade", "section", "academic_year"]
+    fields =  ["student_id", "name", "grade", "section", "academic_year", "rmt_elligible"]
