@@ -27,7 +27,6 @@ class MyUser(AbstractUser):
     return f"{self.first_name} {self.last_name}"
   
 class Classroom(models.Model):
-  name = models.CharField(max_length=10, blank=False)
   
   def default_section() -> str:
     LENGTH = 15
