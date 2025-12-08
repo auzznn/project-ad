@@ -29,7 +29,7 @@ class Student(models.Model):
   QR_IMAGE_FORMAT = "jpeg"
   
   user = models.OneToOneField(MyUser, on_delete=models.CASCADE, primary_key=True)
-  class_room = models.ForeignKey(Classroom, on_delete=models.CASCADE, blank=True, null=True)
+  class_room = models.ForeignKey(Classroom, on_delete=models.CASCADE, blank=True, null=True, related_name='student')
   qr_code = models.ImageField(upload_to='qrcodes/', blank=True, null=True)
 
   @classmethod
@@ -52,3 +52,17 @@ class Student(models.Model):
 
   def __str__(self) -> str:
     return f'{self.user.first_name} {self.user.last_name}' 
+  
+  @property
+  def academic_year(self) -> str:
+    current_time = timezone.now()
+    month_threshold = current_time.replace(month=10, day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    start_academic_year = current_time.year
+    end_academic_year = start_academic_year + 1
+
+    if current_time < month_threshold:
+      start_academic_year -= 1
+      end_academic_year -= 1
+
+    return f'{start_academic_year}/{end_academic_year}'
