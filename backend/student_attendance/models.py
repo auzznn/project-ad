@@ -24,15 +24,20 @@ class StudentAttendance(models.Model):
   ABSENT_TIME = default_datetime().time()
 
   
-  student_id = models.ForeignKey(Student, related_name="student", on_delete=models.CASCADE)
+  student_id = models.ForeignKey(Student, related_name="attendance", on_delete=models.CASCADE)
   status = models.CharField(choices=STATUS_ATTENDANCE, default=DEFAULT_STATUS, max_length=15)
-  created_at = models.DateTimeField(default=default_datetime)
-  updated_at = models.DateTimeField(default=default_datetime)
+  created_at = models.DateTimeField()
+  updated_at = models.DateTimeField()
 
   def __str__(self) -> str:
     return f"{self.student_id.user} {self.created_at.strftime('%d/%M/%Y')}"
 
   def save(self, *args, **kwargs):
+    if self.created_at == None:
+      self.created_at = self.default_datetime()
+    if self.updated_at == None:
+      self.updated_at = self.default_datetime()
+
     if self.updated_at.time().replace(microsecond=0) == self.ABSENT_TIME:
       return super().save(*args, **kwargs)  
     status_index = 2 if self.updated_at.time() > self.ON_TIME else 1
