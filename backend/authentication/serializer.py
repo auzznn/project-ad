@@ -46,10 +46,15 @@ class MyUserCreateSerializer(ModelSerializer):
     return instance
 
 class StudentSerializer(ModelSerializer):
-  fullname = serializers.CharField(source="user.fullname")
   student_id = serializers.IntegerField(source="user.id")
-  class_room = serializers.CharField(source="class_room.name")
+  name = serializers.CharField(source="user.fullname")
+
+  section = serializers.CharField(source="class_room.class_section")
+  grade = serializers.IntegerField(source="class_room.grade")
+  # batch
+  # eligible_rmt
+  # generated_at
   
   class Meta:
     model = Student
-    fields =  ["student_id", "fullname", "class_room"]
+    fields =  ["student_id", "name", "grade", "section", "academic_year"]
