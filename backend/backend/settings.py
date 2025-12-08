@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'base',
     'authentication',
     'student_attendance',
-    'sahsiah'
+    'sahsiah',
+    'rmt'
 ]
 
 MIDDLEWARE = [
