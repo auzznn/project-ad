@@ -2,10 +2,15 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.files import File
 from django.contrib.sites.models import Site
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
+
 from io import BytesIO
 from rest_framework.reverse import reverse
 from .const import USER_DETAIL_PATH_NAME
 import qrcode as qr
+import string
+import random
 
 # Create your models here.
 class MyUser(AbstractUser):
@@ -17,16 +22,38 @@ class MyUser(AbstractUser):
 
   role = models.CharField(max_length=20, choices=ROLE_CHOICE, default="student")
 
+  @property
+  def fullname(self) -> str:
+    return f"{self.first_name} {self.last_name}"
+  
 class Classroom(models.Model):
-  name = models.CharField(max_length=10, blank=False)
+  
+  def default_section() -> str:
+    LENGTH = 15
+    characters = string.ascii_letters
+
+    random_section_name = ''.join(random.choice(characters) for i in range(LENGTH))    
+    return random_section_name
+  
+  grade = models.IntegerField(
+    blank=False, null=False, default=1, validators=[
+    MinValueValidator(1, 'class grade can\'t be below 1'),
+    MaxValueValidator(6, 'class grade can\'t be above 6')
+  ])
+  class_section = models.CharField(max_length=50, blank=False, null=False, default=default_section)
+  
   supervisor = models.CharField(blank=True, null=True, max_length=50)
+
+  def __str__(self) -> str:
+    return f'{self.grade}{self.class_section}'
 
 class Student(models.Model):
   QR_IMAGE_FORMAT = "jpeg"
   
-  user = models.OneToOneField(MyUser, on_delete=models.CASCADE, blank=False)
-  class_room = models.ForeignKey(Classroom, on_delete=models.CASCADE, blank=True, null=True)
+  user = models.OneToOneField(MyUser, on_delete=models.CASCADE, primary_key=True, related_name='student')
+  class_room = models.ForeignKey(Classroom, on_delete=models.CASCADE, blank=True, null=True, related_name='student')
   qr_code = models.ImageField(upload_to='qrcodes/', blank=True, null=True)
+  rmt_elligible = models.BooleanField(default=False, blank=False, null=True)
 
   @classmethod
   def generate_qr_image(cls, url_link: str) -> File:
@@ -48,3 +75,9 @@ class Student(models.Model):
 
   def __str__(self) -> str:
     return f'{self.user.first_name} {self.user.last_name}' 
+  
+  @property
+  def academic_year(self) -> str:
+    return_value = timezone.now().year
+
+    return f'{return_value}'

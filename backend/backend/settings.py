@@ -52,7 +52,9 @@ INSTALLED_APPS = [
     
     'base',
     'authentication',
-    'student_attendance'
+    'student_attendance',
+    'sahsiah',
+    'rmt'
 ]
 
 MIDDLEWARE = [
@@ -170,13 +172,19 @@ CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM = {
 }
 
 CREATE_STUDENT_ATTENDANCE_SCHEDULE_1 = crontab(**CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM)
-CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 = 5
+CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 = 10
+
+CREATE_STUDENT_ATTENDANCE_SCHEDULE = CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 if DEBUG else CREATE_STUDENT_ATTENDANCE_SCHEDULE_1
 
 CELERY_BEAT_SCHEDULE = {
     'create_student_attendance': {
         'task': 'student_attendance.tasks.create_student_attendance',
-        'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE_1,
+        'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE,
     },
+    'create_rmt_record': {
+      'task': 'rmt.tasks.create_rmt_record',
+      'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE
+    }
 }
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",

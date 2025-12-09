@@ -18,7 +18,7 @@ services:
     ports:
       - 8080:8080
     environment:
-      - MYSQL_HOST
+      MYSQL_HOST: project-ad-mysql_database-1
     env_file: 
       - path: backend/.env
     depends_on:
@@ -46,6 +46,8 @@ services:
       - backend
       - redis
       - celery-beat
+    environment:
+      MYSQL_HOST: project-ad-mysql_database-1
     entrypoint: celery -A backend worker -E -l info
 
   celery-beat:
