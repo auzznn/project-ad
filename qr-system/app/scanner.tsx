@@ -1,30 +1,28 @@
-import { Button, View, Text, StyleSheet, Vibration, TouchableOpacity, Alert, Dimensions, Alert as RNAlert } from 'react-native'
-import { CameraView, Camera, useCameraPermissions } from 'expo-camera';
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Button, View, Text, StyleSheet, Vibration, TouchableOpacity, Dimensions, Alert } from 'react-native'
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import React, { useState, useEffect, useCallback } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Student, studentApi } from '../api/studentApi';
+import { Student } from '../api/studentApi';
 import StudentModal from '../components/StudentModal';
 import SahsiahForm from '../components/SahsiahForm';
+import DisciplineForm from '../components/DisciplineForm';
 
 interface StudentActions {
   attendance: boolean;
   rmt: boolean;
   sahsiah: boolean;
+  discipline: boolean;
 }
 
 interface LoadingStates {
   attendance: boolean;
   rmt: boolean;
   sahsiah: boolean;
+  discipline: boolean;
 }
 
-interface ToastState {
-  visible: boolean;
-  message: string;
-  type: 'success' | 'error' | 'info';
-}
 
 export default function scanner() {
   const [permission, requestPermission] = useCameraPermissions()
@@ -34,31 +32,22 @@ export default function scanner() {
   const [student, setStudent] = useState<Student | null>(null)
   const [showStudentModal, setShowStudentModal] = useState(false)
   const [showSahsiahForm, setShowSahsiahForm] = useState(false)
+  const [showDisciplineForm, setShowDisciplineForm] = useState(false)
   const [lastScan, setLastScan] = useState("")
   const [cooldown, setCooldown] = useState(false)
-  const [isScanning, setIsScanning] = useState(false)
   const [actionsMap, setActionsMap] = useState<Record<string, StudentActions>>({})
   const [loading, setLoading] = useState<LoadingStates>({
     attendance: false,
     rmt: false,
-    sahsiah: false
-  })
-  const [toast, setToast] = useState<ToastState>({
-    visible: false,
-    message: '',
-    type: 'info'
+    sahsiah: false,
+    discipline: false
   })
   const [sahsiahCount, setSahsiahCount] = useState(0)
+  const [disciplineCount, setDisciplineCount] = useState(0)
   
   // Get screen dimensions for scan area calculation
-  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const { width: screenWidth } = Dimensions.get('window');
   const scanAreaSize = 250; // Size of the square scanning area
-  const scanAreaBounds = {
-    x: (screenWidth - scanAreaSize) / 2,
-    y: (screenHeight - scanAreaSize) / 2,
-    width: scanAreaSize,
-    height: scanAreaSize
-  };
 
   // Load persisted actions on component mount
   useEffect(() => {
@@ -106,25 +95,21 @@ export default function scanner() {
     }
   };
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    setToast({ visible: true, message, type });
-    // Show alert instead of toast for guaranteed visibility
-    RNAlert.alert(
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    Alert.alert(
       type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Info',
       message,
       [{ text: 'OK', onPress: () => {} }]
     );
   };
 
-  const hideToast = () => {
-    setToast(prev => ({ ...prev, visible: false }));
-  };
 
   const getStudentActions = (studentId: string): StudentActions => {
     return actionsMap[studentId] || {
       attendance: false,
       rmt: false,
-      sahsiah: false
+      sahsiah: false,
+      discipline: false
     };
   };
 
@@ -185,12 +170,11 @@ export default function scanner() {
   };
 
   const handleBarcodeScanned = useCallback((scanningResult: any) => {
-    if (!isCameraActive) return;
+    if (!isCameraActive || cooldown) return;
     
     // Prevent duplicate scans within cooldown period
-    if (cooldown) return;
     
-    const { type, data } = scanningResult;
+    const { data } = scanningResult;
     
     console.log('QR Scanned:', { data });
     
@@ -199,7 +183,7 @@ export default function scanner() {
     setCooldown(true);
     
     // Reset cooldown after 2 seconds to prevent accidental double scans
-    setTimeout(() => setCooldown(false), 2000);
+    setTimeout(() => setCooldown(false), 3000);
     
     // Vibrate to indicate successful scan
     Vibration.vibrate(100);
@@ -212,10 +196,14 @@ export default function scanner() {
       setIsCameraActive(false);
       setShowStudentModal(true);
       setShowSahsiahForm(false);
-      // Reset sahsiah count for new student
+      setShowDisciplineForm(false);
+      // Reset sahsiah and discipline count for new student
       setSahsiahCount(0);
+      setDisciplineCount(0);
     } else {
-      showToast('Invalid QR Code. This is not a valid student QR code.', 'error');
+      showAlert('Invalid QR Code. This is not a valid student QR code.', 'error');
+    setTimeout(() => setCooldown(false), 3000);
+
     }
   }, [isCameraActive, cooldown]);
 
@@ -227,7 +215,7 @@ export default function scanner() {
     // Only update local state, no backend call
     setTimeout(() => {
       updateStudentAction(student.student_id, 'attendance', true);
-      showToast('Attendance recorded', 'success');
+      showAlert('Attendance recorded', 'success');
       setLoading(prev => ({ ...prev, attendance: false }));
     }, 300);
   };
@@ -237,14 +225,10 @@ export default function scanner() {
     
     setLoading(prev => ({ ...prev, rmt: true }));
     
-    // Always show toast based on QR data, regardless of other actions
-    if (student.eligible_rmt) {
-      showToast('Eligible for RMT', 'success');
-    } else {
-      showToast('Not eligible for RMT', 'error');
-    }
+    // This function is only called when student is eligible (button is only shown for eligible students)
+    showAlert('Eligible for RMT', 'success');
     
-    // Update state immediately after showing toast
+    // Update state immediately after showing alert
     updateStudentAction(student.student_id, 'rmt', true);
     setLoading(prev => ({ ...prev, rmt: false }));
   };
@@ -311,13 +295,136 @@ export default function scanner() {
       // This prevents duplicate recordings and tracks daily progress
       updateStudentAction(student.student_id, 'sahsiah', true);
       
-      showToast('Good deed recorded successfully', 'success');
+      showAlert('Good deed recorded successfully', 'success');
       setShowSahsiahForm(false);
     } catch (error) {
-      showToast('Failed to record good deed', 'error');
+      showAlert('Failed to record good deed', 'error');
       console.error('Sahsiah error:', error);
     } finally {
       setLoading(prev => ({ ...prev, sahsiah: false }));
+    }
+  };
+
+  /**
+   * Handles the recording of discipline violations for students
+   * This is the central function that manages the complete data flow from DisciplineForm to storage
+   *
+   * Data Flow:
+   * 1. Receives violation data from DisciplineForm (violationType, notes, points)
+   * 2. Creates comprehensive discipline record with all student information
+   * 3. Stores the record in AsyncStorage for historical tracking
+   * 4. Updates student points (total and daily) - deducting points
+   * 5. Updates today's violations list for display
+   * 6. Updates class statistics for reporting
+   * 7. Marks the discipline action as completed for the day
+   *
+   * @param violationType - The type of discipline violation
+   * @param notes - Optional notes about the violation
+   * @param points - Points to deduct for this violation (negative number)
+   */
+  const handleDiscipline = async (violationType: string, notes: string, points?: number) => {
+    if (!student) return;
+    
+    setLoading(prev => ({ ...prev, discipline: true }));
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const timestamp = new Date().toISOString();
+      
+      // Create comprehensive discipline record with all student data
+      // This ensures we have complete information for reporting and tracking
+      const disciplineKey = `discipline_${student.student_id}_${today}_${timestamp}`;
+      const disciplineData = {
+        student_id: student.student_id,
+        student_name: student.name,
+        program: student.program,
+        eligible_rmt: student.eligible_rmt,
+        violation_type: violationType,
+        notes: notes,
+        points: points || 0, // Points will be determined in DisciplineForm (negative)
+        timestamp: timestamp
+      };
+      
+      // Store the discipline record for historical tracking
+      await AsyncStorage.setItem(disciplineKey, JSON.stringify(disciplineData));
+      
+      // Update student points if points are provided (will be negative)
+      if (points && points !== 0) {
+        // Update the student's total and daily points (deducting)
+        await updateStudentPoints(student.student_id, points);
+        
+        // Add to today's violations list for display
+        // This ensures violations are tracked alongside good deeds
+        await updateTodayViolations(student.student_id, student.name, student.program, violationType, points, timestamp);
+        
+        // Update class statistics for reporting and analytics (negative points)
+        await updateClassStatistics(student.program, points);
+      }
+      
+      // Increment discipline count for this student (for UI display)
+      setDisciplineCount(prev => prev + 1);
+      
+      // Mark discipline action as completed for today
+      // This prevents duplicate recordings and tracks daily progress
+      updateStudentAction(student.student_id, 'discipline', true);
+      
+      showAlert('Discipline issue recorded successfully', 'success');
+      setShowDisciplineForm(false);
+    } catch (error) {
+      showAlert('Failed to record discipline issue', 'error');
+      console.error('Discipline error:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, discipline: false }));
+    }
+  };
+
+  /**
+   * Updates today's violations list for display
+   * This creates a chronological list of all discipline violations recorded today
+   *
+   * Storage Structure:
+   * Key: today_violations_YYYY-MM-DD
+   * Value: Array of {
+   *   studentId: string,
+   *   studentName: string,
+   *   program: string,
+   *   violationName: string,
+   *   points: number, // negative number
+   *   timestamp: string
+   * }
+   *
+   * This data can be used for reporting and tracking discipline issues
+   *
+   * @param studentId - The student's ID
+   * @param studentName - The student's name
+   * @param program - The student's program/class
+   * @param violationName - Name of the discipline violation
+   * @param points - Points to deduct for the violation (negative number)
+   * @param timestamp - ISO timestamp of when the violation was recorded
+   */
+  const updateTodayViolations = async (studentId: string, studentName: string, program: string, violationName: string, points: number, timestamp: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `today_violations_${today}`;
+      const existingViolations = await AsyncStorage.getItem(key);
+      
+      // Load existing violations or initialize empty array
+      let violationsList = existingViolations ? JSON.parse(existingViolations) : [];
+      
+      // Add new violation to the list
+      violationsList.push({
+        studentId,
+        studentName,
+        program,
+        violationName,
+        points, // This will be a negative number
+        timestamp
+      });
+      
+      // Save updated violations list
+      await AsyncStorage.setItem(key, JSON.stringify(violationsList));
+      console.log(`Added to today's violations: ${studentName} - ${violationName} (${points} points)`);
+    } catch (error) {
+      console.error('Error updating today\'s violations:', error);
     }
   };
 
@@ -336,7 +443,7 @@ export default function scanner() {
    * }
    *
    * @param studentId - The student's ID
-   * @param points - Points to add (positive number)
+   * @param points - Points to add (can be positive for good deeds or negative for discipline)
    */
   const updateStudentPoints = async (studentId: string, points: number) => {
     try {
@@ -365,7 +472,8 @@ export default function scanner() {
       
       // Save updated points data
       await AsyncStorage.setItem(key, JSON.stringify(studentPoints));
-      console.log(`Updated ${studentId} points: +${points}, Total: ${studentPoints.totalPoints}`);
+      const sign = points >= 0 ? '+' : '';
+      console.log(`Updated ${studentId} points: ${sign}${points}, Total: ${studentPoints.totalPoints}`);
     } catch (error) {
       console.error('Error updating student points:', error);
     }
@@ -459,7 +567,8 @@ export default function scanner() {
       
       // Save updated statistics
       await AsyncStorage.setItem(key, JSON.stringify(classStats));
-      console.log(`Updated class stats for ${className}: +${points} points, ${classStats.deedCount} deeds`);
+      const sign = points >= 0 ? '+' : '';
+      console.log(`Updated class stats for ${className}: ${sign}${points} points, ${classStats.deedCount} deeds`);
     } catch (error) {
       console.error('Error updating class statistics:', error);
     }
@@ -470,14 +579,25 @@ export default function scanner() {
     setShowSahsiahForm(true);
   };
 
+  const handleOpenDisciplineForm = () => {
+    setShowStudentModal(false); // Close the student modal first
+    setShowDisciplineForm(true);
+  };
+
   const handleBackFromSahsiah = () => {
     setShowSahsiahForm(false);
+    setShowStudentModal(true); // Reopen the student modal when going back
+  };
+
+  const handleBackFromDiscipline = () => {
+    setShowDisciplineForm(false);
     setShowStudentModal(true); // Reopen the student modal when going back
   };
 
   const closeModal = () => {
     setShowStudentModal(false);
     setShowSahsiahForm(false);
+    setShowDisciplineForm(false);
     setStudent(null);
     setQrData(null);
     // Resume scanning after modal close
@@ -489,6 +609,7 @@ export default function scanner() {
   const closeAllAndReturnToScanner = () => {
     setShowStudentModal(false);
     setShowSahsiahForm(false);
+    setShowDisciplineForm(false);
     setStudent(null);
     setQrData(null);
     // Resume scanning immediately
@@ -519,14 +640,16 @@ export default function scanner() {
   const studentActions = student ? getStudentActions(student.student_id) : {
     attendance: false,
     rmt: false,
-    sahsiah: false
+    sahsiah: false,
+    discipline: false
   };
   
   // Check if all actions are completed for the current student
   // Note: Sahsiah can be recorded multiple times, so we don't include it in the completion check
+  // RMT is only required if student is eligible
   const allActionsCompleted = Boolean(student &&
     studentActions.attendance &&
-    studentActions.rmt);
+    (!student.eligible_rmt || studentActions.rmt));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -578,11 +701,14 @@ export default function scanner() {
           loading={loading}
           allActionsCompleted={allActionsCompleted}
           sahsiahCount={sahsiahCount}
+          disciplineCount={disciplineCount}
           onClose={closeModal}
           onAttendance={handleAttendance}
           onRMT={handleRMT}
           onSahsiah={handleSahsiah}
+          onDiscipline={handleDiscipline}
           onOpenSahsiahForm={handleOpenSahsiahForm}
+          onOpenDisciplineForm={handleOpenDisciplineForm}
         />
 
         {/* Sahsiah Form as a separate overlay */}
@@ -596,6 +722,21 @@ export default function scanner() {
               }}
               onCancel={handleBackFromSahsiah}
               loading={loading.sahsiah}
+            />
+          </View>
+        )}
+
+        {/* Discipline Form as a separate overlay */}
+        {showDisciplineForm && student && (
+          <View style={styles.sahsiahFormOverlay}>
+            <DisciplineForm
+              student={student}
+              onSubmit={async (violationType, notes, points) => {
+                await handleDiscipline(violationType, notes, points);
+                closeAllAndReturnToScanner();
+              }}
+              onCancel={handleBackFromDiscipline}
+              loading={loading.discipline}
             />
           </View>
         )}
