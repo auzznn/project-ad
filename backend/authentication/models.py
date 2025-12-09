@@ -46,6 +46,10 @@ class Classroom(models.Model):
 
   def __str__(self) -> str:
     return f'{self.grade}{self.class_section}'
+  
+  @property
+  def name(self) -> str:
+    return self.__str__()
 
 class Student(models.Model):
   QR_IMAGE_FORMAT = "jpeg"
