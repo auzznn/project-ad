@@ -5,11 +5,8 @@ services:
     restart: always
     ports: 
       - 3306:3306
-    environment:
-      - MYSQL_ROOT_PASSWORD
-      - MYSQL_DATABASE
     env_file: 
-      - path: backend/.env
+      - backend/.env
     volumes:
       - mysql-db:/var/lib/mysql
 
@@ -26,9 +23,43 @@ services:
       - path: backend/.env
     depends_on:
       - mysql_database
+      - redis
     volumes:
       - backend:/var/lib/backend
+  
+  redis:
+    restart: always
+    image: redis/redis-stack:latest
+    ports:
+      - 6379:6379
+      - 8001:8001
+    volumes:
+      - redis:/var/lib/redis
+  
+  celery-worker:
+    build: 
+      dockerfile: dockerfile
+      context: backend
+    volumes:
+      - backend:/var/lib/backend
+    depends_on:
+      - backend
+      - redis
+      - celery-beat
+    entrypoint: celery -A backend worker -E -l info
+
+  celery-beat:
+    build: 
+      dockerfile: dockerfile
+      context: backend
+    volumes:
+      - backend:/var/lib/backend
+    depends_on:
+      - backend
+      - redis
+    entrypoint: celery -A backend beat -l info
 
 volumes:
   mysql-db:
   backend:
+  redis:

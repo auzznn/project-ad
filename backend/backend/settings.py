@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
+from django.utils import timezone
 
 load_dotenv()
 
@@ -153,3 +155,30 @@ REST_FRAMEWORK = {
 SITE_ID = 1
 
 ALLOWED_HOSTS = ["*"]
+
+
+# Celery Setting
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_TIMEZONE = 'Asia/Kuala_Lumpur'
+CELERY_ENABLE_UTC = False
+
+CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM = {
+  'hour': 0,
+  'day_of_week': 'mon-fri'
+}
+
+CREATE_STUDENT_ATTENDANCE_SCHEDULE_1 = crontab(**CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM)
+CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 = 5
+
+CELERY_BEAT_SCHEDULE = {
+    'create_student_attendance': {
+        'task': 'student_attendance.tasks.create_student_attendance',
+        'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE_1,
+    },
+}
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
