@@ -78,14 +78,6 @@ class Student(models.Model):
   
   @property
   def academic_year(self) -> str:
-    current_time = timezone.now()
-    month_threshold = current_time.replace(month=10, day=1, hour=0, minute=0, second=0, microsecond=0)
-    
-    start_academic_year = current_time.year
-    end_academic_year = start_academic_year + 1
+    return_value = timezone.now().year
 
-    if current_time < month_threshold:
-      start_academic_year -= 1
-      end_academic_year -= 1
-
-    return f'{start_academic_year}/{end_academic_year}'
+    return f'{return_value}'
