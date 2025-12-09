@@ -181,6 +181,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'student_attendance.tasks.create_student_attendance',
         'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE,
     },
+    'create_rmt_record': {
+      'task': 'rmt.tasks.create_rmt_record',
+      'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE
+    }
 }
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
