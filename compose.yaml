@@ -46,6 +46,8 @@ services:
       - backend
       - redis
       - celery-beat
+    environment:
+      MYSQL_HOST: project-ad-mysql_database-1
     entrypoint: celery -A backend worker -E -l info
 
   celery-beat:
