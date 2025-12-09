@@ -11,6 +11,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+from celery.schedules import crontab
+from django.utils import timezone
+
+load_dotenv()
+
+AUTH_USER_MODEL = 'authentication.MyUser'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,9 +52,11 @@ INSTALLED_APPS = [
     
     'base',
     'authentication',
+    'student_attendance'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,8 +91,13 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("MYSQL_DATABASE"),
+        'USER': os.getenv("MYSQL_USER"),
+        'PASSWORD': os.getenv("MYSQL_ROOT_PASSWORD"),
+        'HOST': os.getenv("MYSQL_HOST"),
+        'PORT': os.getenv("MYSQL_PORT"),
+
     }
 }
 
@@ -111,7 +126,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kuala_Lumpur'
 
 USE_I18N = True
 
@@ -122,6 +137,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = str(Path(BASE_DIR).joinpath('media'))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -129,10 +146,39 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': {
-      'rest_framework_simplejwt.authentication.JWTAuthentication'
-    }
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+      'rest_framework_simplejwt.authentication.JWTAuthentication',
+      'rest_framework.authentication.SessionAuthentication',
+    ]
 }
 
-AUTH_USER_MODEL = 'authentication.MyUser'
 SITE_ID = 1
+
+ALLOWED_HOSTS = ["*"]
+
+
+# Celery Setting
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_TIMEZONE = 'Asia/Kuala_Lumpur'
+CELERY_ENABLE_UTC = False
+
+CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM = {
+  'hour': 0,
+  'day_of_week': 'mon-fri'
+}
+
+CREATE_STUDENT_ATTENDANCE_SCHEDULE_1 = crontab(**CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM)
+CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 = 5
+
+CELERY_BEAT_SCHEDULE = {
+    'create_student_attendance': {
+        'task': 'student_attendance.tasks.create_student_attendance',
+        'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE_1,
+    },
+}
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]

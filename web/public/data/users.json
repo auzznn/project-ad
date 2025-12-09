@@ -1,0 +1,154 @@
+[
+  {
+    "id": 1,
+    "name": "Ahmad Bin Salleh",
+    "role": "admin",
+    "email": "ahmad.salleh@example.com"
+  },
+  {
+    "id": 2,
+    "name": "Nur Aina Binti Zulkifli",
+    "role": "teacher",
+    "email": "aina.zulkifli@example.com"
+  },
+  {
+    "id": 3,
+    "name": "Mohd Farid Bin Ali",
+    "role": "teacher",
+    "email": "farid.ali@example.com"
+  },
+  {
+    "id": 4,
+    "name": "Siti Mariam Binti Hassan",
+    "role": "teacher",
+    "email": "mariam.hassan@example.com"
+  },
+  {
+    "id": 5,
+    "name": "Rahman Bin Othman",
+    "role": "teacher",
+    "email": "rahman.othman@example.com"
+  },
+  {
+    "id": 6,
+    "name": "Zulkifli Bin Ahmad",
+    "role": "admin",
+    "email": "zulkifli.ahmad@example.com"
+  },
+  {
+    "id": 7,
+    "name": "Liyana Binti Mohamad",
+    "role": "teacher",
+    "email": "liyana.mohamad@example.com"
+  },
+  {
+    "id": 8,
+    "name": "Azman Bin Yusuf",
+    "role": "teacher",
+    "email": "azman.yusuf@example.com"
+  },
+  {
+    "id": 9,
+    "name": "Hafizah Binti Ismail",
+    "role": "teacher",
+    "email": "hafizah.ismail@example.com"
+  },
+  {
+    "id": 10,
+    "name": "Rozita Binti Khalid",
+    "role": "admin",
+    "email": "rozita.khalid@example.com"
+  },
+  {
+    "id": 101,
+    "name": "Aiman Bin Zakaria",
+    "role": "student",
+    "email": "aiman.zakaria@example.com"
+  },
+  {
+    "id": 102,
+    "name": "Sofia Binti Rahman",
+    "role": "student",
+    "email": "sofia.rahman@example.com"
+  },
+  {
+    "id": 103,
+    "name": "Haziq Bin Abdullah",
+    "role": "student",
+    "email": "haziq.abdullah@example.com"
+  },
+  {
+    "id": 104,
+    "name": "Nurin Aisyah Binti Farhan",
+    "role": "student",
+    "email": "nurin.farhan@example.com"
+  },
+  {
+    "id": 105,
+    "name": "Irfan Bin Saiful",
+    "role": "student",
+    "email": "irfan.saiful@example.com"
+  },
+  {
+    "id": 106,
+    "name": "Hannah Binti Khalid",
+    "role": "student",
+    "email": "hannah.khalid@example.com"
+  },
+  {
+    "id": 107,
+    "name": "Danish Bin Hamzah",
+    "role": "student",
+    "email": "danish.hamzah@example.com"
+  },
+  {
+    "id": 108,
+    "name": "Alya Binti Azhar",
+    "role": "student",
+    "email": "alya.azhar@example.com"
+  },
+  {
+    "id": 109,
+    "name": "Mustaqim Bin Zainal",
+    "role": "student",
+    "email": "mustaqim.zainal@example.com"
+  },
+  {
+    "id": 110,
+    "name": "Aqilah Binti Roslan",
+    "role": "student",
+    "email": "aqilah.roslan@example.com"
+  },
+  {
+    "id": 111,
+    "name": "Firdaus Bin Anuar",
+    "role": "student",
+    "email": "firdaus.anuar@example.com"
+  },
+  {
+    "id": 112,
+    "name": "Syamira Binti Idris",
+    "role": "student",
+    "email": "syamira.idris@example.com"
+  },
+  {
+    "id": 113,
+    "name": "Ridzuan Bin Musa",
+    "role": "student",
+    "email": "ridzuan.musa@example.com"
+  },
+  {
+    "id": 114,
+    "name": "Balqis Binti Razali",
+    "role": "student",
+    "email": "balqis.razali@example.com"
+  },
+  {
+    "id": 115,
+    "name": "Hakim Bin Razak",
+    "role": "student",
+    "email": "hakim.razak@example.com"
+  }
+]
+
+
