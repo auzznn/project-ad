@@ -6,25 +6,42 @@ interface AttendanceRecord {
   created_at: string;
   updated_at: string;
   student: {
-    id: string;
+    student_id: number;
     name: string;
-    class: string;
-  };
+    grade: number;
+    section: string;
+    academic_year: string;
+    rmt_elligible: boolean;
+  } | null;
 }
 
-
 function Kehadiran() {
-const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-const [loading, setLoading] = useState(true);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/data/attendance-2025-11-19.json");
+        const res = await fetch("http://127.0.0.1:8080/api/student_attendance/");
+
+        if (!res.ok) {
+          console.error("Unauthorized or server issue:", res.status);
+          setAttendance([]);
+          return;
+        }
+
         const data = await res.json();
-        setAttendance(data);
+
+        // Ensure data is valid array
+        if (Array.isArray(data)) {
+          setAttendance(data);
+        } else {
+          console.error("API returned non-array:", data);
+          setAttendance([]);
+        }
+
       } catch (err) {
-        console.error(err);
+        console.error("Error loading attendance:", err);
       } finally {
         setLoading(false);
       }
@@ -34,6 +51,9 @@ const [loading, setLoading] = useState(true);
   }, []);
 
   if (loading) return <p>Loading...</p>;
+
+  // Filter out records where student is null
+  const validAttendance = attendance.filter((item) => item.student !== null);
 
   return (
     <div className="kehadiran-container">
@@ -62,24 +82,43 @@ const [loading, setLoading] = useState(true);
       <div className="table-container">
         <table className="table table-custom">
           <thead>
-        <tr>
-          <th>Status</th>
-          <th>Nama Pelajar</th>
-          <th>Kelas</th>
-          <th>Masa Kehadiran</th>
-        </tr>
-      </thead>
+            <tr>
+              <th>Status</th>
+              <th>Nama Pelajar</th>
+              <th>Kelas</th>
+              <th>Masa Kehadiran</th>
+            </tr>
+          </thead>
 
-      <tbody>
-        {attendance.map((item, index) => (
-          <tr key={index}>
-            <td>{item.status}</td>
-            <td>{item.student.name}</td>
-            <td>{item.student.class}</td>
-            <td>{item.created_at}</td>
-          </tr>
-        ))}
-      </tbody>
+          <tbody>
+            {validAttendance.map((item, index) => (
+              <tr
+                key={index}
+                className={
+                  item.status === "absent"
+                    ? "status-absent"
+                    : item.status === "late"
+                    ? "status-late"
+                    : "status-present"
+                }
+              >
+                <td>{item.status}</td>
+                <td>{item.student?.name}</td>
+                <td>
+                  {item.student?.grade}-{item.student?.section}
+                </td>
+                <td>{item.created_at}</td>
+              </tr>
+            ))}
+
+            {validAttendance.length === 0 && (
+              <tr>
+                <td colSpan={4} style={{ textAlign: "center", padding: "10px" }}>
+                  Tiada rekod kehadiran yang sah.
+                </td>
+              </tr>
+            )}
+          </tbody>
         </table>
       </div>
     </div>
