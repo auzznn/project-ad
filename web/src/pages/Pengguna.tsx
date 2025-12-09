@@ -147,6 +147,7 @@ export default function Pengguna() {
         </form>
       </div>
 
+      {/* Users Table */}
       <div className="table-section">
         <h2>Senarai Pengguna</h2>
         <div className="table-container">
