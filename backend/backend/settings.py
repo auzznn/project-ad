@@ -140,7 +140,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = str(Path(BASE_DIR).joinpath('media'))
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(Path(BASE_DIR).joinpath('media'))) 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -183,7 +183,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     'create_rmt_record': {
       'task': 'rmt.tasks.create_rmt_record',
-      'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE
+      'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+    },
+    'update_student_qr_code': {
+      'task': 'authentication.tasks.update_qr_code',
+      'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE,
     }
 }
 CORS_ALLOWED_ORIGINS = [
