@@ -107,7 +107,7 @@ export default function StudentModal({
             <View style={styles.infoRow}>
               <Text style={styles.emoji}>🏫</Text>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Class</Text>
-              <Text style={[styles.infoValue, { color: theme.text }]}>{student.program}</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>{student.class}</Text>
             </View>
             
             <View style={styles.infoRow}>
@@ -115,9 +115,9 @@ export default function StudentModal({
               <Text style={[styles.infoLabel, { color: theme.muted }]}>RMT Eligible</Text>
               <Text style={[
                 styles.infoValue,
-                { color: student.eligible_rmt ? '#4CAF50' : '#F44336' }
+                { color: student.rmt_elligible ? '#4CAF50' : '#F44336' }
               ]}>
-                {student.eligible_rmt ? 'Yes' : 'No'}
+                {student.rmt_elligible ? 'Yes' : 'No'}
               </Text>
             </View>
           </View>
@@ -133,7 +133,7 @@ export default function StudentModal({
               completed={actions.attendance}
             />
             
-            {student.eligible_rmt && (
+            {student.rmt_elligible && (
               <ActionButton
                 title="Record RMT"
                 icon="restaurant"

@@ -180,12 +180,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+
   const value: AuthContextType = {
     user,
     isLoading,
     login,
     logout,
-    isAuthenticated,
+    isAuthenticated
   };
 
   // Debug logging for authentication state
