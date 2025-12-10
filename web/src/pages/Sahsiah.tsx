@@ -1,169 +1,298 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./Sahsiah.css";
 
-interface SahsiahRecord {
-  id: number;
-  student_name: string;
-  sahsiah_item: string;
-  marks: number;
-  record_date: string;
-  record_time: string;
+// ---- Interfaces ----
+interface Sahsiah {
+  id?: number;
+  name: string;
+  description: string;
+  points: number;
+  tag: string;
 }
 
-interface StudentRanking {
-  rank: number;
-  student_name: string;
-  total_marks: number;
-}
+// ---- Hardcoded categories/tags ----
+const categories: string[] = [
+  "Menjaga Alam Sekitar",
+  "Akademik",
+  "Khidmat Masyarakat",
+  "Amal",
+  "Moral",
+];
 
-function Sahsiah() {
-  const [sahsiahRecords, setSahsiahRecords] = useState<SahsiahRecord[]>([]);
-  const [studentRankings, setStudentRankings] = useState<StudentRanking[]>([]);
-  const [selectedClass, setSelectedClass] = useState("Semua Kelas");
-  const [startDate, setStartDate] = useState("2025-02-03");
-  const [endDate, setEndDate] = useState("2025-02-03");
+export default function SahsiahPage() {
+  const [sahsiahList, setSahsiahList] = useState<Sahsiah[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const mockRecords: SahsiahRecord[] = [
-      {
-        id: 1,
-        student_name: "Ahmad Faris",
-        sahsiah_item: "Read Al-Mulk",
-        marks: 20,
-        record_date: "Feb 10, 2025",
-        record_time: "08:00 AM",
-      },
-      {
-        id: 2,
-        student_name: "Tan Mei Ling",
-        sahsiah_item: "Speak in Arabic",
-        marks: 30,
-        record_date: "Feb 10, 2025",
-        record_time: "09:15 AM",
-      },
-      {
-        id: 3,
-        student_name: "Siti Nurhaliza",
-        sahsiah_item: "Proper Attire (Activity Based)",
-        marks: 10,
-        record_date: "Feb 10, 2025",
-        record_time: "07:30 AM",
-      },
-      {
-        id: 4,
-        student_name: "Muhammad Ali",
-        sahsiah_item: "Read Al-Mulk",
-        marks: 20,
-        record_date: "Feb 09, 2025",
-        record_time: "08:00 AM",
-      },
-      {
-        id: 5,
-        student_name: "Nurul Aina",
-        sahsiah_item: "Speak in Arabic",
-        marks: 30,
-        record_date: "Feb 09, 2025",
-        record_time: "10:00 AM",
-      },
-    ];
-    setSahsiahRecords(mockRecords);
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const mockRankings: StudentRanking[] = [
-      { rank: 1, student_name: "Tan Mei Ling", total_marks: 150 },
-      { rank: 2, student_name: "Ahmad Faris", total_marks: 130 },
-      { rank: 3, student_name: "Nurul Aina", total_marks: 120 },
-      { rank: 4, student_name: "Siti Nurhaliza", total_marks: 110 },
-      { rank: 5, student_name: "Muhammad Ali", total_marks: 100 },
-    ];
-    setStudentRankings(mockRankings);
-  }, []);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const handleAddRecord = () => {
-    console.log("Add new sahsiah record");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Sahsiah | null>(null);
+
+  const [form, setForm] = useState<Sahsiah>({
+    name: "",
+    description: "",
+    points: 0,
+    tag: "",
+  });
+
+  // ---------- Fetch Sahsiah list ----------
+  const fetchItems = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/sahsiah/type/");
+      const data = await res.json();
+
+      if (Array.isArray(data)) setSahsiahList(data);
+      else if (Array.isArray(data.records)) setSahsiahList(data.records);
+      else setSahsiahList([]);
+    } catch (err) {
+      console.error("Failed to fetch Sahsiah types:", err);
+      setSahsiahList([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  // ---------- Create ----------
+  const handleCreate = () => {
+    setForm({ name: "", description: "", points: 0, tag: "" });
+    setEditingItem(null);
+    setModalOpen(true);
+  };
+
+  // ---------- Edit ----------
+  const handleEdit = (item: Sahsiah) => {
+    setForm({ ...item });
+    setEditingItem(item);
+    setModalOpen(true);
+  };
+
+  // ---------- Delete ----------
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
+
+    try {
+      await fetch(`http://localhost:8080/api/sahsiah/type/${confirmDeleteId}/`, {
+        method: "DELETE",
+      });
+
+      setConfirmDeleteId(null);
+      fetchItems();
+    } catch (err) {
+      console.error("Failed to delete Sahsiah type:", err);
+    }
+  };
+
+  // ---------- Form Change ----------
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "points" ? Number(value) : value,
+    }));
+  };
+
+  // ---------- Submit Form ----------
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const url = editingItem?.id
+        ? `http://localhost:8080/api/sahsiah/type/${editingItem.id}/`
+        : "http://localhost:8080/api/sahsiah/type/";
+      const method = editingItem?.id ? "PUT" : "POST";
+
+      await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      setModalOpen(false);
+      fetchItems();
+    } catch (err) {
+      console.error("Failed to save Sahsiah type:", err);
+    }
+  };
+
+  // ---------- Search Filter ----------
+  const filteredList = sahsiahList.filter((item) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+
+    return (
+      item.name.toLowerCase().includes(term) ||
+      item.tag.toLowerCase().includes(term) ||
+      item.description.toLowerCase().includes(term) ||
+      String(item.points).includes(term)
+    );
+  });
+
   return (
-    <div className="sahsiah-container">
-      <div className="sahsiah-header">
-        <h1>Pengurusan Sahsiah</h1>
-        <p>Rekod dan jejak mata perkembangan sahsiah</p>
-      </div>
+    <div className="page-container">
+      <h1 className="page-title">Pengurusan Sahsiah</h1>
 
-      <div className="filters-section">
-        <div className="filter-item">
-          <label>Penapis Kelas</label>
-          <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="form-control">
-            <option>Semua Kelas</option>
-            <option>1A</option>
-            <option>1B</option>
-            <option>2A</option>
-            <option>2B</option>
-          </select>
-        </div>
-        <div className="filter-item">
-          <label>Tarikh Dari</label>
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="form-control" />
-        </div>
-        <div className="filter-item">
-          <label>Tarikh Hingga</label>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="form-control" />
-        </div>
-      </div>
+      <div className="section-box">
 
-      <div className="action-buttons">
-        <button className="btn btn-primary" onClick={handleAddRecord}>
-          <i className="bi bi-plus-circle"></i> Tambah Rekod Sahsiah
-        </button>
-      </div>
+        {/* ---- Search + Add ---- */}
+        <div className="controls-row">
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Cari Sahsiah..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
-      <div className="content-grid">
-        <div className="records-section">
-          <h2>Nama Pelajar</h2>
-          <table className="table table-custom">
+          <button className="add-btn" onClick={handleCreate}>
+            + Tambah Sahsiah
+          </button>
+        </div>
+
+        {/* ---- Table ---- */}
+        <div className="table-wrapper">
+          <table className="custom-table">
             <thead>
               <tr>
-                <th>Nama Pelajar</th>
-                <th>Item Sahsiah</th>
-                <th>Mata</th>
-                <th>Tarikh</th>
+                <th>No.</th>
+                <th>Nama</th>
+                <th>Markah</th>
+                <th>Kategori</th>
+                <th>Penerangan</th>
+                <th>Tindakan</th>
               </tr>
             </thead>
+
             <tbody>
-              {sahsiahRecords.map((record) => (
-                <tr key={record.id}>
-                  <td>{record.student_name}</td>
-                  <td>{record.sahsiah_item}</td>
-                  <td>
-                    <span className="marks-badge">+{record.marks} Mata</span>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="empty-row">
+                    Loading records...
                   </td>
-                  <td>{record.record_date}</td>
                 </tr>
-              ))}
+              ) : filteredList.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="empty-row">
+                    No records found
+                  </td>
+                </tr>
+              ) : (
+                filteredList.map((item, index) => (
+                  <tr key={item.id ?? index}>
+                    <td>{index + 1}</td>
+                    <td>{item.name}</td>
+                    <td>{item.points}</td>
+                    <td>{item.tag}</td>
+                    <td>{item.description}</td>
+                    <td>
+                      <div className="action-btns-wrapper">
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() => handleEdit(item)}
+                        >
+                          Ubah
+                        </button>
+
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => setConfirmDeleteId(item.id ?? null)}
+                        >
+                          Padam
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+      </div>
 
-        <div className="rankings-section">
-          <h2>
-            <i className="bi bi-trophy"></i> Papan Pendahulu
-          </h2>
-          <div className="rankings-list">
-            {studentRankings.map((ranking) => (
-              <div key={ranking.rank} className="ranking-item">
-                <div className="ranking-badge">{ranking.rank}</div>
-                <div className="ranking-info">
-                  <p className="ranking-name">{ranking.student_name}</p>
-                </div>
-                <div className="ranking-marks">
-                  <p className="marks-value">{ranking.total_marks} mata</p>
-                </div>
-              </div>
-            ))}
+      {/* ---- Create/Edit Modal ---- */}
+      {modalOpen && (
+        <div className="modal-backdrop">
+          <form className="modal-box" onSubmit={handleSubmit}>
+            <h2 className="modal-title">
+              {editingItem ? "Edit Sahsiah" : "Create Sahsiah"}
+            </h2>
+
+            <label>Name</label>
+            <input name="name" value={form.name} onChange={handleChange} required />
+
+            <label>Points</label>
+            <input
+              name="points"
+              type="number"
+              value={form.points}
+              onChange={handleChange}
+              required
+            />
+
+            <label>Category</label>
+            <select name="tag" value={form.tag} onChange={handleChange} required>
+              <option value="">-- Select Category --</option>
+              {categories.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+
+            <label>Description</label>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              required
+            />
+
+            <div className="modal-btn-row">
+              <button
+                type="button"
+                className="modal-cancel"
+                onClick={() => setModalOpen(false)}
+              >
+                Cancel
+              </button>
+
+              <button type="submit" className="modal-save">
+                {editingItem ? "Update" : "Create"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ---- Delete Confirmation Modal ---- */}
+      {confirmDeleteId !== null && (
+        <div className="modal-backdrop">
+          <div className="modal-box delete-modal">
+            <h2 className="modal-title">Confirm Delete</h2>
+            <p>Are you sure you want to delete this Sahsiah type?</p>
+
+            <div className="modal-btn-row">
+              <button
+                className="modal-cancel"
+                onClick={() => setConfirmDeleteId(null)}
+              >
+                Cancel
+              </button>
+
+              <button className="modal-delete" onClick={confirmDelete}>
+                Delete
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
-
-export default Sahsiah;
