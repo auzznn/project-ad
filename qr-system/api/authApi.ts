@@ -13,6 +13,9 @@ export interface LoginData {
 export const authApi = {
   login: (data: LoginData): Promise<LoginResponse> =>
     apiRequest.post('/authentication/token', data),
+  
+  refreshToken: (refresh: string): Promise<{ access: string }> =>
+    apiRequest.post('/authentication/token/refresh', { refresh }),
 };
 
 
