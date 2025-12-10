@@ -6,16 +6,18 @@ interface AttendanceRecord {
   created_at: string;
   updated_at: string;
   student: {
-    student_id: string;
-    fullname: string;
-    class_room: string;
-  };
+    student_id: number;
+    name: string;
+    grade: number;
+    section: string;
+    academic_year: string;
+    rmt_elligible: boolean;
+  } | null;
 }
 
-
 function Kehadiran() {
-const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-const [loading, setLoading] = useState(true);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
@@ -35,6 +37,7 @@ const [loading, setLoading] = useState(true);
           setAttendance(data);
         } else {
           console.error("API returned non-array:", data);
+          setAttendance([]);
         }
 
       } catch (err) {
@@ -48,6 +51,10 @@ const [loading, setLoading] = useState(true);
   }, []);
 
   if (loading) return <p>Loading...</p>;
+
+  // Filter out records where student is null
+  const validAttendance = attendance.filter((item) => item.student !== null);
+
   return (
     <div className="kehadiran-container">
       <div className="kehadiran-header">
