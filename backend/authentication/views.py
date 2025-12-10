@@ -39,3 +39,14 @@ class MyUserView(ModelViewSet):
     merged_data = non_student_user_serializer.data + student_user_serializer.data
 
     return Response(merged_data, status=status.HTTP_200_OK)
+  
+  def retrieve(self, request, *args, **kwargs):
+    instance = self.get_object()
+
+    serializer_class = self.get_serializer_class()
+    serializer = serializer_class(instance=instance)
+
+    if instance.role == "student":
+      serializer = StudentSerializer(instance=instance.student)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)

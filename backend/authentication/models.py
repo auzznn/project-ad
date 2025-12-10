@@ -46,6 +46,10 @@ class Classroom(models.Model):
 
   def __str__(self) -> str:
     return f'{self.grade}{self.class_section}'
+  
+  @property
+  def name(self) -> str:
+    return self.__str__()
 
 class Student(models.Model):
   QR_IMAGE_FORMAT = "jpeg"
@@ -61,16 +65,22 @@ class Student(models.Model):
     qr_image = qr.make(url_link)
     buffer = BytesIO()
     qr_image.save(buffer, format=cls.QR_IMAGE_FORMAT)
+    buffer.seek(0)
     return File(buffer, name=f"qr.{cls.QR_IMAGE_FORMAT}")
+
+  def generate_qr(self) -> None:
+    SITE_DOMAIN = Site.objects.get_current().domain
+    URL_PATH = reverse(USER_DETAIL_PATH_NAME, args=[self.user.pk])
+    STUDENT_DATA_URL = f'http://{SITE_DOMAIN}{URL_PATH}'
+    
+    qr_file = self.generate_qr_image(STUDENT_DATA_URL)
+    self.qr_code.save(f'{self.user.username}.{self.QR_IMAGE_FORMAT}', qr_file, save=False)
 
   def save(self, *args, **kwargs):
     if not self.qr_code:
-      SITE_DOMAIN = Site.objects.get_current().domain
-      print(self.user.pk)
-      URL_PATH = reverse(USER_DETAIL_PATH_NAME, args=[self.user.pk])
-      STUDENT_DATA_URL = f'http://{SITE_DOMAIN}{URL_PATH}'
-      qr_file = self.generate_qr_image(STUDENT_DATA_URL)
-      self.qr_code.save(f'{self.user.username}.{self.QR_IMAGE_FORMAT}', qr_file, save=False)
+      self.generate_qr()
+    if self.qr_code and not self.qr_code.storage.exists(self.qr_code.name):
+      self.generate_qr()
     super().save(*args, **kwargs)
 
   def __str__(self) -> str:
