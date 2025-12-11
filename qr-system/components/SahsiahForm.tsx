@@ -1,69 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList, Alert, TextInput, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Student } from '../api/studentApi';
+import { Student, SahsiahType, studentApi } from '../api/studentApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColor } from '../hooks/useThemeColor';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Define good deed categories and deeds
-const goodDeedCategories = [
-  {
-    id: 'academic',
+// Category configuration for tags
+const categoryConfig: Record<string, { name: string; icon: string; color: string }> = {
+  'academic': {
     name: 'Academic Excellence',
     icon: 'school',
-    color: '#4CAF50',
-    deeds: [
-      { id: 'homework', name: 'Completing Homework', points: 5 },
-      { id: 'participation', name: 'Active Participation', points: 3 },
-      { id: 'helping', name: 'Helping Classmates', points: 4 },
-      { id: 'excellence', name: 'Excellent Test Score', points: 10 }
-    ]
+    color: '#4CAF50'
   },
-  {
-    id: 'behavior',
+  'behavior': {
     name: 'Good Behavior',
     icon: 'heart',
-    color: '#2196F3',
-    deeds: [
-      { id: 'honesty', name: 'Honesty', points: 8 },
-      { id: 'respect', name: 'Respect to Teachers', points: 5 },
-      { id: 'kindness', name: 'Kindness to Others', points: 4 },
-      { id: 'discipline', name: 'Self Discipline', points: 6 }
-    ]
+    color: '#2196F3'
   },
-  {
-    id: 'leadership',
+  'leadership': {
     name: 'Leadership',
     icon: 'star',
-    color: '#FF9800',
-    deeds: [
-      { id: 'leading', name: 'Leading Group Activity', points: 7 },
-      { id: 'responsibility', name: 'Taking Responsibility', points: 6 },
-      { id: 'initiative', name: 'Showing Initiative', points: 8 },
-      { id: 'mentoring', name: 'Mentoring Younger Students', points: 10 }
-    ]
+    color: '#FF9800'
   },
-  {
-    id: 'service',
+  'Community Service': {
     name: 'Community Service',
     icon: 'people',
-    color: '#9C27B0',
-    deeds: [
-      { id: 'cleaning', name: 'Classroom Cleaning', points: 3 },
-      { id: 'organizing', name: 'Organizing School Event', points: 8 },
-      { id: 'volunteering', name: 'Volunteering', points: 7 },
-      { id: 'fundraising', name: 'Fundraising', points: 9 }
-    ]
+    color: '#9C27B0'
+  },
+  'default': {
+    name: 'Other',
+    icon: 'folder',
+    color: '#607D8B'
   }
-];
+};
 
 interface SahsiahFormProps {
   student: Student;
-  onSubmit: (deedType: string, notes: string, points: number) => Promise<void>;
+  onSubmit: (sahsiahTypeId: number, notes: string, points: number) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -88,6 +65,55 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [notes, setNotes] = useState('');
   const [recording, setRecording] = useState(false);
+  const [sahsiahTypes, setSahsiahTypes] = useState<SahsiahType[]>([]);
+  const [sahsiahCategories, setSahsiahCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch sahsiah types from API and group by tag
+  useEffect(() => {
+    const fetchSahsiahTypes = async () => {
+      try {
+        setLoadingCategories(true);
+        const types = await studentApi.getSahsiahTypes();
+        setSahsiahTypes(types);
+        
+        // Group sahsiah types by tag
+        const groupedByTag = types.reduce((acc: Record<string, SahsiahType[]>, type) => {
+          const tag = type.tag || 'default';
+          if (!acc[tag]) {
+            acc[tag] = [];
+          }
+          acc[tag].push(type);
+          return acc;
+        }, {});
+        
+        // Convert to categories format
+        const categories = Object.entries(groupedByTag).map(([tag, deeds]) => {
+          const config = categoryConfig[tag] || categoryConfig.default;
+          return {
+            id: tag,
+            name: config.name,
+            icon: config.icon,
+            color: config.color,
+            deeds: deeds.map(deed => ({
+              id: deed.id,
+              name: deed.name,
+              points: deed.points
+            }))
+          };
+        });
+        
+        setSahsiahCategories(categories);
+      } catch (error) {
+        console.error('Error fetching sahsiah types:', error);
+        Alert.alert('Error', 'Failed to load sahsiah categories. Please try again.');
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    
+    fetchSahsiahTypes();
+  }, []);
 
   const toggleCategory = (categoryId: string) => {
     console.log('SahsiahForm - Toggling category:', categoryId);
@@ -121,7 +147,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
     
     setRecording(true);
     try {
-      // Record the good deed with points - pass points to parent component
+      // Record the good deed with points - pass sahsiah type ID to parent component
       // This ensures the parent component (scanner.tsx) handles all point calculations
       // and storage, maintaining data consistency across the application
       await onSubmit(selectedDeed.deed.id, notes, selectedDeed.deed.points);
@@ -147,36 +173,6 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
       setRecording(false);
     }
   };
-
-  /**
-   * DATA FLOW ARCHITECTURE NOTES
-   *
-   * Previous Implementation Issues:
-   * - Point updates were handled in both SahsiahForm and scanner.tsx
-   * - This caused data inconsistencies and race conditions
-   * - Leaderboard sometimes showed stale or incorrect data
-   *
-   * Current Implementation (Fixed):
-   * - All point calculations and storage are centralized in scanner.tsx
-   * - SahsiahForm only passes deed information and points to parent
-   * - Scanner component handles:
-   *   * Student point updates (total and daily)
-   *   * Today's deeds list updates
-   *   * Class statistics updates
-   *   * Sahsiah record storage
-   *
-   * Benefits:
-   * - Single source of truth for point calculations
-   * - Consistent data flow: Scanner → AsyncStorage → Leaderboard
-   * - No duplicate or conflicting updates
-   * - Leaderboard automatically reflects latest data
-   *
-   * Storage Keys Used:
-   * - sahsiah_{studentId}_{date}_{timestamp}: Individual good deed records
-   * - student_points_{studentId}: Student's total and daily points
-   * - today_deeds_{date}: List of all deeds performed today
-   * - class_stats_{class}_{date}: Class-level statistics
-   */
 
   const renderCategoryItem = ({ item }: { item: any }) => (
     <View style={[styles.categoryContainer, { backgroundColor: cardColor }]}>
@@ -318,12 +314,24 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
 
   console.log('SahsiahForm - Rendering main form for student:', student.name);
   
+  // Show loading state while fetching categories
+  if (loadingCategories) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={primaryColor} />
+          <Text style={[styles.loadingText, { color: textColor }]}>Loading sahsiah categories...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
   // Create data array for FlatList that includes header, student info, and categories
   const formData = [
     { type: 'header' },
     { type: 'studentInfo' },
     { type: 'sectionTitle' },
-    ...goodDeedCategories.map(category => ({ type: 'category', data: category }))
+    ...sahsiahCategories.map(category => ({ type: 'category', data: category }))
   ];
 
   const renderFormItem = ({ item, index }: { item: any; index: number }) => {
@@ -674,5 +682,15 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

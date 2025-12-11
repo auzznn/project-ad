@@ -11,10 +11,20 @@ export interface StudentActions {
 export const useStudentActions = () => {
   const [actionsMap, setActionsMap] = useState<Record<string, StudentActions>>({});
 
+  // Function to get current date in KL timezone
+  const getKLToday = () => {
+    const now = new Date();
+    // KL is UTC+8, so we need to adjust for the device's timezone
+    const klOffset = 8 * 60; // 8 hours in minutes
+    const localOffset = now.getTimezoneOffset(); // Local offset in minutes (negative for UTC+)
+    const adjustedTime = new Date(now.getTime() + (localOffset + klOffset) * 60000);
+    return adjustedTime.toISOString().split("T")[0];
+  };
+
   // Function to load persisted actions from AsyncStorage
   const loadPersistedActions = async () => {
     try {
-      const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+      const today = getKLToday(); // Get today's date in KL timezone (YYYY-MM-DD format)
       const lastResetDate = await AsyncStorage.getItem(
         "last_actions_reset_date"
       );
@@ -55,13 +65,41 @@ export const useStudentActions = () => {
     updatedActions: Record<string, StudentActions>
   ) => {
     try {
-      const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+      const today = getKLToday(); // Get today's date in KL timezone (YYYY-MM-DD format)
       await AsyncStorage.setItem(
         `student_actions_${today}`,
         JSON.stringify(updatedActions)
       );
     } catch (error) {
       console.error("Failed to persist actions:", error);
+    }
+  };
+
+  // Function to clear all attendance-related data
+  const clearAttendanceData = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const attendanceKeys = keys.filter(
+        (key) =>
+          key.startsWith("student_actions_") ||
+          key === "last_actions_reset_date"
+      );
+      
+      if (attendanceKeys.length > 0) {
+        await AsyncStorage.multiRemove(attendanceKeys);
+        console.log(`Cleared ${attendanceKeys.length} attendance-related keys`);
+      }
+      
+      // Reset the actions map to empty state
+      setActionsMap({});
+      
+      // Set the reset date to today in KL timezone
+      await AsyncStorage.setItem("last_actions_reset_date", getKLToday());
+      
+      return true;
+    } catch (error) {
+      console.error("Failed to clear attendance data:", error);
+      return false;
     }
   };
 
@@ -107,5 +145,7 @@ export const useStudentActions = () => {
     getStudentActions,
     updateStudentAction,
     loadPersistedActions,
+    clearAttendanceData,
+    getKLToday,
   };
 };
