@@ -76,6 +76,12 @@ class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
 
   @action(detail=False, url_path=r"(?P<grade>[0-9]+)/(?P<section>[^/.]+)")
   def group_by_class(self, request, grade: int, section: str, *args, **kwargs):
-    queryset = self.get_queryset().filter(class_room__grade=grade, class_room__class_section=section)
+    queryset = self.get_queryset().filter(class_room__grade=grade, class_room__class_section__exact=section)
+    serializer = self.create_ranking_student(queryset=queryset)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+  
+  @action(detail=False, url_path=r"(?P<grade>[0-9]+)")
+  def group_by_grade(self, request, grade: int, *args, **kwargs):
+    queryset = self.get_queryset().filter(class_room__grade=grade)
     serializer = self.create_ranking_student(queryset=queryset)
     return Response(serializer.data, status=status.HTTP_200_OK)
