@@ -12,19 +12,24 @@ interface StudentModalProps {
     attendance: boolean;
     rmt: boolean;
     sahsiah: boolean;
+    discipline: boolean;
   };
   loading: {
     attendance: boolean;
     rmt: boolean;
     sahsiah: boolean;
+    discipline: boolean;
   };
   allActionsCompleted?: boolean;
   sahsiahCount?: number;
+  disciplineCount?: number;
   onClose: () => void;
   onAttendance: () => void;
   onRMT: () => void;
-  onSahsiah: (deedType: string, notes: string) => Promise<void>;
+  onSahsiah: (sahsiahTypeId: number, notes: string) => Promise<void>;
+  onDiscipline: (violationType: string, notes: string) => Promise<void>;
   onOpenSahsiahForm: () => void;
+  onOpenDisciplineForm: () => void;
 }
 
 export default function StudentModal({
@@ -34,16 +39,16 @@ export default function StudentModal({
   loading,
   allActionsCompleted = false,
   sahsiahCount = 0,
+  disciplineCount = 0,
   onClose,
   onAttendance,
   onRMT,
   onSahsiah,
-  onOpenSahsiahForm
+  onDiscipline,
+  onOpenSahsiahForm,
+  onOpenDisciplineForm
 }: StudentModalProps) {
   const { theme } = useTheme();
-  
-  // Add logging for debugging
-  console.log('StudentModal render - visible:', visible);
   
   if (!student) return null;
 
@@ -75,6 +80,12 @@ export default function StudentModal({
                 <Text style={styles.sahsiahText}>{sahsiahCount} deed{sahsiahCount > 1 ? 's' : ''} recorded</Text>
               </View>
             )}
+            {disciplineCount > 0 && (
+              <View style={styles.disciplineBadge}>
+                <Ionicons name="warning" size={16} color="#F44336" />
+                <Text style={styles.disciplineText}>{disciplineCount} issue{disciplineCount > 1 ? 's' : ''} recorded</Text>
+              </View>
+            )}
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={24} color={theme.muted} />
             </TouchableOpacity>
@@ -96,7 +107,7 @@ export default function StudentModal({
             <View style={styles.infoRow}>
               <Text style={styles.emoji}>🏫</Text>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Class</Text>
-              <Text style={[styles.infoValue, { color: theme.text }]}>{student.program}</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>{student.class}</Text>
             </View>
             
             <View style={styles.infoRow}>
@@ -104,9 +115,9 @@ export default function StudentModal({
               <Text style={[styles.infoLabel, { color: theme.muted }]}>RMT Eligible</Text>
               <Text style={[
                 styles.infoValue,
-                { color: student.eligible_rmt ? '#4CAF50' : '#F44336' }
+                { color: student.rmt_elligible ? '#4CAF50' : '#F44336' }
               ]}>
-                {student.eligible_rmt ? 'Yes' : 'No'}
+                {student.rmt_elligible ? 'Yes' : 'No'}
               </Text>
             </View>
           </View>
@@ -122,15 +133,17 @@ export default function StudentModal({
               completed={actions.attendance}
             />
             
-            <ActionButton
-              title="Check RMT Eligibility"
-              icon="restaurant"
-              color="#FF9800"
-              onPress={onRMT}
-              disabled={loading.rmt}
-              loading={loading.rmt}
-              completed={actions.rmt}
-            />
+            {student.rmt_elligible && (
+              <ActionButton
+                title="Record RMT"
+                icon="restaurant"
+                color="#FF9800"
+                onPress={onRMT}
+                disabled={loading.rmt}
+                loading={loading.rmt}
+                completed={actions.rmt}
+              />
+            )}
             
             <ActionButton
               title="Record Good Deed"
@@ -139,6 +152,16 @@ export default function StudentModal({
               onPress={onOpenSahsiahForm}
               disabled={loading.sahsiah}
               loading={loading.sahsiah}
+              completed={false}
+            />
+            
+            <ActionButton
+              title="Record Discipline Issue"
+              icon="warning"
+              color="#F44336"
+              onPress={onOpenDisciplineForm}
+              disabled={loading.discipline}
+              loading={loading.discipline}
               completed={false}
             />
           </View>
@@ -218,6 +241,21 @@ const styles = StyleSheet.create({
   sahsiahText: {
     fontSize: 12,
     color: '#9C27B0',
+    fontWeight: '600',
+    marginLeft: 5,
+  },
+  disciplineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffebee',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
+    marginRight: 10,
+  },
+  disciplineText: {
+    fontSize: 12,
+    color: '#F44336',
     fontWeight: '600',
     marginLeft: 5,
   },

@@ -2,6 +2,9 @@
 *.sqlite3
 *.pyc
 *.sqlite3
+/node_modules
+/web/node_modules
+backend/.env
 /backend/media
 backend/.env
 /backend/authentication/migrations/__pycache__

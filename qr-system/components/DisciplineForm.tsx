@@ -1,51 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList, Alert, TextInput, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Student, SahsiahType, studentApi } from '../api/studentApi';
+import { Student } from '../api/studentApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColor } from '../hooks/useThemeColor';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Category configuration for tags
-const categoryConfig: Record<string, { name: string; icon: string; color: string }> = {
-  'academic': {
-    name: 'Academic Excellence',
+// Define discipline categories and violations
+const disciplineCategories = [
+  {
+    id: 'academic',
+    name: 'Academic Misconduct',
     icon: 'school',
-    color: '#4CAF50'
+    color: '#F44336',
+    violations: [
+      { id: 'late_homework', name: 'Late Homework Submission', points: 3 },
+      { id: 'no_homework', name: 'Not Completing Homework', points: 5 },
+      { id: 'disruptive', name: 'Disruptive Behavior in Class', points: 4 },
+      { id: 'cheating', name: 'Cheating Attempt', points: 10 }
+    ]
   },
-  'behavior': {
-    name: 'Good Behavior',
-    icon: 'heart',
-    color: '#2196F3'
+  {
+    id: 'behavior',
+    name: 'Behavioral Issues',
+    icon: 'warning',
+    color: '#FF5722',
+    violations: [
+      { id: 'disrespect', name: 'Disrespect to Teachers', points: 6 },
+      { id: 'bullying', name: 'Bullying Classmates', points: 8 },
+      { id: 'lying', name: 'Lying', points: 5 },
+      { id: 'fighting', name: 'Fighting', points: 10 }
+    ]
   },
-  'leadership': {
-    name: 'Leadership',
-    icon: 'star',
-    color: '#FF9800'
+  {
+    id: 'attendance',
+    name: 'Attendance Problems',
+    icon: 'time',
+    color: '#FF9800',
+    violations: [
+      { id: 'late', name: 'Late to Class', points: 2 },
+      { id: 'unauthorized_absence', name: 'Unauthorized Absence', points: 5 },
+      { id: 'frequent_absence', name: 'Frequent Absences', points: 7 },
+      { id: 'leaving_early', name: 'Leaving Class Early', points: 3 }
+    ]
   },
-  'Community Service': {
-    name: 'Community Service',
-    icon: 'people',
-    color: '#9C27B0'
-  },
-  'default': {
-    name: 'Other',
-    icon: 'folder',
-    color: '#607D8B'
+  {
+    id: 'conduct',
+    name: 'School Conduct',
+    icon: 'business',
+    color: '#795548',
+    violations: [
+      { id: 'dress_code', name: 'Dress Code Violation', points: 2 },
+      { id: 'property_damage', name: 'School Property Damage', points: 8 },
+      { id: 'prohibited_items', name: 'Bringing Prohibited Items', points: 6 },
+      { id: 'vandalism', name: 'Vandalism', points: 9 }
+    ]
   }
-};
+];
 
-interface SahsiahFormProps {
+interface DisciplineFormProps {
   student: Student;
-  onSubmit: (sahsiahTypeId: number, notes: string, points: number) => Promise<void>;
+  onSubmit: (violationType: string, notes: string, points: number) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
 
-export default function SahsiahForm({ student, onSubmit, onCancel, loading = false }: SahsiahFormProps) {
+export default function DisciplineForm({ student, onSubmit, onCancel, loading = false }: DisciplineFormProps) {
   const { theme } = useTheme();
   
   // Theme colors using the hook
@@ -55,124 +78,105 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
   const mutedColor = useThemeColor('muted');
   const primaryColor = useThemeColor('primary');
   const borderColor = useThemeColor('border');
-  const successColor = useThemeColor('success');
+  const dangerColor = '#F44336';
   
-  console.log('SahsiahForm component - rendering for student:', student.name);
+  console.log('DisciplineForm component - rendering for student:', student.name);
   
-  const [showDeedCategories, setShowDeedCategories] = useState(true);
+  const [showViolationCategories, setShowViolationCategories] = useState(true);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  const [selectedDeed, setSelectedDeed] = useState<{ category: any; deed: any } | null>(null);
+  const [selectedViolation, setSelectedViolation] = useState<{ category: any; violation: any } | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [notes, setNotes] = useState('');
   const [recording, setRecording] = useState(false);
-  const [sahsiahTypes, setSahsiahTypes] = useState<SahsiahType[]>([]);
-  const [sahsiahCategories, setSahsiahCategories] = useState<any[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-
-  // Fetch sahsiah types from API and group by tag
-  useEffect(() => {
-    const fetchSahsiahTypes = async () => {
-      try {
-        setLoadingCategories(true);
-        const types = await studentApi.getSahsiahTypes();
-        setSahsiahTypes(types);
-        
-        // Group sahsiah types by tag
-        const groupedByTag = types.reduce((acc: Record<string, SahsiahType[]>, type) => {
-          const tag = type.tag || 'default';
-          if (!acc[tag]) {
-            acc[tag] = [];
-          }
-          acc[tag].push(type);
-          return acc;
-        }, {});
-        
-        // Convert to categories format
-        const categories = Object.entries(groupedByTag).map(([tag, deeds]) => {
-          const config = categoryConfig[tag] || categoryConfig.default;
-          return {
-            id: tag,
-            name: config.name,
-            icon: config.icon,
-            color: config.color,
-            deeds: deeds.map(deed => ({
-              id: deed.id,
-              name: deed.name,
-              points: deed.points
-            }))
-          };
-        });
-        
-        setSahsiahCategories(categories);
-      } catch (error) {
-        console.error('Error fetching sahsiah types:', error);
-        Alert.alert('Error', 'Failed to load sahsiah categories. Please try again.');
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-    
-    fetchSahsiahTypes();
-  }, []);
 
   const toggleCategory = (categoryId: string) => {
-    console.log('SahsiahForm - Toggling category:', categoryId);
+    console.log('DisciplineForm - Toggling category:', categoryId);
     setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
   };
 
-  const selectDeed = (category: any, deed: any) => {
-    console.log('SahsiahForm - Selected deed:', deed.name, 'from category:', category.name);
-    setSelectedDeed({ category, deed });
-    console.log('SahsiahForm - Setting showConfirmation to true');
+  const selectViolation = (category: any, violation: any) => {
+    console.log('DisciplineForm - Selected violation:', violation.name, 'from category:', category.name);
+    setSelectedViolation({ category, violation });
+    console.log('DisciplineForm - Setting showConfirmation to true');
     setShowConfirmation(true);
   };
 
   /**
-   * Confirms and submits the selected good deed
-   * This is the final step in the SahsiahForm data flow
+   * Confirms and submits the selected discipline violation
+   * This is the final step in the DisciplineForm data flow
    *
    * Data Flow:
-   * 1. User selects a good deed from categories
-   * 2. User confirms the deed with optional notes
-   * 3. This function calls onSubmit with deed details and points
+   * 1. User selects a violation from categories
+   * 2. User confirms the violation with optional notes
+   * 3. This function calls onSubmit with violation details and points
    * 4. Parent component (scanner.tsx) handles the actual storage and updates
    *
    * By passing points to the parent component, we ensure that all point
    * calculations and storage are centralized, preventing data inconsistencies
    *
-   * @returns Promise<void> - Resolves when the deed is successfully recorded
+   * @returns Promise<void> - Resolves when the violation is successfully recorded
    */
-  const confirmDeed = async () => {
-    if (!selectedDeed) return;
+  const confirmViolation = async () => {
+    if (!selectedViolation) return;
     
     setRecording(true);
     try {
-      // Record the good deed with points - pass sahsiah type ID to parent component
+      // Record the discipline violation with points deduction - pass points to parent component
       // This ensures the parent component (scanner.tsx) handles all point calculations
       // and storage, maintaining data consistency across the application
-      await onSubmit(selectedDeed.deed.id, notes, selectedDeed.deed.points);
+      await onSubmit(selectedViolation.violation.id, notes, -selectedViolation.violation.points);
       
       // Show success message to user
       Alert.alert(
-        'Good Deed Recorded!',
-        `${selectedDeed.deed.name} has been recorded for ${student.name}. +${selectedDeed.deed.points} points awarded.`,
+        'Discipline Issue Recorded!',
+        `${selectedViolation.violation.name} has been recorded for ${student.name}. -${selectedViolation.violation.points} points deducted.`,
         [{ text: 'OK', onPress: () => {
           // Reset form state after successful submission
           setShowConfirmation(false);
-          setShowDeedCategories(false);
-          setSelectedDeed(null);
+          setShowViolationCategories(false);
+          setSelectedViolation(null);
           setNotes('');
           // Call onCancel to return to previous screen
           onCancel();
         }}]
       );
     } catch (error) {
-      console.error('Error recording good deed:', error);
-      Alert.alert('Error', 'Failed to record good deed. Please try again.');
+      console.error('Error recording discipline violation:', error);
+      Alert.alert('Error', 'Failed to record discipline violation. Please try again.');
     } finally {
       setRecording(false);
     }
   };
+
+  /**
+   * DATA FLOW ARCHITECTURE NOTES
+   *
+   * Previous Implementation Issues:
+   * - Point updates were handled in both DisciplineForm and scanner.tsx
+   * - This caused data inconsistencies and race conditions
+   * - Leaderboard sometimes showed stale or incorrect data
+   *
+   * Current Implementation (Fixed):
+   * - All point calculations and storage are centralized in scanner.tsx
+   * - DisciplineForm only passes violation information and points to parent
+   * - Scanner component handles:
+   *   * Student point updates (total and daily)
+   *   * Today's violations list updates
+   *   * Class statistics updates
+   *   * Discipline record storage
+   *
+   * Benefits:
+   * - Single source of truth for point calculations
+   * - Consistent data flow: Scanner → AsyncStorage → Leaderboard
+   * - No duplicate or conflicting updates
+   * - Leaderboard automatically reflects latest data
+   *
+   * Storage Keys Used:
+   * - discipline_{studentId}_{date}_{timestamp}: Individual discipline records
+   * - student_points_{studentId}: Student's total and daily points
+   * - today_violations_{date}: List of all violations recorded today
+   * - class_stats_{class}_{date}: Class-level statistics
+   */
 
   const renderCategoryItem = ({ item }: { item: any }) => (
     <View style={[styles.categoryContainer, { backgroundColor: cardColor }]}>
@@ -197,19 +201,19 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
       </TouchableOpacity>
       
       {expandedCategory === item.id && (
-        <View style={styles.deedsContainer}>
-          {item.deeds.map((deed: any) => (
+        <View style={styles.violationsContainer}>
+          {item.violations.map((violation: any) => (
             <TouchableOpacity
-              key={deed.id}
-              style={[styles.deedItem, { backgroundColor: backgroundColor, borderColor }]}
-              onPress={() => selectDeed(item, deed)}
+              key={violation.id}
+              style={[styles.violationItem, { backgroundColor: backgroundColor, borderColor }]}
+              onPress={() => selectViolation(item, violation)}
               activeOpacity={0.8}
             >
-              <View style={styles.deedLeft}>
-                <Text style={[styles.deedName, { color: textColor }]}>{deed.name}</Text>
-                <Text style={[styles.deedPoints, { color: primaryColor }]}>+{deed.points} points</Text>
+              <View style={styles.violationLeft}>
+                <Text style={[styles.violationName, { color: textColor }]}>{violation.name}</Text>
+                <Text style={[styles.violationPoints, { color: dangerColor }]}>-{violation.points} points</Text>
               </View>
-              <View style={styles.deedRight}>
+              <View style={styles.violationRight}>
                 <Ionicons name="chevron-forward" size={14} color={mutedColor} />
               </View>
             </TouchableOpacity>
@@ -219,27 +223,27 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
     </View>
   );
 
-  if (showConfirmation && selectedDeed) {
-    console.log('SahsiahForm - Showing confirmation overlay');
+  if (showConfirmation && selectedViolation) {
+    console.log('DisciplineForm - Showing confirmation overlay');
     return (
       <View style={styles.confirmationOverlay}>
         <TouchableOpacity
           style={styles.confirmationBackdrop}
           activeOpacity={1}
           onPress={() => {
-            console.log('SahsiahForm - Confirmation closed via backdrop');
+            console.log('DisciplineForm - Confirmation closed via backdrop');
             setShowConfirmation(false);
-            setSelectedDeed(null);
+            setSelectedViolation(null);
             setNotes('');
           }}
         />
         <View style={[styles.confirmationModal, { backgroundColor: backgroundColor }]}>
           <View style={styles.confirmationHeader}>
-            <Text style={[styles.confirmationTitle, { color: textColor }]}>Confirm Good Deed</Text>
+            <Text style={[styles.confirmationTitle, { color: textColor }]}>Confirm Discipline Issue</Text>
             <TouchableOpacity onPress={() => {
-              console.log('SahsiahForm - Confirmation closed via close button');
+              console.log('DisciplineForm - Confirmation closed via close button');
               setShowConfirmation(false);
-              setSelectedDeed(null);
+              setSelectedViolation(null);
               setNotes('');
             }}>
               <Ionicons name="close" size={20} color={mutedColor} />
@@ -252,14 +256,14 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
               <Text style={[styles.confirmationClass, { color: mutedColor }]}>{student.program}</Text>
             </View>
             
-            <View style={styles.confirmationDeedInfo}>
-              <View style={[styles.confirmationCategory, { backgroundColor: selectedDeed.category.color }]}>
-                <Ionicons name={selectedDeed.category.icon as any} size={16} color="white" />
-                <Text style={styles.confirmationCategoryText}>{selectedDeed.category.name}</Text>
+            <View style={styles.confirmationViolationInfo}>
+              <View style={[styles.confirmationCategory, { backgroundColor: selectedViolation.category.color }]}>
+                <Ionicons name={selectedViolation.category.icon as any} size={16} color="white" />
+                <Text style={styles.confirmationCategoryText}>{selectedViolation.category.name}</Text>
               </View>
               
-              <Text style={[styles.confirmationDeedName, { color: textColor }]}>{selectedDeed.deed.name}</Text>
-              <Text style={[styles.confirmationPoints, { color: primaryColor }]}>+{selectedDeed.deed.points} points</Text>
+              <Text style={[styles.confirmationViolationName, { color: textColor }]}>{selectedViolation.violation.name}</Text>
+              <Text style={[styles.confirmationPoints, { color: dangerColor }]}>-{selectedViolation.violation.points} points</Text>
             </View>
             
             <View style={styles.notesContainer}>
@@ -285,9 +289,9 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
             <TouchableOpacity
               style={[styles.cancelButton, { backgroundColor: borderColor }]}
               onPress={() => {
-                console.log('SahsiahForm - Confirmation closed via cancel button');
+                console.log('DisciplineForm - Confirmation closed via cancel button');
                 setShowConfirmation(false);
-                setSelectedDeed(null);
+                setSelectedViolation(null);
                 setNotes('');
               }}
               disabled={recording}
@@ -296,8 +300,8 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
             </TouchableOpacity>
             
             <TouchableOpacity
-              style={[styles.confirmButton, { backgroundColor: primaryColor, opacity: recording ? 0.6 : 1 }]}
-              onPress={confirmDeed}
+              style={[styles.confirmButton, { backgroundColor: dangerColor, opacity: recording ? 0.6 : 1 }]}
+              onPress={confirmViolation}
               disabled={recording}
             >
               {recording ? (
@@ -312,26 +316,14 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
     );
   }
 
-  console.log('SahsiahForm - Rendering main form for student:', student.name);
-  
-  // Show loading state while fetching categories
-  if (loadingCategories) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={primaryColor} />
-          <Text style={[styles.loadingText, { color: textColor }]}>Loading sahsiah categories...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  console.log('DisciplineForm - Rendering main form for student:', student.name);
   
   // Create data array for FlatList that includes header, student info, and categories
   const formData = [
     { type: 'header' },
     { type: 'studentInfo' },
     { type: 'sectionTitle' },
-    ...sahsiahCategories.map(category => ({ type: 'category', data: category }))
+    ...disciplineCategories.map(category => ({ type: 'category', data: category }))
   ];
 
   const renderFormItem = ({ item, index }: { item: any; index: number }) => {
@@ -342,7 +334,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
             <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
               <Ionicons name="arrow-back" size={20} color={textColor} />
             </TouchableOpacity>
-            <Text style={[styles.title, { color: textColor }]}>Record Good Deed</Text>
+            <Text style={[styles.title, { color: textColor }]}>Record Discipline Issue</Text>
             <View style={styles.placeholder} />
           </View>
         );
@@ -351,7 +343,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
         return (
           <View style={[styles.studentInfo, { backgroundColor: cardColor }]}>
             <View style={styles.studentInfoContent}>
-              <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
+              <View style={[styles.avatar, { backgroundColor: dangerColor }]}>
                 <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
               </View>
               <View style={styles.studentDetails}>
@@ -366,7 +358,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
       case 'sectionTitle':
         return (
           <View style={styles.categoriesContainer}>
-            <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Good Deed Category</Text>
+            <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Discipline Category</Text>
           </View>
         );
       
@@ -526,11 +518,11 @@ const styles = StyleSheet.create({
   categoryRight: {
     padding: 8,
   },
-  deedsContainer: {
+  violationsContainer: {
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
-  deedItem: {
+  violationItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -539,19 +531,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
   },
-  deedLeft: {
+  violationLeft: {
     flex: 1,
   },
-  deedName: {
+  violationName: {
     fontSize: 15,
     fontWeight: '500',
     marginBottom: 4,
   },
-  deedPoints: {
+  violationPoints: {
     fontSize: 13,
     fontWeight: '600',
   },
-  deedRight: {
+  violationRight: {
     padding: 8,
   },
   confirmationOverlay: {
@@ -614,7 +606,7 @@ const styles = StyleSheet.create({
   confirmationClass: {
     fontSize: 14,
   },
-  confirmationDeedInfo: {
+  confirmationViolationInfo: {
     alignItems: 'center',
     marginBottom: 24,
   },
@@ -632,7 +624,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 6,
   },
-  confirmationDeedName: {
+  confirmationViolationName: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 6,
@@ -682,15 +674,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: '500',
   },
 });

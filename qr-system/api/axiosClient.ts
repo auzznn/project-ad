@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from './config';
+import { authApi } from './authApi';
 
 // Create a custom axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -20,6 +21,15 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
+    // Debug logging for all API requests
+    console.log('DEBUG: API request details:', {
+      url: (config.baseURL || '') + (config.url || ''),
+      method: config.method,
+      hasToken: !!token,
+      headers: config.headers,
+      data: config.data
+    });
+    
     return config;
   },
   (error) => {
@@ -36,18 +46,62 @@ apiClient.interceptors.response.use(
   async (error) => {
     // Any status codes that falls outside the range of 2xx causes this function to trigger
     
+    // Debug logging for all API errors
+    console.log('DEBUG: API error details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data
+      }
+    });
+    
     if (error.response) {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       
       if (error.response.status === 401) {
         // Unauthorized - token might be expired
-        // Clear the token and redirect to login
-        await AsyncStorage.removeItem('authToken');
+        console.log('Unauthorized access - attempting to refresh token');
         
-        // You might want to navigate to login screen here
-        // This would require using navigation or a global state management
-        console.log('Unauthorized access - token might be expired');
+        try {
+          // Get the refresh token
+          const refreshToken = await AsyncStorage.getItem('refresh_token');
+          
+          if (refreshToken) {
+            // Attempt to refresh the token
+            const response = await authApi.refreshToken(refreshToken);
+            const newAccessToken = response.access;
+            
+            // Store the new access token
+            await AsyncStorage.setItem('access_token', newAccessToken);
+            await AsyncStorage.setItem('authToken', newAccessToken);
+            
+            // Update the original request with the new token
+            if (error.config && error.config.headers) {
+              error.config.headers.Authorization = `Bearer ${newAccessToken}`;
+              
+              // Retry the original request
+              return apiClient(error.config);
+            }
+          } else {
+            // No refresh token available, clear all tokens
+            await AsyncStorage.removeItem('authToken');
+            await AsyncStorage.removeItem('access_token');
+            await AsyncStorage.removeItem('refresh_token');
+            await AsyncStorage.removeItem('user_data');
+            console.log('No refresh token available, clearing all tokens');
+          }
+        } catch (refreshError) {
+          // Refresh failed, clear all tokens
+          await AsyncStorage.removeItem('authToken');
+          await AsyncStorage.removeItem('access_token');
+          await AsyncStorage.removeItem('refresh_token');
+          await AsyncStorage.removeItem('user_data');
+          console.log('Token refresh failed, clearing all tokens:', refreshError);
+        }
       }
     } else if (error.request) {
       // The request was made but no response was received
