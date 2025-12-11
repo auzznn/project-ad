@@ -8,4 +8,3 @@ backend/.env
 /backend/media
 backend/.env
 /backend/authentication/migrations/__pycache__
-/backend/prompt
