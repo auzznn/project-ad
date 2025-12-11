@@ -18,7 +18,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
   def query_attendance_by_date(self, queryset=None, year: int=None, month: int=None, day: int=None):
     if queryset == None:
       queryset = self.get_queryset()
-    return queryset.filter(created_at__year=year, created_at__month=month, created_at__day=day)
+    return queryset.filter(date__year=year, date__month=month, date__day=day)
   
   def get_serializer_class(self):
     endpoint_action = ['record_student_attendance']
@@ -57,12 +57,12 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-  @action(detail=False, methods=['get'], url_path=r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<class_room>[^/.]+)')
-  def class_attendance_by_date(self, request: Request, year: int=None, month: int = None, day: int = None, class_room: str = "") -> Response:
+  @action(detail=False, methods=['get'], url_path=r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<grade>[0-9]+)/(?P<section>[^/.]+)')
+  def class_attendance_by_date(self, request: Request, year: int=None, month: int = None, day: int = None, section: str = "", grade: int = None) -> Response:
     
     queryset = self.query_attendance_by_date(queryset=None, year=year, month=month, day=day)
     
-    class_room_filter = Classroom.objects.filter(name=class_room)
+    class_room_filter = Classroom.objects.filter(class_section=section, grade=grade)
     if len(class_room_filter) == 0:
       response = {
         "message": "Invalid class room name"
