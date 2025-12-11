@@ -35,9 +35,9 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-  @action(detail=False, methods=['get'], url_path=r'daily/(?P<class_room>[^/.]+)')
-  def daily_by_class(self, request, class_room=None):
-    class_room_filter = Classroom.objects.filter(name=class_room)
+  @action(detail=False, methods=['get'], url_path=r'daily/(?P<grade>[0-9]+)/(?P<section>[^/.]+)')
+  def daily_by_class(self, request, grade: int=None, section: str=None):
+    class_room_filter = Classroom.objects.filter(grade=grade, class_section=section)
     if len(class_room_filter) == 0:
       response = {
         "message": "Invalid class room name"
