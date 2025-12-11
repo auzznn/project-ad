@@ -1,0 +1,27 @@
+{
+  "classroom_data": [
+    {"grade": 1, "class_section": "A"},
+    {"grade": 1, "class_section": "B"},
+    {"grade": 1, "class_section": "C"},
+    
+    {"grade": 2, "class_section": "A"},
+    {"grade": 2, "class_section": "B"},
+    {"grade": 2, "class_section": "C"},
+    
+    {"grade": 3, "class_section": "A"},
+    {"grade": 3, "class_section": "B"},
+    {"grade": 3, "class_section": "C"},
+    
+    {"grade": 4, "class_section": "A"},
+    {"grade": 4, "class_section": "B"},
+    {"grade": 4, "class_section": "C"},
+    
+    {"grade": 5, "class_section": "A"},
+    {"grade": 5, "class_section": "B"},
+    {"grade": 5, "class_section": "C"},
+    
+    {"grade": 6, "class_section": "A"},
+    {"grade": 6, "class_section": "B"},
+    {"grade": 6, "class_section": "C"}
+  ]
+}
