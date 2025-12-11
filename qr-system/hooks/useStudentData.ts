@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Student } from "../api/studentApi";
+import { Student, AttendancePayload } from "../api/studentApi";
 import { useStudentActions, StudentActions } from "./useStudentActions";
 import {
   updateTodayViolations,
   updateStudentPoints,
-  updateTodayDeeds,
   updateClassStatistics,
 } from "../utils/storageUtils";
 import { studentApi } from "../api/studentApi";
@@ -40,47 +39,58 @@ export const useStudentData = () => {
     );
   };
 
-const handleAttendance = async (student: Student) => {
-  if (!student) return;
+  const handleAttendance = async (student: Student) => {
+    if (!student) return;
 
-  setLoading((prev) => ({ ...prev, attendance: true }));
-  console.log('DEBUG: Starting attendance process for student:', student.student_id);
+    setLoading((prev) => ({ ...prev, attendance: true }));
 
-  try {
-    // First check if student already has attendance for today
-    console.log('DEBUG: Checking attendance status for student:', student.student_id);
-    const attendanceRecords = await studentApi.checkAttendanceStatus(student.student_id);
-    console.log('DEBUG: Attendance records found:', attendanceRecords);
-    const hasAttendanceToday = attendanceRecords.length > 0;
+    try {
+      // Fetch today's attendance record
+      const record = await studentApi.checkAttendanceStatus(student.student_id);
 
-    if (hasAttendanceToday) {
-      console.log('DEBUG: Attendance already recorded for today');
-      showAlert("Attendance already recorded for today", "info");
-      return;
+      // Check if student already has attendance and is not absent
+      if (record && record.status !== "absent") {
+        showAlert("Attendance already marked", "info");
+        return;
+      }
+
+      // Mark attendance
+      const attendancePayload: AttendancePayload = {
+        student_id: student.student_id,
+        timestamp: new Date().toISOString(),
+      };
+
+      await studentApi.markAttendance(attendancePayload);
+
+      showAlert("Attendance recorded", "success");
+    } catch (error: any) {
+      showAlert(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to record attendance",
+        "error"
+      );
+    } finally {
+      setLoading((prev) => ({ ...prev, attendance: false }));
     }
+  };
 
-    // If no attendance exists, mark it
-    console.log('DEBUG: No attendance found, marking attendance now');
-    await studentApi.markAttendance(student.student_id);
-
-    // Update local state after success
-    updateStudentAction(student.student_id, "attendance", true);
-    showAlert("Attendance recorded", "success");
-  } catch (error: any) {
-    console.error("DEBUG: Failed to mark attendance - Full error:", error);
-    console.error("DEBUG: Error response data:", error.response?.data);
-    console.error("DEBUG: Error response status:", error.response?.status);
-    console.error("DEBUG: Error response headers:", error.response?.headers);
-    
-    showAlert(
-      error.response?.data?.message || error.message || "Failed to record attendance",
-      "error"
-    );
-  } finally {
-    setLoading((prev) => ({ ...prev, attendance: false }));
-  }
-};
-
+  /**
+   * Check if attendance button should be disabled for a student
+   * @param studentId - The student ID to check
+   * @returns Promise<boolean> - True if button should be disabled, false if enabled
+   */
+  const canMarkAttendance = async (studentId: string): Promise<boolean> => {
+    try {
+      const record = await studentApi.checkAttendanceStatus(studentId);
+      // If no record exists or status is "absent", allow marking (return true)
+      // If record exists and status is not "absent", disable button (return false)
+      return !record || record.status === "absent";
+    } catch (error) {
+      // Default to allowing marking if there's an error
+      return true;
+    }
+  };
 
   const handleRMT = (student: Student) => {
     if (!student) return;
@@ -113,7 +123,7 @@ const handleAttendance = async (student: Student) => {
     setLoading((prev) => ({ ...prev, sahsiah: true }));
     try {
       const timestamp = new Date().toISOString();
-      
+
       // Create sahsiah record for API
       const sahsiahRecord = {
         timestamp: timestamp,
@@ -236,5 +246,6 @@ const handleAttendance = async (student: Student) => {
     handleDiscipline,
     getStudentActions,
     resetCounts,
+    canMarkAttendance,
   };
 };

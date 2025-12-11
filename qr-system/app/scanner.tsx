@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { SafeAreaView, Button, Text, StyleSheet } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { Vibration } from "react-native";
+import {useCameraPermissions } from "expo-camera";
 import { Student } from "../api/studentApi";
 import CameraViewComponent from "../components/CameraView";
 import ModalManager from "../components/ModalManager";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
-import { useAuth } from "../context/AuthContext";
+
 
 export default function scanner() {
   const [permission, requestPermission] = useCameraPermissions();

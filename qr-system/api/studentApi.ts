@@ -17,6 +17,11 @@ export interface AttendanceRecord {
   timestamp: string;
 }
 
+export interface AttendancePayload {
+  student_id: string;
+  timestamp: string;
+}
+
 export interface SahsiahRecord {
   timestamp: string;
   student_id: number;
@@ -47,18 +52,16 @@ export const studentApi = {
   },
   
   // Mark attendance for a student
-  markAttendance: async (studentId: string): Promise<any> => {
-    const timestamp = new Date().toISOString();
-    console.log('DEBUG: Marking attendance with data:', {
-      student_id: studentId,
-      updated_at: timestamp,
+  markAttendance: async (payload: AttendancePayload): Promise<any> => {
+    console.log('DEBUG: Marking attendance with payload:', {
+      ...payload,
       local_time: new Date().toLocaleString()
     });
     
     try {
       const response = await apiRequest.patch('/student_attendance/record/', {
-        student_id: studentId,
-        updated_at: timestamp
+        student_id: payload.student_id,
+       timestamp: payload.timestamp
       });
       console.log('DEBUG: Attendance marked successfully:', response);
       return response;
@@ -71,12 +74,19 @@ export const studentApi = {
   // Check if student already has attendance for today
   checkAttendanceStatus: async (studentId: string): Promise<any> => {
     // Get all attendance for today and filter by student_id on the client side
-    const response = await apiRequest.get('/student_attendance/daily');
-    return response.filter((record: any) =>
-      record.student_id === studentId &&
-      // Check if attendance has been marked (updated_at is different from default time)
-      record.updated_at && record.updated_at !== record.created_at
-    );
+    const response = await apiRequest.get('student_attendance/daily/');
+    
+    // Filter for the specific student - the student_id is nested inside a student object
+    const studentRecord = response.find((record: any) => {
+      return record.student && record.student.student_id === Number(studentId);
+    }) || null;
+    
+    // This ensures students without attendance records can be marked
+    if (!studentRecord) {
+      return { status: "absent", student_id: studentId };
+    }
+    
+    return studentRecord;
   },
   
   // Record sahsiah (behavior/conduct) for a student
