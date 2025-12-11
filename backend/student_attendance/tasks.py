@@ -7,7 +7,7 @@ from student_attendance.models import StudentAttendance
 def create_student_attendance() -> str:
    n_create: int = 0
    for student in Student.objects.all():
-      query = StudentAttendance.objects.filter(student_id=student, created_at__date=timezone.now().date())
+      query = StudentAttendance.objects.filter(student_id=student, date=timezone.now().date())
       if len(query) != 0:
          continue
       StudentAttendance.objects.create(student_id=student)
