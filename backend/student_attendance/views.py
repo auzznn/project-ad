@@ -9,6 +9,7 @@ from django.utils import timezone
 from authentication.models import Classroom
 from .serializer import StudentAttendanceSerializer, RecordStudentAttendanceSerializer
 from .models import StudentAttendance
+import pytz
 
 # Create your views here.
 class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
@@ -82,11 +83,12 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
 
     student_id = serializer.validated_data.get('student_id')
     timestamp = serializer.validated_data.get('timestamp')
+    kl_tz = pytz.timezone("Asia/Kuala_Lumpur")
 
     try:
       instance = StudentAttendance.objects.get(
         student_id=student_id, 
-        date=timezone.now().date()
+        date=timezone.now().astimezone(kl_tz).date()
       )
     except StudentAttendance.DoesNotExist:
       response = {

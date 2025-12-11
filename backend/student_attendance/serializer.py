@@ -5,6 +5,7 @@ from authentication.serializer import StudentSerializer
 from authentication.models import Student
 from .models import StudentAttendance
 from sahsiah.models import SahsiahType, SahsiahRecord
+import pytz
 
 class StudentAttendanceSerializer(ModelSerializer):
   student = StudentSerializer(source='student_id', many=False)
@@ -29,8 +30,11 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
   
   def update(self, instance: StudentAttendance, validated_data):
     new_timestamp = validated_data.get('timestamp', self.instance)
-
-    if instance.timestamp != StudentAttendance.default_datetime():
+    absent_time = StudentAttendance.default_datetime()
+    
+    kl_tz = pytz.timezone("Asia/Kuala_Lumpur")
+    kl_timestamp = instance.timestamp.astimezone(kl_tz)
+    if kl_timestamp != absent_time:
       raise ValidationError(f'student attendance for {instance.student_id.user.fullname} has already been created')
     
     instance.timestamp = new_timestamp

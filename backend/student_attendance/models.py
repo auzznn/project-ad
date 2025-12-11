@@ -7,9 +7,10 @@ import pytz
 # Create your models here.
 class StudentAttendance(models.Model):
   ON_TIME_CODE = "on-time"
+  ABSENT_CODE = "absent"
   
   STATUS_ATTENDANCE = [
-    ("absent", "Absent"), 
+    (ABSENT_CODE, "Absent"), 
     (ON_TIME_CODE, "On time"), 
     ("late", "Late")
   ]
