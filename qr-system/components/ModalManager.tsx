@@ -20,7 +20,7 @@ interface ModalManagerProps {
   onClose: () => void;
   onAttendance: (student: Student) => void;
   onRMT: (student: Student) => void;
-  onSahsiah: (student: Student, sahsiahTypeId: number, notes: string, points?: number) => Promise<boolean>;
+  onSahsiah: (student: Student, sahsiahType: number, notes: string) => Promise<boolean>;
   onDiscipline: (student: Student, violationType: string, notes: string, points?: number) => Promise<boolean>;
   onOpenSahsiahForm: () => void;
   onOpenDisciplineForm: () => void;
@@ -66,8 +66,8 @@ const ModalManager: React.FC<ModalManagerProps> = ({
         onClose={onClose}
         onAttendance={() => onAttendance(student)}
         onRMT={() => onRMT(student)}
-        onSahsiah={async (sahsiahTypeId: number, notes: string, points?: number) => {
-          await onSahsiah(student, sahsiahTypeId, notes, points);
+        onSahsiah={async (deedType: string, notes: string, points?: number) => {
+          await onSahsiah(student, parseInt(deedType), notes);
         }}
         onDiscipline={async (violationType: string, notes: string, points?: number) => {
           await onDiscipline(student, violationType, notes, points);
@@ -81,8 +81,11 @@ const ModalManager: React.FC<ModalManagerProps> = ({
         <View style={styles.formOverlay}>
           <SahsiahForm
             student={student}
-            onSubmit={async (sahsiahTypeId: number, notes: string, points?: number) => {
-              await onSahsiah(student, sahsiahTypeId, notes, points);
+            onSubmit={async (deedType, notes, points) => {
+              const success = await onSahsiah(student, (deedType), notes);
+              if (success) {
+                onFormSubmit();
+              }
             }}
             onCancel={onBackFromSahsiah}
             loading={loading.sahsiah}

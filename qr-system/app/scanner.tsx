@@ -9,7 +9,7 @@ import ModalManager from "../components/ModalManager";
 import DebugPanel from "../components/DebugPanel";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
-import { useAuth } from "../context/AuthContext";
+
 
 export default function scanner() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -158,11 +158,11 @@ export default function scanner() {
         onClose={closeModal}
         onAttendance={handleAttendance}
         onRMT={handleRMT}
-        onSahsiah={async (student: Student, sahsiahTypeId: number, notes: string, points?: number) => {
-          const success = await handleSahsiah(student, sahsiahTypeId, notes, points);
+        onSahsiah={async (student, sahsiahType, notes) => {
+          const success = await handleSahsiah(student, sahsiahType, notes);
           return success || false;
         }}
-        onDiscipline={async (student: Student, violationType: string, notes: string, points?: number) => {
+        onDiscipline={async (student, violationType, notes, points) => {
           const success = await handleDiscipline(student, violationType, notes, points);
           return success || false;
         }}

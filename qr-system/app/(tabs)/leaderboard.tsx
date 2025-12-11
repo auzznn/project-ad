@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { studentApi } from '@/api/studentApi';
 import { useFocusEffect } from 'expo-router';
 
 // Dynamic student data structure
@@ -12,20 +12,30 @@ interface StudentData {
   student_id: string;
   name: string;
   grade: string;
-  class: string;
+  section: string;
   points: number;
 }
 
-const grades = ['All Grades', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
-const classes = ['All Classes', 'Class A', 'Class B', 'Class C'];
+// API response interface for leaderboard
+interface LeaderboardResponse {
+  student_id: number;
+  student_name: string;
+  sahsiah_point: number;
+  class_room: string;
+  ranking: number;
+}
 
 export default function Leaderboard() {
   const [selectedGrade, setSelectedGrade] = useState('All Grades');
-  const [selectedClass, setSelectedClass] = useState('All Classes');
+  const [selectedSection, setSelectedSection] = useState('All Sections');
   const [gradeDropdownOpen, setGradeDropdownOpen] = useState(false);
-  const [classDropdownOpen, setClassDropdownOpen] = useState(false);
+  const [sectionDropdownOpen, setSectionDropdownOpen] = useState(false);
   const [students, setStudents] = useState<StudentData[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Dynamic filter options extracted from data
+  const [availableGrades, setAvailableGrades] = useState<string[]>(['All Grades']);
+  const [availableSections, setAvailableSections] = useState<string[]>(['All Sections']);
   
   // Theme colors
   const backgroundColor = useThemeColor('background');
@@ -37,20 +47,12 @@ export default function Leaderboard() {
   const accentColor = useThemeColor('accent');
   const successColor = useThemeColor('success');
   
-  // Load student data from AsyncStorage on component mount
+  // Load student data from API on component mount
   useEffect(() => {
     loadStudentData();
   }, []);
   
-  /**
-   * Refresh data when the screen is focused (after navigating back from other tabs)
-   * This ensures the leaderboard always shows the latest data after:
-   * - Recording new good deeds in scanner
-   * - Adding new students
-   * - Manual refresh via refresh button
-   *
-   * useFocusEffect from expo-router ensures this runs every time the tab becomes active
-   */
+
   useFocusEffect(
     React.useCallback(() => {
       loadStudentData();
@@ -60,88 +62,67 @@ export default function Leaderboard() {
   const loadStudentData = async () => {
     try {
       setLoading(true);
-      const today = new Date().toISOString().split('T')[0];
       
-      // Load today's deeds first to get the most recent student activities
-      const todayDeedsKey = `today_deeds_${today}`;
-      const todayDeedsData = await AsyncStorage.getItem(todayDeedsKey);
+      // Fetch leaderboard data from API
+      const leaderboardData: LeaderboardResponse[] = await studentApi.getLeaderboard();
       
-      // Also load all student points to ensure we have complete data
-      const allKeys = await AsyncStorage.getAllKeys();
-      const studentPointKeys = allKeys.filter(key => key.startsWith('student_points_'));
-      
-      const uniqueStudents: { [key: string]: StudentData } = {};
-      
-      // Process today's deeds to get recent student activities
-      if (todayDeedsData) {
-        const todayDeeds = JSON.parse(todayDeedsData);
-        
-        todayDeeds.forEach((deed: any) => {
-          if (!uniqueStudents[deed.studentId]) {
-            uniqueStudents[deed.studentId] = {
-              id: Object.keys(uniqueStudents).length + 1,
-              student_id: deed.studentId,
-              name: deed.studentName || `Student ${deed.studentId}`,
-              grade: 'Unknown', // Default grade since not available in deed data
-              class: deed.program || 'Unknown',
-              points: 0
+      // Transform API data to match our StudentData interface
+      // and fetch additional student details for class information
+      const studentsArray: StudentData[] = await Promise.all(
+        leaderboardData.map(async (student: LeaderboardResponse) => {
+          try {
+            // Get detailed student information including class
+            const studentDetails = await studentApi.getStudent(student.student_id.toString());
+            
+            return {
+              id: student.ranking,
+              student_id: student.student_id.toString(),
+              name: student.student_name,
+              grade: studentDetails.grade || 'Unknown',
+              section: studentDetails.section || 'Unknown',
+              points: student.sahsiah_point
+            };
+          } catch (error) {
+            // If we can't get student details, use the leaderboard data with class_room
+            console.warn(`Failed to get details for student ${student.student_id}:`, error);
+            return {
+              id: student.ranking,
+              student_id: student.student_id.toString(),
+              name: student.student_name,
+              grade: 'Unknown',
+              section: student.class_room || 'Unknown',
+              points: student.sahsiah_point
             };
           }
-        });
-      }
+        })
+      );
       
-      // Process all student points to ensure complete data coverage
-      for (const key of studentPointKeys) {
-        const studentId = key.replace('student_points_', '');
-        const pointsData = await AsyncStorage.getItem(key);
-        
-        if (pointsData) {
-          const parsedData = JSON.parse(pointsData);
-          
-          // Only include students with points > 0
-          if (parsedData.totalPoints > 0) {
-            // If student not in uniqueStudents yet, add them
-            if (!uniqueStudents[studentId]) {
-              uniqueStudents[studentId] = {
-                id: Object.keys(uniqueStudents).length + 1,
-                student_id: studentId,
-                name: `Student ${studentId}`,
-                grade: 'Unknown',
-                class: 'Unknown',
-                points: 0
-              };
-            }
-            
-            // Update the points
-            uniqueStudents[studentId].points = parsedData.totalPoints;
-            
-            // Try to get more detailed student info from sahsiah records
-            const sahsiahKeys = allKeys.filter(key => key.startsWith('sahsiah_') && key.includes(studentId));
-            
-            for (const sahsiahKey of sahsiahKeys) {
-              const sahsiahData = await AsyncStorage.getItem(sahsiahKey);
-              if (sahsiahData) {
-                const parsedSahsiah = JSON.parse(sahsiahData);
-                if (parsedSahsiah.student_name && uniqueStudents[studentId].name === `Student ${studentId}`) {
-                  uniqueStudents[studentId].name = parsedSahsiah.student_name;
-                }
-                if (parsedSahsiah.program && uniqueStudents[studentId].class === 'Unknown') {
-                  uniqueStudents[studentId].class = parsedSahsiah.program;
-                }
-              }
-            }
-          }
-        }
-      }
+      // Sort by ranking (which should already be sorted by points)
+      studentsArray.sort((a, b) => a.id - b.id);
       
-      // Convert to array and sort by points (descending)
-      const studentsArray = Object.values(uniqueStudents).sort((a, b) => b.points - a.points);
-      
-      console.log(`Loaded ${studentsArray.length} students for leaderboard`);
+      console.log(`Loaded ${studentsArray.length} students from API leaderboard`);
       setStudents(studentsArray);
       
+      // Extract unique grades and sections from the data
+      const uniqueGrades = Array.from(new Set(studentsArray.map(s => s.grade).filter(g => g && g !== 'Unknown')));
+      const uniqueSections = Array.from(new Set(studentsArray.map(s => s.section).filter(c => c && c !== 'Unknown')));
+      
+      // Update filter options with actual data
+      setAvailableGrades(['All Grades', ...uniqueGrades.sort()]);
+      setAvailableSections(['All Sections', ...uniqueSections.sort()]);
+      
+      // Reset filters if current selection no longer exists
+      if (selectedGrade !== 'All Grades' && !uniqueGrades.includes(selectedGrade)) {
+        setSelectedGrade('All Grades');
+      }
+      if (selectedSection !== 'All Sections' && !uniqueSections.includes(selectedSection)) {
+        setSelectedSection('All Sections');
+      }
+      
     } catch (error) {
-      console.error('Error loading student data:', error);
+      console.error('Error loading leaderboard data from API:', error);
+      // Set empty array on error to prevent infinite loading
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -152,10 +133,10 @@ export default function Leaderboard() {
     return students
       .filter(student =>
         (selectedGrade === 'All Grades' || student.grade === selectedGrade) &&
-        (selectedClass === 'All Classes' || student.class === selectedClass)
+        (selectedSection === 'All Sections' || student.section === selectedSection)
       )
       .sort((a, b) => b.points - a.points);
-  }, [students, selectedGrade, selectedClass]);
+  }, [students, selectedGrade, selectedSection]);
   
   // Get rank badge color based on position
   const getRankBadgeColor = (rank: number) => {
@@ -229,18 +210,18 @@ export default function Leaderboard() {
               </TouchableOpacity>
             </View>
             
-            {/* Class Filter */}
+            {/* Section Filter */}
             <View className="flex-1">
               <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
-                Class
+                Section
               </Text>
               <TouchableOpacity
                 className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
                 style={{ backgroundColor: cardColor, borderColor }}
-                onPress={() => setClassDropdownOpen(true)}
+                onPress={() => setSectionDropdownOpen(true)}
               >
                 <Text className="text-base" style={{ color: textColor }}>
-                  {selectedClass}
+                  {selectedSection}
                 </Text>
                 <Ionicons name="chevron-down" size={16} color={mutedColor} />
               </TouchableOpacity>
@@ -261,11 +242,12 @@ export default function Leaderboard() {
               </Text>
             </View>
           ) : filteredStudents.length > 0 ? (
-            filteredStudents.map((student, index) => {
-              const rank = index + 1;
+            filteredStudents.map((student) => {
+              // Use the ranking from the API response (stored in student.id)
+              const rank = student.id;
               return (
                 <View
-                  key={student.id}
+                  key={student.student_id}
                   className="rounded-2xl p-4 mb-3 border shadow-sm"
                   style={{
                     backgroundColor: cardColor,
@@ -300,7 +282,7 @@ export default function Leaderboard() {
                       </Text>
                       <View className="flex-row mt-1">
                         <Text className="text-sm" style={{ color: mutedColor }}>
-                          {student.grade} • {student.class}
+                          {student.grade} • {student.section}
                         </Text>
                       </View>
                     </View>
@@ -318,6 +300,19 @@ export default function Leaderboard() {
                 </View>
               );
             })
+          ) : students.length === 0 ? (
+            <View
+              className="rounded-2xl p-8 items-center justify-center"
+              style={{ backgroundColor: cardColor, borderColor, borderWidth: 1 }}
+            >
+              <Ionicons name="alert-circle" size={40} color={mutedColor} />
+              <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
+                No leaderboard data available
+              </Text>
+              <Text className="text-sm mt-2 text-center" style={{ color: mutedColor }}>
+                Try refreshing or check your connection
+              </Text>
+            </View>
           ) : (
             <View
               className="rounded-2xl p-8 items-center justify-center"
@@ -358,7 +353,7 @@ export default function Leaderboard() {
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={grades}
+                data={availableGrades}
                 keyExtractor={(item) => item}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
@@ -387,17 +382,17 @@ export default function Leaderboard() {
         </TouchableOpacity>
       </Modal>
       
-      {/* Class Dropdown Modal */}
+      {/* Section Dropdown Modal */}
       <Modal
         transparent={true}
-        visible={classDropdownOpen}
+        visible={sectionDropdownOpen}
         animationType="fade"
-        onRequestClose={() => setClassDropdownOpen(false)}
+        onRequestClose={() => setSectionDropdownOpen(false)}
       >
         <TouchableOpacity
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
           activeOpacity={1}
-          onPress={() => setClassDropdownOpen(false)}
+          onPress={() => setSectionDropdownOpen(false)}
         >
           <View className="flex-1 justify-center items-center px-5">
             <View
@@ -406,14 +401,14 @@ export default function Leaderboard() {
             >
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-lg font-semibold" style={{ color: textColor }}>
-                  Select Class
+                  Select Section
                 </Text>
-                <TouchableOpacity onPress={() => setClassDropdownOpen(false)}>
+                <TouchableOpacity onPress={() => setSectionDropdownOpen(false)}>
                   <Ionicons name="close" size={24} color={mutedColor} />
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={classes}
+                data={availableSections}
                 keyExtractor={(item) => item}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
@@ -421,15 +416,15 @@ export default function Leaderboard() {
                     className="py-3 px-2 border-b"
                     style={{ borderColor }}
                     onPress={() => {
-                      setSelectedClass(item);
-                      setClassDropdownOpen(false);
+                      setSelectedSection(item);
+                      setSectionDropdownOpen(false);
                     }}
                   >
                     <Text
                       className="text-base"
                       style={{
-                        color: selectedClass === item ? primaryColor : textColor,
-                        fontWeight: selectedClass === item ? '600' : '400'
+                        color: selectedSection === item ? primaryColor : textColor,
+                        fontWeight: selectedSection === item ? '600' : '400'
                       }}
                     >
                       {item}
