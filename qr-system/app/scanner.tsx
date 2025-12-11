@@ -158,8 +158,8 @@ export default function scanner() {
         onClose={closeModal}
         onAttendance={handleAttendance}
         onRMT={handleRMT}
-        onSahsiah={async (student: Student, deedType: string, notes: string, points?: number) => {
-          const success = await handleSahsiah(student, deedType, notes, points);
+        onSahsiah={async (student: Student, sahsiahTypeId: number, notes: string, points?: number) => {
+          const success = await handleSahsiah(student, sahsiahTypeId, notes, points);
           return success || false;
         }}
         onDiscipline={async (student: Student, violationType: string, notes: string, points?: number) => {

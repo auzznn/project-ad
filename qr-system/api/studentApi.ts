@@ -22,10 +22,18 @@ export interface AttendanceRecord {
 }
 
 export interface SahsiahRecord {
-  student_id: string;
-  deed_type: string;
-  notes?: string;
+  id?: number;
   timestamp: string;
+  student_id: string;
+  sahsiah_type: number;
+}
+
+export interface SahsiahType {
+  id: string;
+  name: string;
+  tag: string;
+  points: number;
+  // Additional fields if needed
 }
 
 export const studentApi = {
@@ -69,12 +77,17 @@ export const studentApi = {
   
   // Record sahsiah (behavior/conduct) for a student
   recordSahsiah: async (data: SahsiahRecord): Promise<any> => {
-    return apiRequest.post('/sahsiah/record', data);
+    return apiRequest.post('/sahsiah/record/', data);
   },
   
   // Check RMT eligibility (though this will be determined from QR data)
   checkRMTEligibility: async (studentId: string): Promise<any> => {
     return apiRequest.get(`/rmt/check/${studentId}`);
+  },
+  
+  // Get all sahsiah types
+  getSahsiahTypes: async (): Promise<SahsiahType[]> => {
+    return apiRequest.get('/sahsiah/type/');
   },
   
   // Reset all sahsiah data
