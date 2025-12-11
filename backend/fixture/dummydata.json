@@ -1573,396 +1573,6 @@
   }
 },
 {
-  "model": "admin.logentry",
-  "pk": 122,
-  "fields": {
-    "action_time": "2025-12-11T03:57:45.613Z",
-    "user": 1,
-    "content_type": 12,
-    "object_id": "5",
-    "object_repr": "SahsiahRecord object (5)",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 123,
-  "fields": {
-    "action_time": "2025-12-11T03:57:45.613Z",
-    "user": 1,
-    "content_type": 12,
-    "object_id": "4",
-    "object_repr": "SahsiahRecord object (4)",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 124,
-  "fields": {
-    "action_time": "2025-12-11T03:57:45.613Z",
-    "user": 1,
-    "content_type": 12,
-    "object_id": "3",
-    "object_repr": "SahsiahRecord object (3)",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 125,
-  "fields": {
-    "action_time": "2025-12-11T03:57:45.613Z",
-    "user": 1,
-    "content_type": 12,
-    "object_id": "2",
-    "object_repr": "SahsiahRecord object (2)",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 126,
-  "fields": {
-    "action_time": "2025-12-11T03:57:45.613Z",
-    "user": 1,
-    "content_type": 12,
-    "object_id": "1",
-    "object_repr": "SahsiahRecord object (1)",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 127,
-  "fields": {
-    "action_time": "2025-12-11T12:07:37.143Z",
-    "user": 1,
-    "content_type": 8,
-    "object_id": "1",
-    "object_repr": "1Jujur",
-    "action_flag": 2,
-    "change_message": "[{\"changed\": {\"fields\": [\"Class section\"]}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 128,
-  "fields": {
-    "action_time": "2025-12-11T12:14:12.997Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "6",
-    "object_repr": "Anya Sharma",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 129,
-  "fields": {
-    "action_time": "2025-12-11T12:14:12.997Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "5",
-    "object_repr": "Javier Cruz",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 130,
-  "fields": {
-    "action_time": "2025-12-11T12:14:12.997Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "4",
-    "object_repr": "Sofia Lee",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 131,
-  "fields": {
-    "action_time": "2025-12-11T12:14:12.997Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "3",
-    "object_repr": "Marcus Thorne",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 132,
-  "fields": {
-    "action_time": "2025-12-11T12:14:12.997Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "2",
-    "object_repr": "Elara Vance",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 133,
-  "fields": {
-    "action_time": "2025-12-11T12:14:23.436Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "6",
-    "object_repr": "anyas",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 134,
-  "fields": {
-    "action_time": "2025-12-11T12:14:23.436Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "5",
-    "object_repr": "javierc",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 135,
-  "fields": {
-    "action_time": "2025-12-11T12:14:23.436Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "4",
-    "object_repr": "sofialee",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 136,
-  "fields": {
-    "action_time": "2025-12-11T12:14:23.436Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "3",
-    "object_repr": "mthorne",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 137,
-  "fields": {
-    "action_time": "2025-12-11T12:14:23.436Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "2",
-    "object_repr": "elara.vance",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 138,
-  "fields": {
-    "action_time": "2025-12-11T12:14:28.295Z",
-    "user": 1,
-    "content_type": 8,
-    "object_id": "2",
-    "object_repr": "1Harmoni",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 139,
-  "fields": {
-    "action_time": "2025-12-11T12:14:28.295Z",
-    "user": 1,
-    "content_type": 8,
-    "object_id": "1",
-    "object_repr": "1Jujur",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 140,
-  "fields": {
-    "action_time": "2025-12-11T12:42:01.244Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "8",
-    "object_repr": "Farah Binti",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 141,
-  "fields": {
-    "action_time": "2025-12-11T12:42:03.680Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "9",
-    "object_repr": "Wei Zhang",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 142,
-  "fields": {
-    "action_time": "2025-12-11T12:42:06.122Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "10",
-    "object_repr": "Priya Rao",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 143,
-  "fields": {
-    "action_time": "2025-12-11T12:42:08.297Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "11",
-    "object_repr": "Haziq Ahmad",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 144,
-  "fields": {
-    "action_time": "2025-12-11T12:42:10.571Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "12",
-    "object_repr": "Lee Ching",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 145,
-  "fields": {
-    "action_time": "2025-12-11T12:42:12.872Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "13",
-    "object_repr": "Aisyah Bakar",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 146,
-  "fields": {
-    "action_time": "2025-12-11T12:42:15.452Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "14",
-    "object_repr": "Devi Muthu",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 147,
-  "fields": {
-    "action_time": "2025-12-11T12:42:18.128Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "15",
-    "object_repr": "Iskandar Bin",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 148,
-  "fields": {
-    "action_time": "2025-12-11T12:42:20.669Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "16",
-    "object_repr": "Mei Ling",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 149,
-  "fields": {
-    "action_time": "2025-12-11T12:42:24.134Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "17",
-    "object_repr": "Karthik Nair",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 150,
-  "fields": {
-    "action_time": "2025-12-11T12:42:26.956Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "18",
-    "object_repr": "Zara Faris",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 151,
-  "fields": {
-    "action_time": "2025-12-11T12:42:29.249Z",
-    "user": 1,
-    "content_type": 9,
-    "object_id": "19",
-    "object_repr": "Wong Jian",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
   "model": "auth.permission",
   "pk": 1,
   "fields": {
@@ -2571,18 +2181,18 @@
 },
 {
   "model": "authentication.myuser",
-  "pk": 8,
+  "pk": 2,
   "fields": {
-    "password": "pbkdf2_sha256$1000000$d8w2VONCIBgkV0ZZwNH2ep$QcnWho2S5y2yNVsYWvULUUScw7ypztDts3eRG/6MPyc=",
+    "password": "password",
     "last_login": null,
     "is_superuser": false,
-    "username": "std_001",
-    "first_name": "Farah",
-    "last_name": "Binti",
-    "email": "farah.binti@school.edu.my",
+    "username": "elara.vance",
+    "first_name": "Elara",
+    "last_name": "Vance",
+    "email": "elara.vance@example.com",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2025-12-11T12:32:46.066Z",
+    "date_joined": "2025-12-04T15:30:03Z",
     "role": "student",
     "groups": [],
     "user_permissions": []
@@ -2590,498 +2200,148 @@
 },
 {
   "model": "authentication.myuser",
-  "pk": 9,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$4SmfpnLFLLsZHH06OMxJGc$bwAObOD8kj54E3/Hip2ERz3aIURWXWjJZL4vE/7o+1I=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_002",
-    "first_name": "Wei",
-    "last_name": "Zhang",
-    "email": "wei.zhang@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:46.845Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 10,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$6nC4lbkbUDiwloKE7JUUuR$pwZujGYvdwsN4RijLkFBAMc0g5+MBLqu/YvFgyK0fG8=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_003",
-    "first_name": "Priya",
-    "last_name": "Rao",
-    "email": "priya.rao@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:47.599Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 11,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$h3EQfFFzahiuolQYvHxshj$ZjnyT1S3pOQ6lQoQmV9FKJG7kxDX6WIiYzaXTFvLLpM=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_004",
-    "first_name": "Haziq",
-    "last_name": "Ahmad",
-    "email": "haziq.ahmad@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:48.356Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 12,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$cFfUbH5ZY00nyYNPw03ttD$l1C24skf0l1SgAqz6+5tsdQvX/71uKvCLCBNWSYWgic=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_005",
-    "first_name": "Lee",
-    "last_name": "Ching",
-    "email": "lee.ching@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:49.083Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 13,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$KDz6YpFpHVMy0J7EWsb0DF$39NgXUB6dCitk9lObT2184XD6qaWa2KdVKigAP4+pMg=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_006",
-    "first_name": "Aisyah",
-    "last_name": "Bakar",
-    "email": "aisyah.bakar@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:49.814Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 14,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$0Aq3jlw9UwxCHQyGNaqakW$EzYfU8vJVRftub9ALCKiVAIy846yCW3uGZSicyOEX5g=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_007",
-    "first_name": "Devi",
-    "last_name": "Muthu",
-    "email": "devi.muthu@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:50.539Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 15,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$vINo3kRSdBY86fTacLtYoT$CqJjN46iiOu9+7sLujvyagSy27oKxsR48bHxT7EOovA=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_008",
-    "first_name": "Iskandar",
-    "last_name": "Bin",
-    "email": "iskandar.bin@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:51.278Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 16,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$AvAaVIMmAc4yBvgbjQFzkK$/h2zYDAe9PizuV5biT3jLvY2Kzk8VK1BUN0d51xZj/A=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_009",
-    "first_name": "Mei",
-    "last_name": "Ling",
-    "email": "mei.ling@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:52.002Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 17,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$3aOWFVhRYsoUNub8NlnhOy$jwh6OYFTvcwQI/2B6NQx346RZWnhSK9TB/pWE7Oe0cs=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_010",
-    "first_name": "Karthik",
-    "last_name": "Nair",
-    "email": "karthik.nair@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:52.733Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 18,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$3uF5hLMKqdBwpASdPQ5i6C$ITnb3ZDwrwbngx1B3KHcQuCCXYXyy0+AoyMWK9BS+Kc=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_011",
-    "first_name": "Zara",
-    "last_name": "Faris",
-    "email": "zara.faris@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:53.519Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.myuser",
-  "pk": 19,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$MRYdetATQhLFxLfC9lLvXi$OOdQG7y1QHOy40sNQ0tqrso+wl/TrP8aN5SRztvI9HQ=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "std_012",
-    "first_name": "Wong",
-    "last_name": "Jian",
-    "email": "wong.jian@school.edu.my",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-11T12:32:54.262Z",
-    "role": "student",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "authentication.classroom",
   "pk": 3,
   "fields": {
-    "grade": 1,
-    "class_section": "A",
-    "supervisor": null
+    "password": "password",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "mthorne",
+    "first_name": "Marcus",
+    "last_name": "Thorne",
+    "email": "marcus.thorne@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-12-04T15:31:19Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
   }
 },
 {
-  "model": "authentication.classroom",
+  "model": "authentication.myuser",
   "pk": 4,
   "fields": {
-    "grade": 1,
-    "class_section": "B",
-    "supervisor": null
+    "password": "password",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "sofialee",
+    "first_name": "Sofia",
+    "last_name": "Lee",
+    "email": "sofia.lee@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-12-04T15:31:59Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
   }
 },
 {
-  "model": "authentication.classroom",
+  "model": "authentication.myuser",
   "pk": 5,
   "fields": {
-    "grade": 1,
-    "class_section": "C",
-    "supervisor": null
+    "password": "password",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "javierc",
+    "first_name": "Javier",
+    "last_name": "Cruz",
+    "email": "j.cruz@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-12-05T00:42:09Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
   }
 },
 {
-  "model": "authentication.classroom",
+  "model": "authentication.myuser",
   "pk": 6,
   "fields": {
-    "grade": 2,
-    "class_section": "A",
+    "password": "password",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "anyas",
+    "first_name": "Anya",
+    "last_name": "Sharma",
+    "email": "anya.sharma@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-12-05T00:42:48Z",
+    "role": "student",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "authentication.classroom",
+  "pk": 1,
+  "fields": {
+    "grade": 1,
+    "class_section": "tWqdNkrQtooPdfT",
     "supervisor": null
   }
 },
 {
   "model": "authentication.classroom",
-  "pk": 7,
+  "pk": 2,
   "fields": {
-    "grade": 2,
-    "class_section": "B",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 8,
-  "fields": {
-    "grade": 2,
-    "class_section": "C",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 9,
-  "fields": {
-    "grade": 3,
-    "class_section": "A",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 10,
-  "fields": {
-    "grade": 3,
-    "class_section": "B",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 11,
-  "fields": {
-    "grade": 3,
-    "class_section": "C",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 12,
-  "fields": {
-    "grade": 4,
-    "class_section": "A",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 13,
-  "fields": {
-    "grade": 4,
-    "class_section": "B",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 14,
-  "fields": {
-    "grade": 4,
-    "class_section": "C",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 15,
-  "fields": {
-    "grade": 5,
-    "class_section": "A",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 16,
-  "fields": {
-    "grade": 5,
-    "class_section": "B",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 17,
-  "fields": {
-    "grade": 5,
-    "class_section": "C",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 18,
-  "fields": {
-    "grade": 6,
-    "class_section": "A",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 19,
-  "fields": {
-    "grade": 6,
-    "class_section": "B",
-    "supervisor": null
-  }
-},
-{
-  "model": "authentication.classroom",
-  "pk": 20,
-  "fields": {
-    "grade": 6,
-    "class_section": "C",
+    "grade": 1,
+    "class_section": "Harmoni",
     "supervisor": null
   }
 },
 {
   "model": "authentication.student",
-  "pk": 8,
+  "pk": 2,
   "fields": {
-    "class_room": 3,
-    "qr_code": "qrcodes/std_001.jpeg",
+    "class_room": 1,
+    "qr_code": "qrcodes/elara.vance.jpeg",
     "rmt_elligible": false
   }
 },
 {
   "model": "authentication.student",
-  "pk": 9,
+  "pk": 3,
   "fields": {
-    "class_room": 3,
-    "qr_code": "qrcodes/std_002.jpeg",
+    "class_room": 1,
+    "qr_code": "qrcodes/mthorne.jpeg",
     "rmt_elligible": false
   }
 },
 {
   "model": "authentication.student",
-  "pk": 10,
+  "pk": 4,
   "fields": {
-    "class_room": 4,
-    "qr_code": "qrcodes/std_003.jpeg",
+    "class_room": 1,
+    "qr_code": "qrcodes/sofialee_GmVLy8W.jpeg",
     "rmt_elligible": false
   }
 },
 {
   "model": "authentication.student",
-  "pk": 11,
+  "pk": 5,
   "fields": {
-    "class_room": 4,
-    "qr_code": "qrcodes/std_004.jpeg",
+    "class_room": 2,
+    "qr_code": "qrcodes/javierc.jpeg",
     "rmt_elligible": false
   }
 },
 {
   "model": "authentication.student",
-  "pk": 12,
+  "pk": 6,
   "fields": {
-    "class_room": 5,
-    "qr_code": "qrcodes/std_005.jpeg",
-    "rmt_elligible": false
-  }
-},
-{
-  "model": "authentication.student",
-  "pk": 13,
-  "fields": {
-    "class_room": 5,
-    "qr_code": "qrcodes/std_006.jpeg",
-    "rmt_elligible": false
-  }
-},
-{
-  "model": "authentication.student",
-  "pk": 14,
-  "fields": {
-    "class_room": 6,
-    "qr_code": "qrcodes/std_007.jpeg",
-    "rmt_elligible": false
-  }
-},
-{
-  "model": "authentication.student",
-  "pk": 15,
-  "fields": {
-    "class_room": 6,
-    "qr_code": "qrcodes/std_008.jpeg",
-    "rmt_elligible": false
-  }
-},
-{
-  "model": "authentication.student",
-  "pk": 16,
-  "fields": {
-    "class_room": 7,
-    "qr_code": "qrcodes/std_009.jpeg",
-    "rmt_elligible": false
-  }
-},
-{
-  "model": "authentication.student",
-  "pk": 17,
-  "fields": {
-    "class_room": 7,
-    "qr_code": "qrcodes/std_010.jpeg",
-    "rmt_elligible": false
-  }
-},
-{
-  "model": "authentication.student",
-  "pk": 18,
-  "fields": {
-    "class_room": 8,
-    "qr_code": "qrcodes/std_011.jpeg",
-    "rmt_elligible": false
-  }
-},
-{
-  "model": "authentication.student",
-  "pk": 19,
-  "fields": {
-    "class_room": 8,
-    "qr_code": "qrcodes/std_012.jpeg",
+    "class_room": 2,
+    "qr_code": "qrcodes/anyas.jpeg",
     "rmt_elligible": false
   }
 },
 {
   "model": "student_attendance.studentattendance",
-  "pk": 60,
+  "pk": 54,
   "fields": {
-    "student_id": 8,
-    "status": "on-time",
-    "date": "2025-12-11",
-    "timestamp": "2025-12-10T23:00:00Z"
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 61,
-  "fields": {
-    "student_id": 9,
+    "student_id": 2,
     "status": "absent",
     "date": "2025-12-11",
     "timestamp": "2025-12-10T16:00:00Z"
@@ -3089,9 +2349,9 @@
 },
 {
   "model": "student_attendance.studentattendance",
-  "pk": 62,
+  "pk": 55,
   "fields": {
-    "student_id": 10,
+    "student_id": 3,
     "status": "absent",
     "date": "2025-12-11",
     "timestamp": "2025-12-10T16:00:00Z"
@@ -3099,9 +2359,9 @@
 },
 {
   "model": "student_attendance.studentattendance",
-  "pk": 63,
+  "pk": 56,
   "fields": {
-    "student_id": 11,
+    "student_id": 4,
     "status": "absent",
     "date": "2025-12-11",
     "timestamp": "2025-12-10T16:00:00Z"
@@ -3109,9 +2369,9 @@
 },
 {
   "model": "student_attendance.studentattendance",
-  "pk": 64,
+  "pk": 57,
   "fields": {
-    "student_id": 12,
+    "student_id": 5,
     "status": "absent",
     "date": "2025-12-11",
     "timestamp": "2025-12-10T16:00:00Z"
@@ -3119,69 +2379,9 @@
 },
 {
   "model": "student_attendance.studentattendance",
-  "pk": 65,
+  "pk": 58,
   "fields": {
-    "student_id": 13,
-    "status": "absent",
-    "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z"
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 66,
-  "fields": {
-    "student_id": 14,
-    "status": "absent",
-    "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z"
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 67,
-  "fields": {
-    "student_id": 15,
-    "status": "absent",
-    "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z"
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 68,
-  "fields": {
-    "student_id": 16,
-    "status": "absent",
-    "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z"
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 69,
-  "fields": {
-    "student_id": 17,
-    "status": "absent",
-    "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z"
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 70,
-  "fields": {
-    "student_id": 18,
-    "status": "absent",
-    "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z"
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 71,
-  "fields": {
-    "student_id": 19,
+    "student_id": 6,
     "status": "absent",
     "date": "2025-12-11",
     "timestamp": "2025-12-10T16:00:00Z"
@@ -3198,62 +2398,30 @@
   }
 },
 {
-  "model": "sahsiah.sahsiahtype",
-  "pk": 2,
+  "model": "sahsiah.sahsiahrecord",
+  "pk": 1,
   "fields": {
-    "name": "Punctuality",
-    "description": "Awarded to an individual who demonstrates consistent reliability by arriving at required events, meetings, or deadlines at or before the scheduled time. It recognizes a strong respect for the time of others and personal discipline.",
-    "points": 10,
-    "tag": "Discipline"
-  }
-},
-{
-  "model": "sahsiah.sahsiahtype",
-  "pk": 3,
-  "fields": {
-    "name": "Excellent Achievement",
-    "description": "Outstanding performance in academic or extracurricular fields.",
-    "points": 100,
-    "tag": "Academic"
-  }
-},
-{
-  "model": "sahsiah.sahsiahtype",
-  "pk": 4,
-  "fields": {
-    "name": "Good Citizenship",
-    "description": "Demonstrating exemplary respect, cooperation, and helpfulness to peers and staff.",
-    "points": 75,
-    "tag": "Discipline"
-  }
-},
-{
-  "model": "sahsiah.sahsiahtype",
-  "pk": 5,
-  "fields": {
-    "name": "Consistent Effort",
-    "description": "Showing sustained commitment and hard work in assignments and attendance.",
-    "points": 50,
-    "tag": "Discipline"
-  }
-},
-{
-  "model": "sahsiah.sahsiahtype",
-  "pk": 6,
-  "fields": {
-    "name": "Minor Positive Action",
-    "description": "Small acts of kindness, responsibility, or adherence to rules.",
-    "points": 25,
-    "tag": "Discipline"
+    "student_id": 2,
+    "sahsiah_type": 1,
+    "timestamp": "2025-12-08T06:13:00Z"
   }
 },
 {
   "model": "sahsiah.sahsiahrecord",
-  "pk": 8,
+  "pk": 2,
   "fields": {
-    "student_id": 8,
-    "sahsiah_type": 2,
-    "timestamp": "2025-12-10T23:00:00Z"
+    "student_id": 2,
+    "sahsiah_type": 1,
+    "timestamp": "2025-11-14T11:47:00Z"
+  }
+},
+{
+  "model": "rmt.rmtrecord",
+  "pk": 1,
+  "fields": {
+    "student_id": 6,
+    "created_at": "2025-12-08T16:00:00Z",
+    "updated_at": "2025-12-08T16:00:00Z"
   }
 }
 ]
