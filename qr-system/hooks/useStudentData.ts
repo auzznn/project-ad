@@ -60,9 +60,23 @@ export const useStudentData = () => {
         timestamp: new Date().toISOString(),
       };
 
-      await studentApi.markAttendance(attendancePayload);
+      const response = await studentApi.markAttendance(attendancePayload);
 
-      showAlert("Attendance recorded", "success");
+      // Extract status and timestamp from response
+      const status = response.status || "unknown";
+      const timestamp = response.timestamp || new Date().toISOString();
+      
+      // Format timestamp for display
+      const formattedTime = new Date(timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+
+      // Capitalize the first letter of status
+      const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ');
+      
+      showAlert(`Attendance recorded at ${formattedTime}\nStatus: ${formattedStatus}`, "success");
     } catch (error: any) {
       showAlert(
         error.response?.data?.message ||

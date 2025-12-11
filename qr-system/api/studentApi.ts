@@ -53,20 +53,13 @@ export const studentApi = {
   
   // Mark attendance for a student
   markAttendance: async (payload: AttendancePayload): Promise<any> => {
-    console.log('DEBUG: Marking attendance with payload:', {
-      ...payload,
-      local_time: new Date().toLocaleString()
-    });
-    
     try {
       const response = await apiRequest.patch('/student_attendance/record/', {
         student_id: payload.student_id,
        timestamp: payload.timestamp
       });
-      console.log('DEBUG: Attendance marked successfully:', response);
       return response;
     } catch (error) {
-      console.error('DEBUG: Failed to mark attendance:', error);
       throw error;
     }
   },
