@@ -1547,6 +1547,32 @@
   }
 },
 {
+  "model": "admin.logentry",
+  "pk": 120,
+  "fields": {
+    "action_time": "2025-12-11T02:45:43.873Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "1Harmoni",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class section\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 121,
+  "fields": {
+    "action_time": "2025-12-11T02:48:39.019Z",
+    "user": 1,
+    "content_type": 8,
+    "object_id": "2",
+    "object_repr": "1Harmoni",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Class section\"]}}]"
+  }
+},
+{
   "model": "auth.permission",
   "pk": 1,
   "fields": {
@@ -2262,7 +2288,7 @@
   "pk": 2,
   "fields": {
     "grade": 1,
-    "class_section": "UElrMYwVJNiEBgX",
+    "class_section": "Harmoni",
     "supervisor": null
   }
 },
