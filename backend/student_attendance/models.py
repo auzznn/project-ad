@@ -2,18 +2,18 @@ from django.db import models
 from django.utils import timezone
 from authentication.models import Student
 from datetime import time
-from django.conf import settings
 import pytz
 
 # Create your models here.
 class StudentAttendance(models.Model):
+  ON_TIME_CODE = "on-time"
+  
   STATUS_ATTENDANCE = [
     ("absent", "Absent"), 
-    ("on-time", "On time"), 
+    (ON_TIME_CODE, "On time"), 
     ("late", "Late")
   ]
   
-  @staticmethod
   def default_datetime():
     kl_tz = pytz.timezone('Asia/Kuala_Lumpur')
     now_kl = timezone.now().astimezone(kl_tz)
@@ -26,20 +26,15 @@ class StudentAttendance(models.Model):
   
   student_id = models.ForeignKey(Student, related_name="attendance", on_delete=models.CASCADE)
   status = models.CharField(choices=STATUS_ATTENDANCE, default=DEFAULT_STATUS, max_length=15)
-  created_at = models.DateTimeField()
-  updated_at = models.DateTimeField()
+  date = models.DateField(default=timezone.now)
+  timestamp = models.DateTimeField(default=default_datetime)
 
   def __str__(self) -> str:
-    return f"{self.student_id.user} {self.created_at.strftime('%d/%M/%Y')}"
+    return f"{self.student_id.user} {self.date}"
 
   def save(self, *args, **kwargs):
-    if self.created_at == None:
-      self.created_at = self.default_datetime()
-    if self.updated_at == None:
-      self.updated_at = self.default_datetime()
-
-    if self.updated_at.time().replace(microsecond=0) == self.ABSENT_TIME:
+    if self.timestamp.time() == self.ABSENT_TIME:
       return super().save(*args, **kwargs)  
-    status_index = 2 if self.updated_at.time() > self.ON_TIME else 1
+    status_index = 2 if self.timestamp.time() > self.ON_TIME else 1
     self.status = self.STATUS_ATTENDANCE[status_index][0]
     return super().save(*args, **kwargs)

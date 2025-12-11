@@ -18,7 +18,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
   def query_attendance_by_date(self, queryset=None, year: int=None, month: int=None, day: int=None):
     if queryset == None:
       queryset = self.get_queryset()
-    return queryset.filter(created_at__year=year, created_at__month=month, created_at__day=day)
+    return queryset.filter(date__year=year, date__month=month, date__day=day)
   
   def get_serializer_class(self):
     endpoint_action = ['record_student_attendance']
@@ -30,14 +30,14 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
   @action(detail=False, methods=["get"])
   def daily(self, request: Request) -> Response:
     queryset = self.get_queryset()
-    queryset = queryset.filter(created_at__date=timezone.now())
+    queryset = queryset.filter(date=timezone.now())
     
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-  @action(detail=False, methods=['get'], url_path=r'daily/(?P<class_room>[^/.]+)')
-  def daily_by_class(self, request, class_room=None):
-    class_room_filter = Classroom.objects.filter(name=class_room)
+  @action(detail=False, methods=['get'], url_path=r'daily/(?P<grade>[0-9]+)/(?P<section>[^/.]+)')
+  def daily_by_class(self, request, grade: int=None, section: str=None):
+    class_room_filter = Classroom.objects.filter(grade=grade, class_section=section)
     if len(class_room_filter) == 0:
       response = {
         "message": "Invalid class room name"
@@ -46,7 +46,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     
     class_room_instance = class_room_filter[0]
     queryset = self.get_queryset()
-    queryset = queryset.filter(created_at__date=timezone.now())
+    queryset = queryset.filter(date=timezone.now())
     queryset = queryset.filter(student_id__class_room=class_room_instance)
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -57,12 +57,12 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-  @action(detail=False, methods=['get'], url_path=r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<class_room>[^/.]+)')
-  def class_attendance_by_date(self, request: Request, year: int=None, month: int = None, day: int = None, class_room: str = "") -> Response:
+  @action(detail=False, methods=['get'], url_path=r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<grade>[0-9]+)/(?P<section>[^/.]+)')
+  def class_attendance_by_date(self, request: Request, year: int=None, month: int = None, day: int = None, section: str = "", grade: int = None) -> Response:
     
     queryset = self.query_attendance_by_date(queryset=None, year=year, month=month, day=day)
     
-    class_room_filter = Classroom.objects.filter(name=class_room)
+    class_room_filter = Classroom.objects.filter(class_section=section, grade=grade)
     if len(class_room_filter) == 0:
       response = {
         "message": "Invalid class room name"
@@ -81,12 +81,12 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer.is_valid(raise_exception=True)
 
     student_id = serializer.validated_data.get('student_id')
-    updated_at = serializer.validated_data.get('updated_at')
+    timestamp = serializer.validated_data.get('timestamp')
 
     try:
       instance = StudentAttendance.objects.get(
         student_id=student_id, 
-        created_at__date=timezone.now().date()
+        date=timezone.now().date()
       )
     except StudentAttendance.DoesNotExist:
       response = {
@@ -94,7 +94,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
       }
       return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    updated_serializer = serializer_class(instance=instance, data={'updated_at': updated_at}, partial=True)
+    updated_serializer = serializer_class(instance=instance, data={'timestamp': timestamp}, partial=True)
     updated_serializer.is_valid(raise_exception=True)
     updated_serializer.save()
 

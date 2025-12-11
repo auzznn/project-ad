@@ -22,18 +22,26 @@ export interface AttendanceRecord {
 }
 
 export interface SahsiahRecord {
-  id?: number;
   timestamp: string;
-  student_id: string;
+  student_id: number;
   sahsiah_type: number;
 }
 
 export interface SahsiahType {
   id: string;
   name: string;
-  tag: string;
   points: number;
-  // Additional fields if needed
+  tag: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface SahsiahCategory {
+  tag: string;
+  name: string;
+  icon?: string;
+  color?: string;
+  types: SahsiahType[];
 }
 
 export const studentApi = {
@@ -85,7 +93,7 @@ export const studentApi = {
     return apiRequest.get(`/rmt/check/${studentId}`);
   },
   
-  // Get all sahsiah types
+  // Get sahsiah types from API
   getSahsiahTypes: async (): Promise<SahsiahType[]> => {
     return apiRequest.get('/sahsiah/type/');
   },
