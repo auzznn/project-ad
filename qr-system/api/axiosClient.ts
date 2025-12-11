@@ -22,13 +22,13 @@ apiClient.interceptors.request.use(
     }
     
     // Debug logging for all API requests
-    console.log('DEBUG: API request details:', {
-      url: (config.baseURL || '') + (config.url || ''),
-      method: config.method,
-      hasToken: !!token,
-      headers: config.headers,
-      data: config.data
-    });
+    // console.log('DEBUG: API request details:', {
+    //   url: (config.baseURL || '') + (config.url || ''),
+    //   method: config.method,
+    //   hasToken: !!token,
+    //   headers: config.headers,
+    //   data: config.data
+    // });
     
     return config;
   },
@@ -47,16 +47,16 @@ apiClient.interceptors.response.use(
     // Any status codes that falls outside the range of 2xx causes this function to trigger
     
     // Debug logging for all API errors
-    console.log('DEBUG: API error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.config?.data
-      }
-    });
+    // console.log('DEBUG: API error details:', {
+    //   status: error.response?.status,
+    //   statusText: error.response?.statusText,
+    //   data: error.response?.data,
+    //   config: {
+    //     url: error.config?.url,
+    //     method: error.config?.method,
+    //     data: error.config?.data
+    //   }
+    // });
     
     if (error.response) {
       // The request was made and the server responded with a status code

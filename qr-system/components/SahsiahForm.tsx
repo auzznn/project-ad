@@ -82,9 +82,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
         const types = await studentApi.getSahsiahTypes();
         const categories = groupSahsiahByTag(types);
         setSahsiahCategories(categories);
-        console.log('SahsiahForm - Fetched sahsiah categories:', categories);
       } catch (error) {
-        console.error('SahsiahForm - Error fetching sahsiah types:', error);
         // Fallback to empty array if API fails
         setSahsiahCategories([]);
       } finally {
@@ -95,14 +93,11 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
   }, []);
 
   const toggleCategory = (categoryId: string) => {
-    console.log('SahsiahForm - Toggling category:', categoryId);
     setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
   };
 
   const selectDeed = (category: any, deed: any) => {
-    console.log('SahsiahForm - Selected deed:', deed.name, 'from category:', category.name);
     setSelectedDeed({ category, deed });
-    console.log('SahsiahForm - Setting showConfirmation to true');
     setShowConfirmation(true);
   };
 
@@ -146,7 +141,6 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
         }}]
       );
     } catch (error) {
-      console.error('Error recording good deed:', error);
       Alert.alert('Error', 'Failed to record good deed. Please try again.');
     } finally {
       setRecording(false);
@@ -229,14 +223,12 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
   );
 
   if (showConfirmation && selectedDeed) {
-    console.log('SahsiahForm - Showing confirmation overlay');
     return (
       <View style={styles.confirmationOverlay}>
         <TouchableOpacity
           style={styles.confirmationBackdrop}
           activeOpacity={1}
           onPress={() => {
-            console.log('SahsiahForm - Confirmation closed via backdrop');
             setShowConfirmation(false);
             setSelectedDeed(null);
             setNotes('');
@@ -246,7 +238,6 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
           <View style={styles.confirmationHeader}>
             <Text style={[styles.confirmationTitle, { color: textColor }]}>Confirm Good Deed</Text>
             <TouchableOpacity onPress={() => {
-              console.log('SahsiahForm - Confirmation closed via close button');
               setShowConfirmation(false);
               setSelectedDeed(null);
               setNotes('');
@@ -294,7 +285,6 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
             <TouchableOpacity
               style={[styles.cancelButton, { backgroundColor: borderColor }]}
               onPress={() => {
-                console.log('SahsiahForm - Confirmation closed via cancel button');
                 setShowConfirmation(false);
                 setSelectedDeed(null);
                 setNotes('');
@@ -319,10 +309,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
         </View>
       </View>
     );
-  }
-
-  console.log('SahsiahForm - Rendering main form for student:', student.name);
-  
+  }  
   // Show loading state while fetching categories
   if (loadingCategories) {
     return (

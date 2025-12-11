@@ -30,13 +30,9 @@ export const useQRScanner = () => {
 
         const urlParts = correctedUrl.split("/");
         const studentId = urlParts[urlParts.length - 1];
-
-        console.log("Fetching student data for ID:", studentId);
         
         // Use the studentApi to fetch student data
         const data = await studentApi.getStudent(studentId);
-
-        console.log("API response data:", data);
 
         // Validate that required fields exist
         if (!data || data.student_id === undefined) return null;
@@ -66,8 +62,6 @@ export const useQRScanner = () => {
       if (!isScanning || cooldown) return;
 
       const { data } = scanningResult;
-
-      console.log("QR Scanned:", { data });
 
       // Set cooldown to prevent duplicate scans
       setCooldown(true);
