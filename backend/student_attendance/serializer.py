@@ -9,7 +9,7 @@ class StudentAttendanceSerializer(ModelSerializer):
 
   class Meta:
     model = StudentAttendance
-    fields = ['student', 'status', 'created_at', 'updated_at']
+    fields = ['id', 'student', 'status', 'date', 'timestamp']
 
 class RecordStudentAttendanceSerializer(ModelSerializer):
 

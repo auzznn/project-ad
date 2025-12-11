@@ -30,7 +30,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
   @action(detail=False, methods=["get"])
   def daily(self, request: Request) -> Response:
     queryset = self.get_queryset()
-    queryset = queryset.filter(created_at__date=timezone.now())
+    queryset = queryset.filter(date=timezone.now())
     
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -46,7 +46,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     
     class_room_instance = class_room_filter[0]
     queryset = self.get_queryset()
-    queryset = queryset.filter(created_at__date=timezone.now())
+    queryset = queryset.filter(date=timezone.now())
     queryset = queryset.filter(student_id__class_room=class_room_instance)
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -86,7 +86,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     try:
       instance = StudentAttendance.objects.get(
         student_id=student_id, 
-        created_at__date=timezone.now().date()
+        date=timezone.now().date()
       )
     except StudentAttendance.DoesNotExist:
       response = {
