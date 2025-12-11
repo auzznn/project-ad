@@ -59,7 +59,7 @@ export const studentApi = {
   // Check if student already has attendance for today
   checkAttendanceStatus: async (studentId: string): Promise<any> => {
     // Get all attendance for today and filter by student_id on the client side
-    const response = await apiRequest.get('/student_attendance/daily');
+    const response = await apiRequest.get('/student_attendance/');
     return response.filter((record: any) =>
       record.student_id === studentId &&
       // Check if attendance has been marked (updated_at is different from default time)

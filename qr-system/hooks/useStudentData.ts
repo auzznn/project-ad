@@ -19,7 +19,7 @@ export interface LoadingStates {
 }
 
 export const useStudentData = () => {
-  const { updateStudentAction, getStudentActions } = useStudentActions();
+  const { updateStudentAction, getStudentActions, clearAttendanceData } = useStudentActions();
   const [loading, setLoading] = useState<LoadingStates>({
     attendance: false,
     rmt: false,
@@ -72,12 +72,36 @@ const handleAttendance = async (student: Student) => {
     console.error("DEBUG: Error response status:", error.response?.status);
     console.error("DEBUG: Error response headers:", error.response?.headers);
     
-    showAlert(
-      error.response?.data?.message || error.message || "Failed to record attendance",
-      "error"
-    );
+    // If the error indicates a date mismatch, offer to clear local data
+    if (error.response?.status === 400 &&
+        error.response?.data?.message?.includes('already been created')) {
+      showAlert(
+        "Date mismatch detected. Please try clearing local data and try again.",
+        "error"
+      );
+    } else {
+      showAlert(
+        error.response?.data?.message || error.message || "Failed to record attendance",
+        "error"
+      );
+    }
   } finally {
     setLoading((prev) => ({ ...prev, attendance: false }));
+  }
+};
+
+// Function to clear all attendance data
+const clearAllAttendanceData = async () => {
+  try {
+    const success = await clearAttendanceData();
+    if (success) {
+      showAlert("Local attendance data cleared successfully", "success");
+    } else {
+      showAlert("Failed to clear local attendance data", "error");
+    }
+  } catch (error) {
+    console.error("Failed to clear attendance data:", error);
+    showAlert("Failed to clear local attendance data", "error");
   }
 };
 
@@ -282,5 +306,6 @@ const handleAttendance = async (student: Student) => {
     handleDiscipline,
     getStudentActions,
     resetCounts,
+    clearAllAttendanceData,
   };
 };

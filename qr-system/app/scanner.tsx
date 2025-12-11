@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { SafeAreaView, Button, Text, StyleSheet } from "react-native";
+import { SafeAreaView, Button, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Vibration } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
 import { Student } from "../api/studentApi";
 import CameraViewComponent from "../components/CameraView";
 import ModalManager from "../components/ModalManager";
+import DebugPanel from "../components/DebugPanel";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
 import { useAuth } from "../context/AuthContext";
@@ -17,6 +19,7 @@ export default function scanner() {
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [showSahsiahForm, setShowSahsiahForm] = useState(false);
   const [showDisciplineForm, setShowDisciplineForm] = useState(false);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   const { isScanning, cooldown, handleBarcodeScanned, resetScanner } = useQRScanner();
   const {
@@ -134,6 +137,14 @@ export default function scanner() {
         onToggleCamera={toggleCameraFacing}
       />
 
+      {/* Debug button - positioned in top-right corner */}
+      <TouchableOpacity
+        style={styles.debugButton}
+        onPress={() => setShowDebugPanel(true)}
+      >
+        <Ionicons name="bug" size={24} color="white" />
+      </TouchableOpacity>
+
       <ModalManager
         student={student}
         actions={studentActions}
@@ -147,11 +158,11 @@ export default function scanner() {
         onClose={closeModal}
         onAttendance={handleAttendance}
         onRMT={handleRMT}
-        onSahsiah={async (deedType, notes, points) => {
+        onSahsiah={async (student: Student, deedType: string, notes: string, points?: number) => {
           const success = await handleSahsiah(student, deedType, notes, points);
           return success || false;
         }}
-        onDiscipline={async (violationType, notes, points) => {
+        onDiscipline={async (student: Student, violationType: string, notes: string, points?: number) => {
           const success = await handleDiscipline(student, violationType, notes, points);
           return success || false;
         }}
@@ -160,6 +171,11 @@ export default function scanner() {
         onBackFromSahsiah={handleBackFromSahsiah}
         onBackFromDiscipline={handleBackFromDiscipline}
         onFormSubmit={closeAllAndReturnToScanner}
+      />
+
+      <DebugPanel
+        visible={showDebugPanel}
+        onClose={() => setShowDebugPanel(false)}
       />
     </SafeAreaView>
   );
@@ -176,5 +192,14 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     color: "white",
     fontSize: 16,
+  },
+  debugButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 10,
+    borderRadius: 20,
+    zIndex: 100,
   },
 });
