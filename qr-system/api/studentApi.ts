@@ -5,11 +5,7 @@ export interface Student {
   name: string;
   class: string;
   grade?: string;
-  // section: string;
-  // eligible_rmt: boolean;
   timestamp?: string;
-  // points?: number;
-  // Additional fields from API response
   section?: string;
   rmt_elligible?: boolean;
   program?: string;
@@ -101,5 +97,10 @@ export const studentApi = {
   // Reset all sahsiah data
   resetSahsiah: async (): Promise<any> => {
     return apiRequest.post('/sahsiah/reset');
+  },
+  
+  // Get leaderboard data from sahsiah/leaderboard/
+  getLeaderboard: async (): Promise<any> => {
+    return apiRequest.get('/sahsiah/leaderboard/');
   }
 };
