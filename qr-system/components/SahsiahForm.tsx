@@ -1,65 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList, Alert, TextInput, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Student } from '../api/studentApi';
+import { Student, studentApi, SahsiahType, SahsiahCategory } from '../api/studentApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColor } from '../hooks/useThemeColor';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Define good deed categories and deeds
-const goodDeedCategories = [
-  {
-    id: 'academic',
-    name: 'Academic Excellence',
-    icon: 'school',
-    color: '#4CAF50',
-    deeds: [
-      { id: 'homework', name: 'Completing Homework', points: 5 },
-      { id: 'participation', name: 'Active Participation', points: 3 },
-      { id: 'helping', name: 'Helping Classmates', points: 4 },
-      { id: 'excellence', name: 'Excellent Test Score', points: 10 }
-    ]
-  },
-  {
-    id: 'behavior',
-    name: 'Good Behavior',
-    icon: 'heart',
-    color: '#2196F3',
-    deeds: [
-      { id: 'honesty', name: 'Honesty', points: 8 },
-      { id: 'respect', name: 'Respect to Teachers', points: 5 },
-      { id: 'kindness', name: 'Kindness to Others', points: 4 },
-      { id: 'discipline', name: 'Self Discipline', points: 6 }
-    ]
-  },
-  {
-    id: 'leadership',
-    name: 'Leadership',
-    icon: 'star',
-    color: '#FF9800',
-    deeds: [
-      { id: 'leading', name: 'Leading Group Activity', points: 7 },
-      { id: 'responsibility', name: 'Taking Responsibility', points: 6 },
-      { id: 'initiative', name: 'Showing Initiative', points: 8 },
-      { id: 'mentoring', name: 'Mentoring Younger Students', points: 10 }
-    ]
-  },
-  {
-    id: 'service',
-    name: 'Community Service',
-    icon: 'people',
-    color: '#9C27B0',
-    deeds: [
-      { id: 'cleaning', name: 'Classroom Cleaning', points: 3 },
-      { id: 'organizing', name: 'Organizing School Event', points: 8 },
-      { id: 'volunteering', name: 'Volunteering', points: 7 },
-      { id: 'fundraising', name: 'Fundraising', points: 9 }
-    ]
-  }
-];
+// Default category configurations
+const categoryConfig: { [key: string]: { name: string; icon: string; color: string } } = {
+  'Menjaga Alam Sekitar': { name: 'Menjaga Alam Sekitar', icon: 'leaf', color: '#4CAF50' },
+  'Khidmat Masyarakat': { name: 'Khidmat Masyarakat', icon: 'people', color: '#2196F3' },
+  'Moral': { name: 'Moral', icon: 'heart', color: '#E91E63' },
+  'Amal': { name: 'Amal', icon: 'hand-left', color: '#FF9800' },
+  'Akademik': { name: 'Akademik', icon: 'school', color: '#9C27B0' },
+  'other': { name: 'Lain-lain', icon: 'ellipsis-horizontal', color: '#607D8B' }
+};
+
+// Helper function to group sahsiah types by tag
+const groupSahsiahByTag = (sahsiahTypes: SahsiahType[]): SahsiahCategory[] => {
+  const grouped: { [key: string]: SahsiahType[] } = {};
+  
+  // Group by tag
+  sahsiahTypes.forEach(type => {
+    if (!grouped[type.tag]) {
+      grouped[type.tag] = [];
+    }
+    grouped[type.tag].push(type);
+  });
+  
+  // Convert to category format
+  return Object.keys(grouped).map(tag => {
+    const config = categoryConfig[tag] || categoryConfig['other'];
+    return {
+      tag,
+      name: config.name,
+      icon: config.icon,
+      color: config.color,
+      types: grouped[tag]
+    };
+  });
+};
 
 interface SahsiahFormProps {
   student: Student;
@@ -88,6 +71,29 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [notes, setNotes] = useState('');
   const [recording, setRecording] = useState(false);
+  const [sahsiahCategories, setSahsiahCategories] = useState<SahsiahCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch sahsiah types on component mount
+  useEffect(() => {
+    const fetchSahsiahTypes = async () => {
+      try {
+        setLoadingCategories(true);
+        const types = await studentApi.getSahsiahTypes();
+        const categories = groupSahsiahByTag(types);
+        setSahsiahCategories(categories);
+        console.log('SahsiahForm - Fetched sahsiah categories:', categories);
+      } catch (error) {
+        console.error('SahsiahForm - Error fetching sahsiah types:', error);
+        // Fallback to empty array if API fails
+        setSahsiahCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchSahsiahTypes();
+  }, []);
 
   const toggleCategory = (categoryId: string) => {
     console.log('SahsiahForm - Toggling category:', categoryId);
@@ -178,11 +184,11 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
    * - class_stats_{class}_{date}: Class-level statistics
    */
 
-  const renderCategoryItem = ({ item }: { item: any }) => (
+  const renderCategoryItem = ({ item }: { item: SahsiahCategory }) => (
     <View style={[styles.categoryContainer, { backgroundColor: cardColor }]}>
       <TouchableOpacity
         style={styles.categoryHeader}
-        onPress={() => toggleCategory(item.id)}
+        onPress={() => toggleCategory(item.tag)}
         activeOpacity={0.7}
       >
         <View style={styles.categoryLeft}>
@@ -192,26 +198,26 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
           <Text style={[styles.categoryName, { color: textColor }]}>{item.name}</Text>
         </View>
         <View style={styles.categoryRight}>
-          <Ionicons 
-            name={expandedCategory === item.id ? 'chevron-up' : 'chevron-down'} 
-            size={16} 
-            color={mutedColor} 
+          <Ionicons
+            name={expandedCategory === item.tag ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color={mutedColor}
           />
         </View>
       </TouchableOpacity>
       
-      {expandedCategory === item.id && (
+      {expandedCategory === item.tag && (
         <View style={styles.deedsContainer}>
-          {item.deeds.map((deed: any) => (
+          {item.types.map((type: SahsiahType) => (
             <TouchableOpacity
-              key={deed.id}
+              key={type.id}
               style={[styles.deedItem, { backgroundColor: backgroundColor, borderColor }]}
-              onPress={() => selectDeed(item, deed)}
+              onPress={() => selectDeed(item, type)}
               activeOpacity={0.8}
             >
               <View style={styles.deedLeft}>
-                <Text style={[styles.deedName, { color: textColor }]}>{deed.name}</Text>
-                <Text style={[styles.deedPoints, { color: primaryColor }]}>+{deed.points} points</Text>
+                <Text style={[styles.deedName, { color: textColor }]}>{type.name}</Text>
+                <Text style={[styles.deedPoints, { color: primaryColor }]}>+{type.points} points</Text>
               </View>
               <View style={styles.deedRight}>
                 <Ionicons name="chevron-forward" size={14} color={mutedColor} />
@@ -318,12 +324,31 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
 
   console.log('SahsiahForm - Rendering main form for student:', student.name);
   
+  // Show loading state while fetching categories
+  if (loadingCategories) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <View style={styles.header}>
+          <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
+            <Ionicons name="arrow-back" size={20} color={textColor} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: textColor }]}>Record Good Deed</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={primaryColor} />
+          <Text style={[styles.loadingText, { color: textColor }]}>Loading sahsiah categories...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
   // Create data array for FlatList that includes header, student info, and categories
   const formData = [
     { type: 'header' },
     { type: 'studentInfo' },
     { type: 'sectionTitle' },
-    ...goodDeedCategories.map(category => ({ type: 'category', data: category }))
+    ...sahsiahCategories.map(category => ({ type: 'category', data: category }))
   ];
 
   const renderFormItem = ({ item, index }: { item: any; index: number }) => {
@@ -674,5 +699,16 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

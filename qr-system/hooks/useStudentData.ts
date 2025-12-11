@@ -97,78 +97,32 @@ const handleAttendance = async (student: Student) => {
 
   /**
    * Handles the recording of good deeds (Sahsiah) for students
-   * This is the central function that manages the complete data flow from SahsiahForm to storage
-   *
-   * Data Flow:
-   * 1. Receives deed data from SahsiahForm (deedType, notes, points)
-   * 2. Creates comprehensive sahsiah record with all student information
-   * 3. Stores the record in AsyncStorage for historical tracking
-   * 4. Updates student points (total and daily)
-   * 5. Updates today's deeds list for leaderboard display
-   * 6. Updates class statistics for reporting
-   * 7. Marks the sahsiah action as completed for the day
+   * This function makes an API call to record the sahsiah data
    *
    * @param student - The student object
-   * @param deedType - The type of good deed performed
+   * @param sahsiahType - The ID of the sahsiah type (integer)
    * @param notes - Optional notes about the good deed
-   * @param points - Points awarded for this good deed
    */
   const handleSahsiah = async (
     student: Student,
-    deedType: string,
-    notes: string,
-    points?: number
+    sahsiahType: number,
+    notes: string
   ): Promise<boolean> => {
     if (!student) return false;
 
     setLoading((prev) => ({ ...prev, sahsiah: true }));
     try {
-      const today = new Date().toISOString().split("T")[0];
       const timestamp = new Date().toISOString();
-
-      // Create comprehensive sahsiah record with all student data
-      // This ensures we have complete information for the leaderboard and reporting
-      const sahsiahKey = `sahsiah_${student.student_id}_${today}_${timestamp}`;
-      const sahsiahData = {
-        student_id: student.student_id,
-        student_name: student.name,
-        program: student.program,
-        eligible_rmt: student.eligible_rmt,
-        deed_type: deedType,
-        notes: notes,
-        points: points || 0, // Points will be determined in SahsiahForm
+      
+      // Create sahsiah record for API
+      const sahsiahRecord = {
         timestamp: timestamp,
+        student_id: parseInt(student.student_id),
+        sahsiah_type: sahsiahType,
       };
 
-      // Store the sahsiah record for historical tracking
-      await AsyncStorage.setItem(sahsiahKey, JSON.stringify(sahsiahData));
-
-      // Update student points if points are provided
-      if (points && points > 0) {
-        // Update the student's total and daily points
-        await updateStudentPoints(student.student_id, points);
-
-        // Add to today's deeds list for leaderboard display
-        // This ensures the leaderboard shows the most recent activities
-        await updateTodayDeeds(
-          student.student_id,
-          student.name,
-          student.program || "Unknown",
-          deedType,
-          points,
-          timestamp
-        );
-
-        // Update class statistics for reporting and analytics
-        await updateClassStatistics(student.program || "Unknown", points);
-      }
-
-      // Increment sahsiah count for this student (for UI display)
-      setSahsiahCount((prev) => prev + 1);
-
-      // Mark sahsiah action as completed for today
-      // This prevents duplicate recordings and tracks daily progress
-      updateStudentAction(student.student_id, "sahsiah", true);
+      // Post sahsiah record to API
+      await studentApi.recordSahsiah(sahsiahRecord);
 
       showAlert("Good deed recorded successfully", "success");
       return true;
