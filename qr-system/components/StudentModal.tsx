@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Student } from '../api/studentApi';
+import { Student, studentApi } from '../api/studentApi';
 import ActionButton from './ActionButton';
 import { useTheme } from '../context/ThemeContext';
 
@@ -30,6 +30,7 @@ interface StudentModalProps {
   onDiscipline: (violationType: string, notes: string, points?: number) => Promise<void>;
   onOpenSahsiahForm: () => void;
   onOpenDisciplineForm: () => void;
+  onAttendanceSuccess?: () => void; // New callback for successful attendance
 }
 
 export default function StudentModal({
@@ -46,9 +47,35 @@ export default function StudentModal({
   onSahsiah,
   onDiscipline,
   onOpenSahsiahForm,
-  onOpenDisciplineForm
+  onOpenDisciplineForm,
+  onAttendanceSuccess
 }: StudentModalProps) {
   const { theme } = useTheme();
+  const [canMarkAttendance, setCanMarkAttendance] = useState(true);
+  const [checkingAttendance, setCheckingAttendance] = useState(false);
+  
+  // Check attendance status when modal opens or student changes
+  useEffect(() => {
+    const checkAttendanceStatus = async () => {
+      if (!student || !visible) return;
+      
+      setCheckingAttendance(true);
+      try {
+        const record = await studentApi.checkAttendanceStatus(student.student_id);
+        
+        // Enable button only if no record exists or status is "absent"
+        const canMark = !record || record.status === "absent";
+        setCanMarkAttendance(canMark);
+      } catch (error) {
+        // Default to enabling button if there's an error
+        setCanMarkAttendance(true);
+      } finally {
+        setCheckingAttendance(false);
+      }
+    };
+    
+    checkAttendanceStatus();
+  }, [student, visible]);
   
   if (!student) return null;
 
@@ -126,10 +153,14 @@ export default function StudentModal({
             <ActionButton
               title="Take Attendance"
               icon="checkmark-circle"
-              color="#4CAF50"
-              onPress={onAttendance}
-              disabled={loading.attendance}
-              loading={loading.attendance}
+              color={!canMarkAttendance ? "#cccccc" : "#4CAF50"}
+              onPress={async () => {
+                await onAttendance();
+                // After successful attendance, set canMarkAttendance to false
+                setCanMarkAttendance(false);
+              }}
+              disabled={loading.attendance || !canMarkAttendance || checkingAttendance}
+              loading={loading.attendance || checkingAttendance}
               completed={actions.attendance}
             />
             

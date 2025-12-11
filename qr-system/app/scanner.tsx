@@ -9,7 +9,7 @@ import ModalManager from "../components/ModalManager";
 import DebugPanel from "../components/DebugPanel";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
-import { useAuth } from "../context/AuthContext";
+
 
 export default function scanner() {
   const [permission, requestPermission] = useCameraPermissions();
