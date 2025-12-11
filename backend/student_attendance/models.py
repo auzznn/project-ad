@@ -6,9 +6,11 @@ import pytz
 
 # Create your models here.
 class StudentAttendance(models.Model):
+  ON_TIME_CODE = "on-time"
+  
   STATUS_ATTENDANCE = [
     ("absent", "Absent"), 
-    ("on-time", "On time"), 
+    (ON_TIME_CODE, "On time"), 
     ("late", "Late")
   ]
   
@@ -33,6 +35,6 @@ class StudentAttendance(models.Model):
   def save(self, *args, **kwargs):
     if self.timestamp.time() == self.ABSENT_TIME:
       return super().save(*args, **kwargs)  
-    status_index = 2 if self.updated_at.time() > self.ON_TIME else 1
+    status_index = 2 if self.timestamp.time() > self.ON_TIME else 1
     self.status = self.STATUS_ATTENDANCE[status_index][0]
     return super().save(*args, **kwargs)

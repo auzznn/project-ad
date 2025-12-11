@@ -81,7 +81,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer.is_valid(raise_exception=True)
 
     student_id = serializer.validated_data.get('student_id')
-    updated_at = serializer.validated_data.get('updated_at')
+    timestamp = serializer.validated_data.get('timestamp')
 
     try:
       instance = StudentAttendance.objects.get(
@@ -94,7 +94,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
       }
       return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    updated_serializer = serializer_class(instance=instance, data={'updated_at': updated_at}, partial=True)
+    updated_serializer = serializer_class(instance=instance, data={'timestamp': timestamp}, partial=True)
     updated_serializer.is_valid(raise_exception=True)
     updated_serializer.save()
 
