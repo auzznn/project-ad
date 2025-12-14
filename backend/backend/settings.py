@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     'authentication',
     'student_attendance',
     'sahsiah',
-    'rmt'
+    'rmt',
+    'record_discipline'
 ]
 
 MIDDLEWARE = [
@@ -157,6 +158,10 @@ REST_FRAMEWORK = {
 SITE_ID = 1
 
 ALLOWED_HOSTS = ["*"]
+
+# Domain Setting
+ACADEMIC_YEAR_START = timezone.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+ACADEMIC_YEAR_END = timezone.now().replace(month=12, day=30, hour=0, minute=0, second=0, microsecond=0)
 
 
 # Celery Setting
