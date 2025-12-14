@@ -18,6 +18,7 @@ class MyUser(AbstractUser):
     ('admin', 'admin'),
     ('teacher', 'teacher'),
     ('student', 'student'),
+    ('parent', 'parent')
   ]
 
   role = models.CharField(max_length=20, choices=ROLE_CHOICE, default="student")
@@ -58,6 +59,7 @@ class Student(models.Model):
   class_room = models.ForeignKey(Classroom, on_delete=models.CASCADE, blank=True, null=True, related_name='student')
   qr_code = models.ImageField(upload_to='qrcodes/', blank=True, null=True)
   rmt_elligible = models.BooleanField(default=False, blank=False, null=True)
+  date_of_birth = models.DateTimeField(blank=False, null=False, default=timezone.now)
 
   @classmethod
   def generate_qr_image(cls, url_link: str) -> File:
