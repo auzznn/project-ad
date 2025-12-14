@@ -4,5 +4,6 @@ urlpatterns = [
   path("authentication/", include("authentication.urls")),
   path("student_attendance/", include("student_attendance.urls")),
   path("sahsiah/", include("sahsiah.urls")),
-  path("rmt/", include("rmt.urls"))
+  path("rmt/", include("rmt.urls")),
+  path("discipline/", include('record_discipline.urls'))
 ]
