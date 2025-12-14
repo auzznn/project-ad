@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 from django.utils import timezone
+from django.conf import settings
 
 from authentication.models import Classroom
 from .serializer import StudentAttendanceSerializer, RecordStudentAttendanceSerializer
@@ -16,7 +17,17 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
   queryset = StudentAttendance.objects.all()
   serializer_class = StudentAttendanceSerializer
 
-  def query_attendance_by_date(self, queryset=None, year: int=None, month: int=None, day: int=None):
+  def _get_current_date_aware(self) -> timezone.datetime:
+    tz = pytz.timezone(settings.TIME_ZONE)
+    return timezone.now().astimezone(tz).date()
+  
+  def _get_classroom_instance(self, grade: int, section: str) -> Classroom | None:
+    try:
+      return Classroom.objects.get(grade=grade, class_section=section)
+    except Classroom.DoesNotExist:
+      return None
+
+  def _get_attendance_by_date(self, queryset=None, year: int=None, month: int=None, day: int=None):
     if queryset == None:
       queryset = self.get_queryset()
     return queryset.filter(date__year=year, date__month=month, date__day=day)
@@ -30,65 +41,66 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
   
   @action(detail=False, methods=["get"])
   def daily(self, request: Request) -> Response:
+    today = self._get_current_date_aware()
+    
     queryset = self.get_queryset()
-    queryset = queryset.filter(date=timezone.now())
+    queryset = queryset.filter(date=today)
     
     serializer = self.serializer_class(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   @action(detail=False, methods=['get'], url_path=r'daily/(?P<grade>[0-9]+)/(?P<section>[^/.]+)')
   def daily_by_class(self, request, grade: int=None, section: str=None):
-    class_room_filter = Classroom.objects.filter(grade=grade, class_section=section)
-    if len(class_room_filter) == 0:
+    today = self._get_current_date_aware()
+    class_room_instance = self._get_classroom_instance(grade, section)
+    
+    if class_room_instance == None:
       response = {
         "message": "Invalid class room name"
       }
       return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    class_room_instance = class_room_filter[0]
     queryset = self.get_queryset()
-    queryset = queryset.filter(date=timezone.now())
-    queryset = queryset.filter(student_id__class_room=class_room_instance)
-    serializer = self.serializer_class(queryset, many=True)
+    queryset = queryset.filter(date=today, student_id__class_room=class_room_instance)
+    
+    serializer = self.get_serializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
   
   @action(detail=False, methods=['get'], url_path=r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})')
   def attendance_by_date(self, request: Request, year: int=None, month: int=None, day: int=None) -> Response:
-    queryset = self.query_attendance_by_date(queryset=None, year=year, month=month, day=day)
-    serializer = self.serializer_class(queryset, many=True)
+    queryset = self._get_attendance_by_date(queryset=None, year=year, month=month, day=day)
+    serializer = self.get_serializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   @action(detail=False, methods=['get'], url_path=r'(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<grade>[0-9]+)/(?P<section>[^/.]+)')
   def class_attendance_by_date(self, request: Request, year: int=None, month: int = None, day: int = None, section: str = "", grade: int = None) -> Response:
     
-    queryset = self.query_attendance_by_date(queryset=None, year=year, month=month, day=day)
+    queryset = self._get_attendance_by_date(queryset=None, year=year, month=month, day=day)
     
-    class_room_filter = Classroom.objects.filter(class_section=section, grade=grade)
-    if len(class_room_filter) == 0:
+    class_room_instance = self._get_classroom_instance(grade, section)
+    if class_room_instance == None:
       response = {
         "message": "Invalid class room name"
       }
       return Response(response, status=status.HTTP_400_BAD_REQUEST)
-    class_room_instance = class_room_filter[0]
     
     queryset = queryset.filter(student_id__class_room=class_room_instance)
-    serializer = self.serializer_class(queryset, many=True)
+    serializer = self.get_serializer(queryset, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   @action(detail=False, url_path="record", methods=['patch'])
   def record_student_attendance(self, request: Request) -> Response:
-    serializer_class = self.get_serializer_class()
-    serializer = serializer_class(data=request.data)
+    serializer = self.get_serializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     student_id = serializer.validated_data.get('student_id')
     timestamp = serializer.validated_data.get('timestamp')
-    kl_tz = pytz.timezone("Asia/Kuala_Lumpur")
+    today = self._get_current_date_aware()
 
     try:
       instance = StudentAttendance.objects.get(
         student_id=student_id, 
-        date=timezone.now().astimezone(kl_tz).date()
+        date=today
       )
     except StudentAttendance.DoesNotExist:
       response = {
@@ -96,7 +108,7 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
       }
       return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    updated_serializer = serializer_class(instance=instance, data={'timestamp': timestamp}, partial=True)
+    updated_serializer = self.get_serializer(instance=instance, data={'timestamp': timestamp}, partial=True)
     updated_serializer.is_valid(raise_exception=True)
     updated_serializer.save()
 
