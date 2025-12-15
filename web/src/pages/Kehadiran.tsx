@@ -13,9 +13,9 @@ interface Student {
 interface AttendanceRecord {
   id?: number;
   student: Student | null;
-  status: "present" | "late" | "absent";
-  created_at: string;
-  updated_at: string;
+  status: "on-time" | "late" | "absent";
+  date: string;
+  timestamp: string;
 }
 
 export default function KehadiranPage() {
@@ -55,84 +55,66 @@ export default function KehadiranPage() {
     fetchAttendance();
   }, []);
 
-  // Search filter
-  const filteredAttendance = attendanceList.filter(
-    (rec) =>
-      rec.student &&
-      rec.student.name.toLowerCase().includes(searchTerm.toLowerCase())
+ // Search filter (fixed)
+const filteredAttendance = attendanceList
+  .filter((rec) => rec.student !== null) // remove anomalies
+  .filter((rec) =>
+    (rec.student?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Status logic
-  const getStatus = (rec: AttendanceRecord): "present" | "late" | "absent" => {
-    if (!rec.student) return "absent";
 
-    const created = new Date(rec.created_at);
-    const updated = new Date(rec.updated_at);
+// Status logic
+const getStatus = (rec: AttendanceRecord): "Tepat Waktu" | "Lambat" | "Tidak Hadir" => {
+  const apiStatus = rec.status?.toLowerCase();
+  if (apiStatus === "on-time") return "Tepat Waktu";
+  if (apiStatus === "late") return "Lambat";
+  if (apiStatus === "absent") return "Tidak Hadir";
+  return "Tidak Hadir";
+};
 
-    if (created.getTime() === updated.getTime()) return "absent";
+const getStatusClass = (status: string) => {
+  if (status === "Tepat Waktu") return "status-present";
+  if (status === "Lambat") return "status-late";
+  if (status === "Tidak Hadir") return "status-absent";
+  return "status-absent";
+};
 
-    const lateCutoff = new Date(updated);
-    lateCutoff.setHours(7, 30, 0, 0);
-
-    return updated > lateCutoff ? "late" : "present";
-  };
-
-  // NEW: Malay translation for status
-  const translateStatus = (status: string) => {
-    switch (status) {
-      case "present":
-        return "Tepat Waktu";
-      case "late":
-        return "Lambat";
-      case "absent":
-        return "Tidak Hadir";
-      default:
-        return status;
-    }
-  };
-
-  // Format time
-  const formatTime = (created_at: string, updated_at: string) => {
-    const created = new Date(created_at);
-    const updated = new Date(updated_at);
-
-    if (created.getTime() === updated.getTime()) {
-      return "--";
-    }
-
-    return updated.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+// Time formatting helper
+const formatTime = (ts: string) => {
+  if (!ts) return "--"; // no timestamp
+  const time = ts.substring(11, 16); // HH:mm
+  return time === "00:00" ? "--" : time;
+};
 
   // Add Student
-  const handleAddStudent = async () => {
-    if (!newStudent.name || !newStudent.section || !newStudent.academic_year) return;
+const handleAddStudent = async () => {
+  if (!newStudent.name || !newStudent.section || !newStudent.academic_year) return;
 
-    const now = new Date().toISOString();
+  const today = new Date();
+  const date = today.toISOString().split("T")[0]; // YYYY-MM-DD
+  const timestamp = "00:00"; // manual entry → absent
 
-    const newRecord: AttendanceRecord = {
-      student: newStudent as Student,
-      status: "absent",
-      created_at: now,
-      updated_at: now,
-    };
-
-    try {
-      await fetch("http://127.0.0.1:8080/api/student_attendance/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newRecord),
-      });
-
-      setModalOpen(false);
-      setNewStudent({ name: "", grade: 1, section: "", academic_year: "" });
-      fetchAttendance();
-    } catch (err) {
-      console.error("Add error:", err);
-    }
+  const newRecord: AttendanceRecord = {
+    student: newStudent as Student,
+    status: "absent",
+    date,
+    timestamp,
   };
+
+  try {
+    await fetch("http://127.0.0.1:8080/api/student_attendance/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newRecord),
+    });
+
+    setModalOpen(false);
+    setNewStudent({ name: "", grade: 1, section: "", academic_year: "" });
+    fetchAttendance();
+  } catch (err) {
+    console.error("Add error:", err);
+  }
+};
 
   // Edit Attendance
   const handleEditAttendance = (rec: AttendanceRecord) => {
@@ -140,23 +122,31 @@ export default function KehadiranPage() {
     setModalOpen(true);
   };
 
-  const handleUpdateAttendance = async () => {
-    if (!editRecord?.id) return;
+const handleUpdateAttendance = async (updatedRecord: AttendanceRecord) => {
+  if (!updatedRecord?.id) return;
 
-    try {
-      await fetch(`http://127.0.0.1:8080/api/student_attendance/${editRecord.id}/`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editRecord),
-      });
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8080/api/student_attendance/${updatedRecord.id}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedRecord),
+      }
+    );
 
-      setModalOpen(false);
-      setEditRecord(null);
-      fetchAttendance();
-    } catch (err) {
-      console.error("Update error:", err);
+    if (!response.ok) {
+      console.error("PATCH failed:", response.status, await response.text());
     }
-  };
+
+    fetchAttendance(); // refresh list
+  } catch (err) {
+    console.error("PATCH error:", err);
+  }
+};
+
 
   // Delete Attendance
   const handleDeleteAttendance = async () => {
@@ -224,10 +214,10 @@ export default function KehadiranPage() {
                       <td>{idx + 1}</td>
                       <td>{rec.student?.name}</td>
                       <td>{rec.student?.grade}-{rec.student?.section}</td>
-                      <td>{formatTime(rec.created_at, rec.updated_at)}</td>
+                      <td>{formatTime(rec.timestamp)}</td>
                       <td>
-                        <span className={`status-box status-${status}`}>
-                          {translateStatus(status)}
+                        <span className={`status-box ${getStatusClass(status)}`}>
+                          {status}
                         </span>
                       </td>
                       <td>
@@ -257,88 +247,122 @@ export default function KehadiranPage() {
 
       {/* Add/Edit Modal */}
       {modalOpen && (
-        <div className="modal-backdrop">
-          <div className="modal-box">
-            <h2 className="modal-title">{editRecord ? "Ubah Kehadiran" : "Tambah Kehadiran"}</h2>
+  <div className="modal-backdrop">
+    <div className="modal-box">
+      <h2 className="modal-title">{editRecord ? "Ubah Kehadiran" : "Tambah Kehadiran"}</h2>
 
-            {!editRecord && (
-              <>
-                <label>Nama</label>
-                <input
-                  type="text"
-                  value={newStudent.name}
-                  onChange={(e) =>
-                    setNewStudent((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                />
+      {!editRecord && (
+        <>
+          <label>Nama</label>
+          <input
+            type="text"
+            value={newStudent.name}
+            onChange={(e) =>
+              setNewStudent((prev) => ({ ...prev, name: e.target.value }))
+            }
+          />
 
-                <label>Kelas</label>
-                <input
-                  type="number"
-                  value={newStudent.grade}
-                  onChange={(e) =>
-                    setNewStudent((prev) => ({ ...prev, grade: Number(e.target.value) }))
-                  }
-                />
+          <label>Kelas</label>
+          <input
+            type="number"
+            value={newStudent.grade}
+            onChange={(e) =>
+              setNewStudent((prev) => ({ ...prev, grade: Number(e.target.value) }))
+            }
+          />
 
-                <label>Section</label>
-                <input
-                  type="text"
-                  value={newStudent.section}
-                  onChange={(e) =>
-                    setNewStudent((prev) => ({ ...prev, section: e.target.value }))
-                  }
-                />
+          <label>Section</label>
+          <input
+            type="text"
+            value={newStudent.section}
+            onChange={(e) =>
+              setNewStudent((prev) => ({ ...prev, section: e.target.value }))
+            }
+          />
 
-                <label>Tahun Akademik</label>
-                <input
-                  type="text"
-                  value={newStudent.academic_year}
-                  onChange={(e) =>
-                    setNewStudent((prev) => ({ ...prev, academic_year: e.target.value }))
-                  }
-                />
-              </>
-            )}
-
-            {editRecord && (
-              <>
-                <label>Status</label>
-                <select
-                  value={editRecord.status}
-                  onChange={(e) =>
-                    setEditRecord((prev) =>
-                      prev ? { ...prev, status: e.target.value as any } : prev
-                    )
-                  }
-                >
-                  <option value="present">Present</option>
-                  <option value="late">Late</option>
-                  <option value="absent">Absent</option>
-                </select>
-              </>
-            )}
-
-            <div className="modal-btn-row">
-              <button
-                className="modal-cancel"
-                onClick={() => {
-                  setModalOpen(false);
-                  setEditRecord(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="modal-save"
-                onClick={editRecord ? handleUpdateAttendance : handleAddStudent}
-              >
-                {editRecord ? "Update" : "Tambah"}
-              </button>
-            </div>
-          </div>
-        </div>
+          <label>Tahun Akademik</label>
+          <input
+            type="text"
+            value={newStudent.academic_year}
+            onChange={(e) =>
+              setNewStudent((prev) => ({ ...prev, academic_year: e.target.value }))
+            }
+          />
+        </>
       )}
+
+      {editRecord && (
+        <>
+          <label>Timestamp</label>
+          <input
+            type="time"
+            value={editRecord.timestamp.startsWith("00:00")
+              ? ""
+              : editRecord.timestamp.substring(0, 5)}
+            onChange={(e) => {
+            const newTime = e.target.value; // "HH:MM"
+            // Format for API
+            const updatedTimestamp = newTime ? `${newTime}:00+08:00` : "00:00:00+08:00";
+
+            // Recalculate status
+            let newStatus: "on-time" | "late" | "absent" = "on-time";
+            if (!newTime || newTime === "00:00") {
+              newStatus = "absent";
+            } else {
+              const [hh, mm] = newTime.split(":").map(Number);
+              const totalMinutes = hh * 60 + mm;
+              newStatus = totalMinutes > 7 * 60 + 40 ? "late" : "on-time";
+            }
+
+            setEditRecord((prev) =>
+              prev ? { ...prev, timestamp: updatedTimestamp, status: newStatus } : prev
+            );
+          }}
+          />
+
+          <label>Status</label>
+          <input
+            type="text"
+            value={
+              editRecord.status === "on-time"
+                ? "Tepat Waktu"
+                : editRecord.status === "late"
+                ? "Lambat"
+                : "Tidak Hadir"
+            }
+            disabled
+          />
+        </>
+      )}
+
+      <div className="modal-btn-row">
+        <button
+          className="modal-cancel"
+          onClick={() => {
+            setModalOpen(false);
+            setEditRecord(null);
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          className="modal-save"
+          onClick={() => {
+            if (!editRecord) return;
+
+            handleUpdateAttendance(editRecord);
+            setModalOpen(false);
+            setEditRecord(null);
+            fetchAttendance();
+          }}
+        >
+          Update
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Delete Modal */}
       {confirmDeleteRecord && (

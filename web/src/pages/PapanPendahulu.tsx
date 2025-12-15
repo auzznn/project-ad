@@ -1,169 +1,164 @@
-import React, { useState, useEffect } from "react";
-import "./PapanPendahulu.css";
+import React, { useEffect, useState } from "react";
+import "./Sahsiah.css";
 
-interface SahsiahRecord {
-  id: number;
+interface LeaderboardEntry {
+  student_id: number;
   student_name: string;
-  sahsiah_item: string;
-  marks: number;
-  record_date: string;
-  record_time: string;
+  sahsiah_point: number;
+  class_room: string;
+  ranking: number;
 }
 
-interface StudentRanking {
-  rank: number;
-  student_name: string;
-  total_marks: number;
-}
+export default function LeaderboardPage() {
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [gradeFilter, setGradeFilter] = useState(""); // e.g., "Form1"
+  const [classFilter, setClassFilter] = useState(""); // e.g., "1Abu Bakar"
 
-function PapanPendahulu() {
-  const [sahsiahRecords, setSahsiahRecords] = useState<SahsiahRecord[]>([]);
-  const [studentRankings, setStudentRankings] = useState<StudentRanking[]>([]);
-  const [selectedClass, setSelectedClass] = useState("Semua Kelas");
-  const [startDate, setStartDate] = useState("2025-02-03");
-  const [endDate, setEndDate] = useState("2025-02-03");
+  // ---------- Fetch leaderboard ----------
+  const fetchLeaderboard = async () => {
+    setLoading(true);
 
-  useEffect(() => {
-    const mockRecords: SahsiahRecord[] = [
-      {
-        id: 1,
-        student_name: "Ahmad Faris",
-        sahsiah_item: "Read Al-Mulk",
-        marks: 20,
-        record_date: "Feb 10, 2025",
-        record_time: "08:00 AM",
-      },
-      {
-        id: 2,
-        student_name: "Tan Mei Ling",
-        sahsiah_item: "Speak in Arabic",
-        marks: 30,
-        record_date: "Feb 10, 2025",
-        record_time: "09:15 AM",
-      },
-      {
-        id: 3,
-        student_name: "Siti Nurhaliza",
-        sahsiah_item: "Proper Attire (Activity Based)",
-        marks: 10,
-        record_date: "Feb 10, 2025",
-        record_time: "07:30 AM",
-      },
-      {
-        id: 4,
-        student_name: "Muhammad Ali",
-        sahsiah_item: "Read Al-Mulk",
-        marks: 20,
-        record_date: "Feb 09, 2025",
-        record_time: "08:00 AM",
-      },
-      {
-        id: 5,
-        student_name: "Nurul Aina",
-        sahsiah_item: "Speak in Arabic",
-        marks: 30,
-        record_date: "Feb 09, 2025",
-        record_time: "10:00 AM",
-      },
-    ];
-    setSahsiahRecords(mockRecords);
+    try {
+      let url = "http://localhost:8080/api/sahsiah/leaderboard/";
 
-    const mockRankings: StudentRanking[] = [
-      { rank: 1, student_name: "Tan Mei Ling", total_marks: 150 },
-      { rank: 2, student_name: "Ahmad Faris", total_marks: 130 },
-      { rank: 3, student_name: "Nurul Aina", total_marks: 120 },
-      { rank: 4, student_name: "Siti Nurhaliza", total_marks: 110 },
-      { rank: 5, student_name: "Muhammad Ali", total_marks: 100 },
-    ];
-    setStudentRankings(mockRankings);
-  }, []);
+      // Only append grade/class if both are selected
+      if (gradeFilter && classFilter) {
+        url += `${encodeURIComponent(gradeFilter)}/${encodeURIComponent(classFilter)}/`;
+      }
 
-  const handleAddRecord = () => {
-    console.log("Add new sahsiah record");
+      console.log("Fetching leaderboard from URL:", url); // debug
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (Array.isArray(data)) setLeaderboard(data);
+      else if (Array.isArray(data.records)) setLeaderboard(data.records);
+      else setLeaderboard([]);
+    } catch (err) {
+      console.error("Failed to fetch leaderboard:", err);
+      setLeaderboard([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <div className="sahsiah-container">
-      <div className="sahsiah-header">
-        <h1>Papan Pendahulu Sahsiah</h1>
-        <p>Jejak mata perkembangan sahsiah</p>
-      </div>
+  // Fetch whenever grade/class changes
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [gradeFilter, classFilter]);
 
-      <div className="filters-section">
-        <div className="filter-item">
-          <label>Penapis Kelas</label>
-          <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="form-control">
-            <option>Semua Kelas</option>
-            <option>1A</option>
-            <option>1B</option>
-            <option>2A</option>
-            <option>2B</option>
+  // ---------- Local search ----------
+  const filteredList = leaderboard.filter((item) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      item.student_name.toLowerCase().includes(term) ||
+      item.class_room.toLowerCase().includes(term) ||
+      String(item.sahsiah_point).includes(term)
+    );
+  });
+
+  return (
+    <div className="page-container">
+      <h1 className="page-title">Leaderboard Pelajar</h1>
+
+      <div className="section-box">
+        {/* ---- Controls ---- */}
+        <div className="controls-row">
+          <input
+            className="search-input"
+            placeholder="Cari pelajar..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          {/* Grade Filter */}
+          <select
+            className="search-input"
+            value={gradeFilter}
+            onChange={(e) => {
+              setGradeFilter(e.target.value);
+              setClassFilter(""); // reset class when grade changes
+            }}
+          >
+            <option value="">-- Pilih Grade --</option>
+            <option value="Form1">Form 1</option>
+            <option value="Form2">Form 2</option>
+            <option value="Form3">Form 3</option>
+          </select>
+
+          {/* Class Filter */}
+          <select
+            className="search-input"
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            disabled={!gradeFilter} // must select grade first
+          >
+            <option value="">-- Pilih Kelas --</option>
+            {gradeFilter === "Form1" && (
+              <>
+                <option value="1Abu Bakar">1Abu Bakar</option>
+                <option value="1Ali">1Ali</option>
+              </>
+            )}
+            {gradeFilter === "Form2" && (
+              <>
+                <option value="2Umar">2Umar</option>
+                <option value="2Uthman">2Uthman</option>
+              </>
+            )}
+            {gradeFilter === "Form3" && (
+              <>
+                <option value="3Abu Bakar">3Abu Bakar</option>
+                <option value="3Ali">3Ali</option>
+              </>
+            )}
           </select>
         </div>
-        <div className="filter-item">
-          <label>Tarikh Dari</label>
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="form-control" />
-        </div>
-        <div className="filter-item">
-          <label>Tarikh Hingga</label>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="form-control" />
-        </div>
-      </div>
 
-      <div className="action-buttons">
-        <button className="btn btn-primary" onClick={handleAddRecord}>
-          <i className="bi bi-plus-circle"></i> Tambah Rekod Sahsiah
-        </button>
-      </div>
-
-      <div className="content-grid">
-        <div className="records-section">
-          <h2>Nama Pelajar</h2>
-          <table className="table table-custom">
+        {/* ---- Table ---- */}
+        <div className="table-wrapper">
+          <table className="custom-table">
             <thead>
               <tr>
+                <th>Ranking</th>
                 <th>Nama Pelajar</th>
-                <th>Item Sahsiah</th>
-                <th>Mata</th>
-                <th>Tarikh</th>
+                <th>Kelas</th>
+                <th>Markah Sahsiah</th>
               </tr>
             </thead>
+
             <tbody>
-              {sahsiahRecords.map((record) => (
-                <tr key={record.id}>
-                  <td>{record.student_name}</td>
-                  <td>{record.sahsiah_item}</td>
-                  <td>
-                    <span className="marks-badge">+{record.marks} Mata</span>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="empty-row">
+                    Loading leaderboard...
                   </td>
-                  <td>{record.record_date}</td>
                 </tr>
-              ))}
+              ) : filteredList.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="empty-row">
+                    Tiada rekod dijumpai
+                  </td>
+                </tr>
+              ) : (
+                filteredList
+                  .sort((a, b) => a.ranking - b.ranking)
+                  .map((item) => (
+                    <tr key={item.student_id}>
+                      <td>{item.ranking}</td>
+                      <td>{item.student_name}</td>
+                      <td>{item.class_room}</td>
+                      <td>{item.sahsiah_point}</td>
+                    </tr>
+                  ))
+              )}
             </tbody>
           </table>
-        </div>
-
-        <div className="rankings-section">
-          <h2>
-            <i className="bi bi-trophy"></i> Papan Pendahulu
-          </h2>
-          <div className="rankings-list">
-            {studentRankings.map((ranking) => (
-              <div key={ranking.rank} className="ranking-item">
-                <div className="ranking-badge">{ranking.rank}</div>
-                <div className="ranking-info">
-                  <p className="ranking-name">{ranking.student_name}</p>
-                </div>
-                <div className="ranking-marks">
-                  <p className="marks-value">{ranking.total_marks} mata</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default PapanPendahulu;

@@ -259,3 +259,11 @@
   cursor: pointer;
   color: white;
 }
+
+.modal-backdrop {
+  pointer-events: auto; /* allow clicks */
+}
+
+.modal-box {
+  pointer-events: auto; /* ensure modal content is clickable */
+}
