@@ -29,6 +29,7 @@ class StudentAttendance(models.Model):
   status = models.CharField(choices=STATUS_ATTENDANCE, default=DEFAULT_STATUS, max_length=15)
   date = models.DateField(default=timezone.now)
   timestamp = models.DateTimeField(default=default_datetime)
+  note = models.TextField(blank=True, null=True)
 
   def __str__(self) -> str:
     return f"{self.student_id.user} {self.date}"
