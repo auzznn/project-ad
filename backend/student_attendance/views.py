@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from authentication.models import Classroom
-from .serializer import StudentAttendanceSerializer, RecordStudentAttendanceSerializer
+from .serializer import StudentAttendanceSerializer, RecordStudentAttendanceSerializer, AddNoteSerializer
 from .models import StudentAttendance
 import pytz
 
@@ -35,7 +35,9 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
   def get_serializer_class(self):
     endpoint_action = ['record_student_attendance']
     if self.action in endpoint_action:
-      return RecordStudentAttendanceSerializer 
+      return RecordStudentAttendanceSerializer
+    if self.action == 'add_note':
+      return AddNoteSerializer
     
     return super().get_serializer_class()
   
@@ -114,3 +116,25 @@ class StudentAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
 
     return_response = StudentAttendanceSerializer(instance=instance)
     return Response(return_response.data, status=status.HTTP_200_OK)
+
+  @action(detail=True, url_path='note', methods=['patch'])
+  def add_note(self, request: Request, pk: int) -> Response:
+    """
+    API endpoint to add/update the note for a specific StudentAttendance record.
+    """
+    try:
+      instance = self.get_object()
+    except Exception:
+      return Response(
+        {"detail": "Not found."},
+        status=status.HTTP_404_NOT_FOUND
+      )
+    
+    serializer_class = self.get_serializer_class()
+    
+    serializer = serializer_class(instance=instance, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()   
+
+    output_serializer = StudentAttendanceSerializer(instance=instance)
+    return Response(output_serializer.data, status=status.HTTP_200_OK)
