@@ -2,7 +2,12 @@ from django.db import models
 from django.utils import timezone
 from authentication.models import Student
 from datetime import time
+from django.conf import settings
 import pytz
+
+def set_timezone(datetime: timezone.datetime):
+  tz = pytz.timezone(settings.TIME_ZONE)
+  return datetime.astimezone(tz)
 
 # Create your models here.
 class StudentAttendance(models.Model):
@@ -16,8 +21,7 @@ class StudentAttendance(models.Model):
   ]
   
   def default_datetime():
-    kl_tz = pytz.timezone('Asia/Kuala_Lumpur')
-    now_kl = timezone.now().astimezone(kl_tz)
+    now_kl = set_timezone(timezone.now())
     return now_kl.replace(hour=0, minute=0, second=0, microsecond=0)
   
   DEFAULT_STATUS = "absent"
@@ -35,7 +39,8 @@ class StudentAttendance(models.Model):
     return f"{self.student_id.user} {self.date}"
 
   def save(self, *args, **kwargs):
-    if self.timestamp.time() == self.ABSENT_TIME:
+    if set_timezone(self.timestamp).time() == self.ABSENT_TIME:
+      self.status = self.ABSENT_CODE
       return super().save(*args, **kwargs)  
     status_index = 2 if self.timestamp.time() > self.ON_TIME else 1
     self.status = self.STATUS_ATTENDANCE[status_index][0]
