@@ -13,7 +13,7 @@ class StudentAttendanceSerializer(ModelSerializer):
 
   class Meta:
     model = StudentAttendance
-    fields = ['id', 'student', 'status', 'date', 'timestamp']
+    fields = ['id', 'student', 'status', 'date', 'timestamp', 'note']
 
 class RecordStudentAttendanceSerializer(ModelSerializer):
 
