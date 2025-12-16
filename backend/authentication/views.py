@@ -28,11 +28,14 @@ class MyUserView(ModelViewSet):
   def get_serializer_class(self):
     return MyUserCreateSerializer if self.action == 'create' else MyUserRetrieveSerializer
 
+  def get_queryset(self):
+    if self.action in ['list', 'retrieve']:
+      return self.queryset.select_related('student')
+    return super().get_queryset()
+
   def list(self, request, *args, **kwargs):
-    queryset = self.get_queryset()
-    non_student_user = queryset.filter(~Q(role='student'))
-    student_id = queryset.filter(role='student').values_list('id')
-    students = Student.objects.filter(user__in=student_id)
+    non_student_user = self.get_queryset().filter(~Q(role='student'))
+    students = Student.objects.all().select_related('user')
 
     non_student_user_serializer = MyUserRetrieveSerializer(instance=non_student_user, many=True)
     student_user_serializer = StudentSerializer(instance=students, many=True)
@@ -42,11 +45,11 @@ class MyUserView(ModelViewSet):
   
   def retrieve(self, request, *args, **kwargs):
     instance = self.get_object()
-
     serializer_class = self.get_serializer_class()
-    serializer = serializer_class(instance=instance)
 
     if instance.role == "student":
       serializer = StudentSerializer(instance=instance.student)
+    else:
+      serializer = serializer_class(instance=instance)
     
     return Response(serializer.data, status=status.HTTP_200_OK)

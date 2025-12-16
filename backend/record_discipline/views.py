@@ -1,43 +1,42 @@
-from rest_framework import viewsets
-from rest_framework.response import Response
-from django.db.models import F, When, Case, Sum, IntegerField
-from django.utils import timezone
-
-from rest_framework import status
+from django.shortcuts import render
+from rest_framework import viewsets, status
 from authentication.models import Student
-from .models import SahsiahType, SahsiahRecord
+from .models import DisciplineRecord, DisciplineType
+from django.db.models import Sum, Case, When, F, IntegerField
+from django.conf import settings
 from .serializer import (
-  SahsiahTypeSerializer, 
-  SahsiahRecordSerializer, 
-  SahsiahLeaderboardSerializer,
+  DisciplineRecordSerializer,
+  DisciplineTypeSerializer,
+  DisciplineLeaderboardSerializer
 )
 from rest_framework.decorators import action
-from django.conf import settings
+from rest_framework.response import Response
 
 # Create your views here.
-class SahsiahTypeView(viewsets.ModelViewSet):
-  queryset = SahsiahType.objects.all()
-  serializer_class = SahsiahTypeSerializer
+class DisciplineTypeView(viewsets.ModelViewSet):
+  queryset = DisciplineType.objects.all()
+  serializer_class = DisciplineTypeSerializer
 
-class SahsiahRecordView(viewsets.ModelViewSet):
-  queryset = SahsiahRecord.objects.all()
-  serializer_class = SahsiahRecordSerializer
+class DisciplineRecordView(viewsets.ModelViewSet):
+  queryset = DisciplineRecord.objects.all()
+  serializer_class = DisciplineRecordSerializer
 
-class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
-  
+class DisciplineLeaderboardView(viewsets.ReadOnlyModelViewSet):  
   queryset = Student.objects.annotate(
-    total_sahsiah_point=Sum(
+    total_discipline_point=Sum(
       Case(
           # Only sum points for records within the academic year
           When(
               sahsiah__timestamp__range=(settings.ACADEMIC_YEAR_START, settings.ACADEMIC_YEAR_END),
-              then=F('sahsiah__sahsiah_type__points')
+              then=F('discipline__discipline_type__points')
           ),
           default=0,
           output_field=IntegerField()
       )
     )
-  ).order_by('-total_sahsiah_point').select_related('user', 'class_room')
+  ).order_by('-total_discipline_point').select_related('user', 'class_room')
+
+  serializer_class = DisciplineLeaderboardSerializer
 
   def create_ranking_student(self, queryset=None):
     if not queryset:
@@ -48,7 +47,7 @@ class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
     last_points = None
 
     for i, student in enumerate(queryset):
-      current_points = student.total_sahsiah_point or 0
+      current_points = student.total_discipline_point or 0
       
       # Use 'dense' ranking: same points get the same rank
       if current_points != last_points:
@@ -60,13 +59,12 @@ class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
         'student_id': student.user.id,
         'student_name': student.user.fullname,
         'class_room': student.class_room.name,
-        'sahsiah_point': current_points,
+        'discipline_point': current_points,
         'ranking': rank # ADD THE RANK HERE
       })
   
-    serializer = SahsiahLeaderboardSerializer(ranked_data, many=True)
+    serializer = self.get_serializer(ranked_data, many=True)
     return serializer
-    
 
   def list(self, request, *args, **kwargs):
     queryset = self.get_queryset()

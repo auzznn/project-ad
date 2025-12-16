@@ -1,5 +1,6 @@
 from rest_framework.serializers import ModelSerializer, ValidationError
 from django.utils import timezone
+from django.conf import settings
 
 from authentication.serializer import StudentSerializer
 from authentication.models import Student
@@ -12,7 +13,7 @@ class StudentAttendanceSerializer(ModelSerializer):
 
   class Meta:
     model = StudentAttendance
-    fields = ['id', 'student', 'status', 'date', 'timestamp']
+    fields = ['id', 'student', 'status', 'date', 'timestamp', 'note']
 
 class RecordStudentAttendanceSerializer(ModelSerializer):
 
@@ -32,9 +33,9 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
     new_timestamp = validated_data.get('timestamp', self.instance)
     absent_time = StudentAttendance.default_datetime()
     
-    kl_tz = pytz.timezone("Asia/Kuala_Lumpur")
-    kl_timestamp = instance.timestamp.astimezone(kl_tz)
-    if kl_timestamp != absent_time:
+    tz = pytz.timezone(settings.TIME_ZONE)
+    timestamp = instance.timestamp.astimezone(tz)
+    if timestamp != absent_time:
       raise ValidationError(f'student attendance for {instance.student_id.user.fullname} has already been created')
     
     instance.timestamp = new_timestamp

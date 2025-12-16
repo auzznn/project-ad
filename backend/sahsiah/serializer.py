@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import SahsiahType, SahsiahRecord
-from django.utils import timezone
-from authentication.models import Student
 
 class SahsiahTypeSerializer(serializers.ModelSerializer):
 

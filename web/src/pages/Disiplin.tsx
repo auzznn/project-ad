@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Sahsiah.css";
 
 // ---- Interfaces ----
-interface Sahsiah {
+interface Disiplin {
   id?: number;
   name: string;
   description: string;
@@ -12,15 +12,14 @@ interface Sahsiah {
 
 // ---- Hardcoded categories/tags ----
 const categories: string[] = [
-  "Menjaga Alam Sekitar",
-  "Akademik",
-  "Khidmat Masyarakat",
-  "Amal",
-  "Moral",
+  "Merosak Alam",
+  "Mengabaikan Pelajaran",
+  "Mengabaikan Tanggungjawab",
+  "Akhlak Buruk",
 ];
 
-export default function SahsiahPage() {
-  const [sahsiahList, setSahsiahList] = useState<Sahsiah[]>([]);
+export default function DisiplinPage() {
+  const [disiplinList, setDisiplinList] = useState<Disiplin[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,27 +27,27 @@ export default function SahsiahPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Sahsiah | null>(null);
+  const [editingItem, setEditingItem] = useState<Disiplin | null>(null);
 
-  const [form, setForm] = useState<Sahsiah>({
+  const [form, setForm] = useState<Disiplin>({
     name: "",
     description: "",
     points: 0,
     tag: "",
   });
 
-  // ---------- Fetch Sahsiah list ----------
+  // ---------- Fetch Disiplin list ----------
   const fetchItems = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/sahsiah/type/");
+      const res = await fetch("http://localhost:8080/api/discipline/type/");
       const data = await res.json();
 
-      if (Array.isArray(data)) setSahsiahList(data);
-      else if (Array.isArray(data.records)) setSahsiahList(data.records);
-      else setSahsiahList([]);
+      if (Array.isArray(data)) setDisiplinList(data);
+      else if (Array.isArray(data.records)) setDisiplinList(data.records);
+      else setDisiplinList([]);
     } catch (err) {
-      console.error("Failed to fetch Sahsiah types:", err);
-      setSahsiahList([]);
+      console.error("Gagal memuatkan rekod disiplin:", err);
+      setDisiplinList([]);
     } finally {
       setLoading(false);
     }
@@ -66,7 +65,7 @@ export default function SahsiahPage() {
   };
 
   // ---------- Edit ----------
-  const handleEdit = (item: Sahsiah) => {
+  const handleEdit = (item: Disiplin) => {
     setForm({ ...item });
     setEditingItem(item);
     setModalOpen(true);
@@ -77,14 +76,14 @@ export default function SahsiahPage() {
     if (!confirmDeleteId) return;
 
     try {
-      await fetch(`http://localhost:8080/api/sahsiah/type/${confirmDeleteId}/`, {
+      await fetch(`http://localhost:8080/api/discipline/type/${confirmDeleteId}/`, {
         method: "DELETE",
       });
 
       setConfirmDeleteId(null);
       fetchItems();
     } catch (err) {
-      console.error("Failed to delete Sahsiah type:", err);
+      console.error("Gagal memuatkan rekod disiplin:", err);
     }
   };
 
@@ -105,8 +104,8 @@ export default function SahsiahPage() {
 
     try {
       const url = editingItem?.id
-        ? `http://localhost:8080/api/sahsiah/type/${editingItem.id}/`
-        : "http://localhost:8080/api/sahsiah/type/";
+        ? `http://localhost:8080/api/discipline/type/${editingItem.id}/`
+        : "http://localhost:8080/api/discipline/type/";
       const method = editingItem?.id ? "PUT" : "POST";
 
       await fetch(url, {
@@ -118,12 +117,12 @@ export default function SahsiahPage() {
       setModalOpen(false);
       fetchItems();
     } catch (err) {
-      console.error("Failed to save Sahsiah type:", err);
+      console.error("Gagal menyimpan rekod disiplin:", err);
     }
   };
 
   // ---------- Search Filter ----------
-  const filteredList = sahsiahList.filter((item) => {
+  const filteredList = disiplinList.filter((item) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
 
@@ -137,7 +136,7 @@ export default function SahsiahPage() {
 
   return (
     <div className="page-container">
-      <h1 className="page-title">Pengurusan Sahsiah</h1>
+      <h1 className="page-title">Pengurusan Disiplin</h1>
 
       <div className="section-box">
 
@@ -146,13 +145,13 @@ export default function SahsiahPage() {
           <input
             className="search-input"
             type="text"
-            placeholder="Cari Sahsiah..."
+            placeholder="Cari Disiplin..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
           <button className="add-btn" onClick={handleCreate}>
-            + Tambah Sahsiah
+            + Tambah Disiplin
           </button>
         </div>
 
@@ -174,7 +173,7 @@ export default function SahsiahPage() {
               {loading ? (
                 <tr>
                   <td colSpan={6} className="empty-row">
-                    Memuat rekod...
+                    Memuatkan rekod...
                   </td>
                 </tr>
               ) : filteredList.length === 0 ? (
@@ -254,7 +253,7 @@ export default function SahsiahPage() {
               ))}
             </select>
 
-            <label>Deskripsi</label>
+            <label>Penerangan</label>
             <textarea
               name="description"
               value={form.description}
@@ -284,7 +283,7 @@ export default function SahsiahPage() {
         <div className="modal-backdrop">
           <div className="modal-box delete-modal">
             <h2 className="modal-title">Sahkan</h2>
-            <p>Adakah pasti mahu memadamkan tipe sahsiah ini?</p>
+            <p>Adakah pasti mahu memadamkan tipe disiplin ini?</p>
 
             <div className="modal-btn-row">
               <button
