@@ -45,3 +45,19 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
       self.create_punctuality_sahsiah(student=instance.student_id, timestamp=instance.timestamp)
 
     return instance
+
+class AddNoteSerializer(ModelSerializer):
+  class Meta:
+    model = StudentAttendance
+    fields = ['note']
+  
+  def update(self, instance: StudentAttendance, validated_data):
+    new_note = validated_data.get('note')
+    print(new_note)
+    if new_note is None:
+      raise ValidationError(f'note can not be empty')
+    
+    instance.note = new_note
+    instance.save(update_fields=['note'])
+
+    return instance
