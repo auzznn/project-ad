@@ -89,7 +89,7 @@ export default function TabIndex() {
         </View>
 
         {/* Quick Stats */}
-        <View className="mb-8">
+        {/* <View className="mb-8">
           <Text className="text-xl font-semibold mb-4 px-5" style={{ color: textColor }}>
             Quick Overview
           </Text>
@@ -115,7 +115,7 @@ export default function TabIndex() {
               </View>
             ))}
           </View>
-        </View>
+        </View> */}
 
         {/* Quick Actions */}
         <View className="mb-8">
