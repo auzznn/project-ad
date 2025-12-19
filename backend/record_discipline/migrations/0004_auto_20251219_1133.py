@@ -32,6 +32,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("record_discipline", "0003_disciplinerecord_migrate_student_id"),
+        ('authentication', '0009_migrate_student_to_migratestudent'),
     ]
 
     operations = [
