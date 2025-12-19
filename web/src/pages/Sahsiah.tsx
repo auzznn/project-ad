@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./Sahsiah.css";
+import Pagination from "../components/pagination";
 
-// ---- Interfaces ----
+
 interface Sahsiah {
   id?: number;
   name: string;
@@ -10,7 +11,6 @@ interface Sahsiah {
   tag: string;
 }
 
-// ---- Hardcoded categories/tags ----
 const categories: string[] = [
   "Menjaga Alam Sekitar",
   "Akademik",
@@ -37,26 +37,37 @@ export default function SahsiahPage() {
     tag: "",
   });
 
-  // ---------- Fetch Sahsiah list ----------
-  const fetchItems = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/api/sahsiah/type/");
-      const data = await res.json();
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
 
-      if (Array.isArray(data)) setSahsiahList(data);
-      else if (Array.isArray(data.records)) setSahsiahList(data.records);
-      else setSahsiahList([]);
-    } catch (err) {
-      console.error("Failed to fetch Sahsiah types:", err);
+
+  // fetch list
+  const fetchItems = async () => {
+  setLoading(true);
+  try {
+    const res = await fetch("http://localhost:8080/api/sahsiah/type/");
+    const data = await res.json();
+
+    if (Array.isArray(data.entry)) {
+      setSahsiahList(data.entry);
+    } else {
       setSahsiahList([]);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error("Failed to fetch Sahsiah types:", err);
+    setSahsiahList([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchItems();
   }, []);
+
+  useEffect(() => {
+  setPage(1);
+}, [searchTerm]);
 
   // ---------- Create ----------
   const handleCreate = () => {
@@ -135,6 +146,14 @@ export default function SahsiahPage() {
     );
   });
 
+  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
+
+  const paginatedList = filteredList.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
+
   return (
     <div className="page-container">
       <h1 className="page-title">Pengurusan Sahsiah</h1>
@@ -184,9 +203,9 @@ export default function SahsiahPage() {
                   </td>
                 </tr>
               ) : (
-                filteredList.map((item, index) => (
+                paginatedList.map((item, index) => (
                   <tr key={item.id ?? index}>
-                    <td>{index + 1}</td>
+                    <td>{(page - 1) * ITEMS_PER_PAGE + index + 1}</td>
                     <td>{item.name}</td>
                     <td>
                       <span
@@ -222,6 +241,12 @@ export default function SahsiahPage() {
             </tbody>
           </table>
         </div>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
       </div>
 
       {/* ---- Create/Edit Modal ---- */}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Sahsiah.css";
+import Pagination from "../components/pagination"; // make sure path is correct
 
 // ---- Interfaces ----
 interface Disiplin {
@@ -21,14 +22,12 @@ const categories: string[] = [
 export default function DisiplinPage() {
   const [disiplinList, setDisiplinList] = useState<Disiplin[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [searchTerm, setSearchTerm] = useState("");
 
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Disiplin | null>(null);
-
   const [form, setForm] = useState<Disiplin>({
     name: "",
     description: "",
@@ -36,26 +35,37 @@ export default function DisiplinPage() {
     tag: "",
   });
 
+  // -------- Pagination State --------
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20); // can adjust dynamically
+  const [totalItems, setTotalItems] = useState(0);
+
   // ---------- Fetch Disiplin list ----------
-  const fetchItems = async () => {
+  const fetchItems = async (pageNumber: number = 1) => {
+    setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/discipline/type/");
+      const res = await fetch(
+        `http://localhost:8080/api/discipline/type/?page=${pageNumber}&page_size=${pageSize}`
+      );
       const data = await res.json();
 
-      if (Array.isArray(data)) setDisiplinList(data);
+      if (Array.isArray(data.entry)) setDisiplinList(data.entry);
       else if (Array.isArray(data.records)) setDisiplinList(data.records);
       else setDisiplinList([]);
+
+      setTotalItems(data.total_items ?? disiplinList.length);
     } catch (err) {
       console.error("Gagal memuatkan rekod disiplin:", err);
       setDisiplinList([]);
+      setTotalItems(0);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchItems();
-  }, []);
+    fetchItems(page);
+  }, [page, pageSize]);
 
   // ---------- Create ----------
   const handleCreate = () => {
@@ -81,7 +91,7 @@ export default function DisiplinPage() {
       });
 
       setConfirmDeleteId(null);
-      fetchItems();
+      fetchItems(page);
     } catch (err) {
       console.error("Gagal memuatkan rekod disiplin:", err);
     }
@@ -115,7 +125,7 @@ export default function DisiplinPage() {
       });
 
       setModalOpen(false);
-      fetchItems();
+      fetchItems(page);
     } catch (err) {
       console.error("Gagal menyimpan rekod disiplin:", err);
     }
@@ -134,12 +144,13 @@ export default function DisiplinPage() {
     );
   });
 
+  const totalPages = Math.ceil(totalItems / pageSize);
+
   return (
     <div className="page-container">
       <h1 className="page-title">Pengurusan Disiplin</h1>
 
       <div className="section-box">
-
         {/* ---- Search + Add ---- */}
         <div className="controls-row">
           <input
@@ -185,7 +196,7 @@ export default function DisiplinPage() {
               ) : (
                 filteredList.map((item, index) => (
                   <tr key={item.id ?? index}>
-                    <td>{index + 1}</td>
+                    <td>{(page - 1) * pageSize + index + 1}</td>
                     <td>{item.name}</td>
                     <td>
                       <span
@@ -221,6 +232,13 @@ export default function DisiplinPage() {
             </tbody>
           </table>
         </div>
+
+        {/* ---- Pagination ---- */}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(p)}
+        />
       </div>
 
       {/* ---- Create/Edit Modal ---- */}
@@ -228,7 +246,7 @@ export default function DisiplinPage() {
         <div className="modal-backdrop">
           <form className="modal-box" onSubmit={handleSubmit}>
             <h2 className="modal-title">
-              {editingItem ? "Edit Sahsiah" : "Create Sahsiah"}
+              {editingItem ? "Edit Disiplin" : "Tambah Disiplin"}
             </h2>
 
             <label>Nama</label>
