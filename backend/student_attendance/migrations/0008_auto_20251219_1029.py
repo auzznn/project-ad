@@ -18,10 +18,24 @@ def add_migrate_student_id_to_attendance(apps, schema_info):
         attendance.save()
 
 
+def reverse_add_migrate_student_id(apps, schema_info):
+    """
+    Sets migrate_student_id back to None for all attendance records.
+    """
+    StudentAttendance = apps.get_model("student_attendance", "StudentAttendance")
+    # Using update() is much faster than a loop for reversing
+    StudentAttendance.objects.all().update(migrate_student_id=None)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
         ("student_attendance", "0007_studentattendance_migrate_student_id"),
     ]
 
-    operations = [migrations.RunPython(add_migrate_student_id_to_attendance)]
+    operations = [
+        migrations.RunPython(
+            add_migrate_student_id_to_attendance,
+            reverse_code=reverse_add_migrate_student_id,
+        )
+    ]
