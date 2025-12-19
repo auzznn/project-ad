@@ -18,6 +18,20 @@ def copy_student_to_migrate_student(apps, schema_info):
         
         MigrateStudent.objects.create(**migrate_student_kwargs)
 
+def reverse_copy_student(apps, schema_info):
+    """
+    Deletes MigrateStudent records created during the forward migration.
+    """
+    Student = apps.get_model('authentication', 'Student')
+    MigrateStudent = apps.get_model('authentication', 'MigrateStudent')
+    
+    # We identify the records to delete based on the names in the original Student table
+    for student in Student.objects.all():
+        MigrateStudent.objects.filter(
+            first_name=student.user.first_name,
+            last_name=student.user.last_name
+        ).delete()
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -25,5 +39,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(copy_student_to_migrate_student)
+        migrations.RunPython(copy_student_to_migrate_student, reverse_code=reverse_copy_student)
     ]
