@@ -138,7 +138,7 @@ class MigrateStudent(models.Model):
         self.save()
 
     def __str__(self) -> str:
-        return f"{self.user.first_name} {self.user.last_name}"
+        return self.fullname
 
     @property
     def academic_year(self) -> str:
