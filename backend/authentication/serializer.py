@@ -29,22 +29,11 @@ class MyUserRetrieveSerializer(ModelSerializer):
 
 
 class MyUserCreateSerializer(ModelSerializer):
-  class Meta:
-    model = MyUser
-    fields = ['username', 'first_name', 'last_name', 'email', 'password', 'role']
-    extra_kwargs = {
-      'password': {'write_only': True}
-    }
-  
-  def create(self, validated_data: dict[str, any]) -> MyUser:
-    instance = MyUser.objects.create(**validated_data)
-    if instance.role == 'student':
-      student_instance_data = {
-        'user': instance,
-      }
-      student_instance = Student.objects.create(**student_instance_data)
-      student_instance.save()
-    return instance
+    class Meta:
+        model = MyUser
+        fields = ["username", "first_name", "last_name", "email", "password", "role"]
+        extra_kwargs = {"password": {"write_only": True}}
+
 
 class StudentSerializer(ModelSerializer):
     name = serializers.CharField(source="fullname")
