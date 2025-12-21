@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from authentication.models import Student, MigrateStudent
+from authentication.models import MigrateStudent
 from datetime import time
 from . import const
 
@@ -26,12 +26,12 @@ class StudentAttendance(models.Model):
     ON_TIME = time(hour=7, minute=40)
     ABSENT_TIME = default_datetime().time()
 
-    student_id = models.ForeignKey(
+    """ student_id = models.ForeignKey(
         Student, related_name="attendance", on_delete=models.CASCADE
-    )
+    ) """
     migrate_student_id = models.ForeignKey(
         MigrateStudent,
-        related_name="migrate_attendance",
+        related_name="attendance",
         on_delete=models.CASCADE,
         null=True,
     )
