@@ -37,25 +37,7 @@ class StudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     def record_student_attendance(self, request: Request) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        student_id = serializer.validated_data.get("student_id")
-        timestamp = serializer.validated_data.get("timestamp")
-        today = self._get_current_date_aware()
-
-        try:
-            instance = StudentAttendance.objects.get(student_id=student_id, date=today)
-        except StudentAttendance.DoesNotExist:
-            response = {
-                "message": f"unable to find record of student attendance with id {student_id}"
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-        updated_serializer = self.get_serializer(
-            instance=instance, data={"timestamp": timestamp}, partial=True
-        )
-        updated_serializer.is_valid(raise_exception=True)
-        updated_serializer.save()
-
+        instance = serializer.save()
         return_response = StudentAttendanceSerializer(instance=instance)
         return Response(return_response.data, status=status.HTTP_200_OK)
 
