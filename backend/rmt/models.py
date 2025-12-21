@@ -2,7 +2,7 @@ from django.db import models
 import pytz
 from django.utils import timezone
 
-from authentication.models import Student, MigrateStudent
+from authentication.models import MigrateStudent
 
 
 # Create your models here.
@@ -12,12 +12,12 @@ class RMTRecord(models.Model):
         now_kl = timezone.now().astimezone(kl_tz)
         return now_kl.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    student_id = models.ForeignKey(
+    """ student_id = models.ForeignKey(
         Student, blank=False, null=False, on_delete=models.CASCADE
-    )
+    ) """
     migrate_student_id = models.ForeignKey(
         MigrateStudent,
-        related_name="migrate_rmt",
+        related_name="rmt",
         on_delete=models.CASCADE,
         null=True,
     )
