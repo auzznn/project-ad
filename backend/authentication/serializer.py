@@ -63,3 +63,8 @@ class StudentSerializer(ModelSerializer):
         return student
 
 
+class CreateStudentSerializer(ModelSerializer):
+    class Meta:
+        model = MigrateStudent
+        fields = '__all__'
+
