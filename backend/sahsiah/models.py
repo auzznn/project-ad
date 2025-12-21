@@ -15,13 +15,10 @@ class SahsiahType(models.Model):
 
 
 class SahsiahRecord(models.Model):
-    student_id = models.ForeignKey(
-        to="authentication.Student", on_delete=models.CASCADE, related_name="sahsiah"
-    )
     migrate_student_id = models.ForeignKey(
         MigrateStudent,
         on_delete=models.CASCADE,
-        related_name="migrate_sahsiah",
+        related_name="sahsiah",
         null=True,
     )
     sahsiah_type = models.ForeignKey(SahsiahType, on_delete=models.CASCADE)
