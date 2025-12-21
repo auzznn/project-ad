@@ -130,6 +130,10 @@ class MigrateStudent(models.Model):
     date_of_birth = models.DateTimeField(blank=False, null=False, default=timezone.now)
     first_name = models.CharField(max_length=50, blank=False, null=False)
     last_name = models.CharField(max_length=50, blank=False, null=False)
+    
+    @property
+    def fullname(self) -> str:
+        return f'{self.first_name} {self.last_name}'
 
     @classmethod
     def generate_qr_image(cls, url_link: str) -> File:
