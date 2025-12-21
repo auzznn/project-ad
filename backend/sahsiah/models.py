@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from authentication.models import Student, MigrateStudent
+from authentication.models import MigrateStudent
 
 
 # Create your models here.
@@ -16,7 +16,7 @@ class SahsiahType(models.Model):
 
 class SahsiahRecord(models.Model):
     student_id = models.ForeignKey(
-        Student, on_delete=models.CASCADE, related_name="sahsiah"
+        to="authentication.Student", on_delete=models.CASCADE, related_name="sahsiah"
     )
     migrate_student_id = models.ForeignKey(
         MigrateStudent,
