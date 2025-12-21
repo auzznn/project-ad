@@ -21,7 +21,7 @@ class DisciplineRecord(models.Model):
     
     migrate_student_id = models.ForeignKey(
         MigrateStudent,
-        related_name="migrate_discipline",
+        related_name="discipline",
         on_delete=models.CASCADE,
         null=True,
     )
