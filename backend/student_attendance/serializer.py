@@ -9,7 +9,7 @@ from sahsiah.models import SahsiahType, SahsiahRecord
 import pytz
 
 class StudentAttendanceSerializer(ModelSerializer):
-  student = StudentSerializer(source='student_id', many=False)
+  student = StudentSerializer(source='migrate_student_id', many=False)
 
   class Meta:
     model = StudentAttendance
@@ -19,7 +19,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
 
   class Meta:
     model = StudentAttendance
-    fields = ['student_id', 'timestamp']
+    fields = ['migrate_student_id', 'timestamp']
 
   def create_punctuality_sahsiah(self, student: Student, timestamp: timezone.datetime):
     try:
