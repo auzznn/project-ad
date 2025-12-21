@@ -26,9 +26,6 @@ class StudentAttendance(models.Model):
     ON_TIME = time(hour=7, minute=40)
     ABSENT_TIME = default_datetime().time()
 
-    """ student_id = models.ForeignKey(
-        Student, related_name="attendance", on_delete=models.CASCADE
-    ) """
     migrate_student_id = models.ForeignKey(
         MigrateStudent,
         related_name="attendance",
@@ -43,7 +40,7 @@ class StudentAttendance(models.Model):
     note = models.TextField(blank=True, null=True)
 
     def __str__(self) -> str:
-        return f"{self.student_id.user} {self.date}"
+        return self.migrate_student_id.fullname
 
     def save(self, *args, **kwargs):
         if set_timezone(self.timestamp).time() == self.ABSENT_TIME:
