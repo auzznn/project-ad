@@ -7,10 +7,11 @@ from django.utils import timezone
 
 from io import BytesIO
 from rest_framework.reverse import reverse
-from .const import USER_DETAIL_PATH_NAME
 import qrcode as qr
 import string
 import random
+
+from base.const import STUDENT_BASENAME_PATH
 
 
 # Create your models here.
@@ -132,29 +133,33 @@ class MigrateStudent(models.Model):
 
     @classmethod
     def generate_qr_image(cls, url_link: str) -> File:
-
         qr_image = qr.make(url_link)
         buffer = BytesIO()
         qr_image.save(buffer, format=cls.QR_IMAGE_FORMAT)
         buffer.seek(0)
         return File(buffer, name=f"qr.{cls.QR_IMAGE_FORMAT}")
+    
+    @staticmethod
+    def get_student_data_url(pk, request=None, base_url=None) -> str:
+        module_name = 'authentication'
+        base_name = STUDENT_BASENAME_PATH
+        action_name = 'detail' 
+        
+        url_name = f'{module_name}:{base_name}-{action_name}'
+        
+        url_path = reverse(url_name, args=[pk])
+        if request:
+            return request.build.absoulte_uri(url_path)
+        if base_url:
+            return f"{base_url.rstrip('/')}{url_path}"
 
-    def generate_qr(self) -> None:
-        SITE_DOMAIN = Site.objects.get_current().domain
-        URL_PATH = reverse(USER_DETAIL_PATH_NAME, args=[self.user.pk])
-        STUDENT_DATA_URL = f"http://{SITE_DOMAIN}{URL_PATH}"
-
-        qr_file = self.generate_qr_image(STUDENT_DATA_URL)
+    def generate_qr(self, request=None, base_url=None) -> None:
+        student_data_url = self.get_student_data_url(pk=self.pk, request=request, base_url=base_url)
+        qr_file = self.generate_qr_image(student_data_url)
         self.qr_code.save(
-            f"{self.user.username}.{self.QR_IMAGE_FORMAT}", qr_file, save=False
+            f"student_qr_{self.pk}.{self.QR_IMAGE_FORMAT}", qr_file, save=False
         )
-
-    def save(self, *args, **kwargs):
-        if not self.qr_code:
-            self.generate_qr()
-        if self.qr_code and not self.qr_code.storage.exists(self.qr_code.name):
-            self.generate_qr()
-        super().save(*args, **kwargs)
+        self.save()
 
     def __str__(self) -> str:
         return f"{self.user.first_name} {self.user.last_name}"
