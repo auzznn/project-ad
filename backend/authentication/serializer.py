@@ -47,15 +47,19 @@ class MyUserCreateSerializer(ModelSerializer):
     return instance
 
 class StudentSerializer(ModelSerializer):
-  student_id = serializers.IntegerField(source="user.id")
-  name = serializers.CharField(source="user.fullname")
+    name = serializers.CharField(source="fullname")
+    section = serializers.CharField(source="class_room.class_section")
+    grade = serializers.IntegerField(source="class_room.grade")
 
-  section = serializers.CharField(source="class_room.class_section")
-  grade = serializers.IntegerField(source="class_room.grade")
-  # batch
-  # eligible_rmt
-  # generated_at
-  
-  class Meta:
-    model = Student
-    fields =  ["student_id", "name", "grade", "section", "academic_year", "rmt_elligible"]
+    class Meta:
+        model = MigrateStudent
+        fields = ["id", "name", "grade", "section", "academic_year", "rmt_elligible", "qr_code"]
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        student = self.Meta.model(**validated_data)
+        student.generate_qr(request=request)
+        student.save()
+        return student
+
+
