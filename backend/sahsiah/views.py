@@ -4,7 +4,7 @@ from django.db.models import F, When, Case, Sum, IntegerField
 from django.utils import timezone
 
 from rest_framework import status
-from authentication.models import Student
+from authentication.models import MigrateStudent
 from .models import SahsiahType, SahsiahRecord
 from .serializer import (
     SahsiahTypeSerializer,
@@ -32,7 +32,7 @@ class SahsiahRecordView(viewsets.ModelViewSet):
 class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
     pagination_class = StandardResultsSetPagination
     queryset = (
-        Student.objects.annotate(
+        MigrateStudent.objects.annotate(
             total_sahsiah_point=Sum(
                 Case(
                     # Only sum points for records within the academic year
@@ -49,7 +49,7 @@ class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
             )
         )
         .order_by("-total_sahsiah_point")
-        .select_related("user", "class_room")
+        .select_related("class_room")
     )
     serializer_class = SahsiahLeaderboardSerializer
 
@@ -72,8 +72,8 @@ class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
             # Create a dictionary for the serializer to process
             ranked_data.append(
                 {
-                    "student_id": student.user.id,
-                    "student_name": student.user.fullname,
+                    "student_id": student.pk,
+                    "student_name": student.fullname,
                     "class_room": student.class_room.name,
                     "sahsiah_point": current_points,
                     "ranking": rank,  # ADD THE RANK HERE
