@@ -4,7 +4,8 @@ from django.conf import settings
 
 from authentication.serializer import StudentSerializer
 from authentication.models import Student
-from .models import StudentAttendance, set_timezone
+from .models import StudentAttendance
+from base.utils import set_timezone
 from sahsiah.models import SahsiahType, SahsiahRecord
 import pytz
 
