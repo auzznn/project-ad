@@ -1,7 +1,8 @@
 from celery import shared_task
 from django.utils import timezone
 from authentication.models import MigrateStudent
-from student_attendance.models import StudentAttendance, set_timezone
+from student_attendance.models import StudentAttendance
+from base.utils import set_timezone
 
 @shared_task
 def create_student_attendance() -> str:
