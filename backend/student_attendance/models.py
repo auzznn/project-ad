@@ -6,10 +6,7 @@ from django.conf import settings
 import pytz
 
 from . import const
-from base.utils import (
-    default_datetime as _default_datetime,
-    set_timezone
-)
+from base.utils import default_datetime as _default_datetime, set_timezone
 
 
 # Create your models here.
