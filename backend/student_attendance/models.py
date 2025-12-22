@@ -2,15 +2,14 @@ from django.db import models
 from django.utils import timezone
 from authentication.models import MigrateStudent
 from datetime import time
-from . import const
-
 from django.conf import settings
 import pytz
 
-
-def set_timezone(datetime: timezone.datetime):
-    tz = pytz.timezone(settings.TIME_ZONE)
-    return datetime.astimezone(tz)
+from . import const
+from base.utils import (
+    default_datetime as _default_datetime,
+    set_timezone
+)
 
 
 # Create your models here.
@@ -19,8 +18,7 @@ class StudentAttendance(models.Model):
     ABSENT_CODE = "absent"
 
     def default_datetime():
-        now_kl = set_timezone(timezone.now())
-        return now_kl.replace(hour=0, minute=0, second=0, microsecond=0)
+        return _default_datetime()
 
     DEFAULT_STATUS = const.ABSENT_STATUS_KEY
     ON_TIME = time(hour=7, minute=40)
