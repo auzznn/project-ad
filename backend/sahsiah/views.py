@@ -1,19 +1,15 @@
 from rest_framework import viewsets
-from rest_framework.response import Response
 from django.db.models import F, When, Case, Sum, IntegerField
-from django.utils import timezone
 
-from rest_framework import status
-from authentication.models import Student
+from authentication.models import MigrateStudent
 from .models import SahsiahType, SahsiahRecord
 from .serializer import (
     SahsiahTypeSerializer,
     SahsiahRecordSerializer,
-    SahsiahLeaderboardSerializer,
 )
-from rest_framework.decorators import action
 from django.conf import settings
 from base.pagination import StandardResultsSetPagination
+from base.views import GeneralLeaderboardView
 
 
 # Create your views here.
@@ -29,10 +25,9 @@ class SahsiahRecordView(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
-    pagination_class = StandardResultsSetPagination
+class SahsiahLeaderboardView(GeneralLeaderboardView):
     queryset = (
-        Student.objects.annotate(
+        MigrateStudent.objects.annotate(
             total_sahsiah_point=Sum(
                 Case(
                     # Only sum points for records within the academic year
@@ -49,61 +44,6 @@ class SahsiahLeaderboardView(viewsets.ReadOnlyModelViewSet):
             )
         )
         .order_by("-total_sahsiah_point")
-        .select_related("user", "class_room")
+        .select_related("class_room")
     )
-    serializer_class = SahsiahLeaderboardSerializer
-
-    def create_ranking_student(self, queryset=None):
-        if not queryset:
-            queryset = self.get_queryset()
-
-        ranked_data = []
-        rank = 0
-        last_points = None
-
-        for i, student in enumerate(queryset):
-            current_points = student.total_sahsiah_point or 0
-
-            # Use 'dense' ranking: same points get the same rank
-            if current_points != last_points:
-                rank = i + 1
-            last_points = current_points
-
-            # Create a dictionary for the serializer to process
-            ranked_data.append(
-                {
-                    "student_id": student.user.id,
-                    "student_name": student.user.fullname,
-                    "class_room": student.class_room.name,
-                    "sahsiah_point": current_points,
-                    "ranking": rank,  # ADD THE RANK HERE
-                }
-            )
-
-        serializer = self.get_serializer(ranked_data, many=True)
-        return serializer
-
-    def create_list_response(self, serializer):
-        page = self.paginate_queryset(serializer.data)
-        if page is not None:
-            return self.get_paginated_response(page)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.create_ranking_student(queryset=queryset)
-        return self.create_list_response(serializer)
-
-    @action(detail=False, url_path=r"(?P<grade>[0-9]+)/(?P<section>[^/.]+)")
-    def group_by_class(self, request, grade: int, section: str, *args, **kwargs):
-        queryset = self.get_queryset().filter(
-            class_room__grade=grade, class_room__class_section__exact=section
-        )
-        serializer = self.create_ranking_student(queryset=queryset)
-        return self.create_list_response(serializer)
-
-    @action(detail=False, url_path=r"(?P<grade>[0-9]+)")
-    def group_by_grade(self, request, grade: int, *args, **kwargs):
-        queryset = self.get_queryset().filter(class_room__grade=grade)
-        serializer = self.create_ranking_student(queryset=queryset)
-        return self.create_list_response(serializer)
+    point_field = "total_sahsiah_point"

@@ -6,6 +6,6 @@ from base.pagination import StandardResultsSetPagination
 
 # Create your views here.
 class RMTView(ModelViewSet):
-  queryset = RMTRecord.objects.all()
+  queryset = RMTRecord.objects.all().order_by("-created_at")
   serializer_class = RMTRecordSerializer
   pagination_class = StandardResultsSetPagination

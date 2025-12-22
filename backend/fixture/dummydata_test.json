@@ -1573,71 +1573,6 @@
   }
 },
 {
-  "model": "admin.logentry",
-  "pk": 122,
-  "fields": {
-    "action_time": "2025-12-21T14:47:06.941Z",
-    "user": 1,
-    "content_type": 10,
-    "object_id": "63",
-    "object_repr": "Anya Sharma",
-    "action_flag": 2,
-    "change_message": "[{\"changed\": {\"fields\": [\"Timestamp\"]}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 123,
-  "fields": {
-    "action_time": "2025-12-22T03:31:46.338Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "7",
-    "object_repr": "teacher",
-    "action_flag": 1,
-    "change_message": "[{\"added\": {}}]"
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 124,
-  "fields": {
-    "action_time": "2025-12-22T04:43:56.989Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "8",
-    "object_repr": "teacher2",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 125,
-  "fields": {
-    "action_time": "2025-12-22T04:43:56.989Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "7",
-    "object_repr": "teacher",
-    "action_flag": 3,
-    "change_message": ""
-  }
-},
-{
-  "model": "admin.logentry",
-  "pk": 126,
-  "fields": {
-    "action_time": "2025-12-22T07:42:47.065Z",
-    "user": 1,
-    "content_type": 7,
-    "object_id": "9",
-    "object_repr": "teacher2",
-    "action_flag": 2,
-    "change_message": "[{\"changed\": {\"fields\": [\"Role\"]}}]"
-  }
-},
-{
   "model": "auth.permission",
   "pk": 1,
   "fields": {
@@ -2106,119 +2041,107 @@
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 53,
+  "model": "contenttypes.contenttype",
+  "pk": 1,
   "fields": {
-    "name": "Can add discipline type",
-    "content_type": 14,
-    "codename": "add_disciplinetype"
+    "app_label": "admin",
+    "model": "logentry"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 54,
+  "model": "contenttypes.contenttype",
+  "pk": 2,
   "fields": {
-    "name": "Can change discipline type",
-    "content_type": 14,
-    "codename": "change_disciplinetype"
+    "app_label": "auth",
+    "model": "permission"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 55,
+  "model": "contenttypes.contenttype",
+  "pk": 3,
   "fields": {
-    "name": "Can delete discipline type",
-    "content_type": 14,
-    "codename": "delete_disciplinetype"
+    "app_label": "auth",
+    "model": "group"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 56,
+  "model": "contenttypes.contenttype",
+  "pk": 4,
   "fields": {
-    "name": "Can view discipline type",
-    "content_type": 14,
-    "codename": "view_disciplinetype"
+    "app_label": "contenttypes",
+    "model": "contenttype"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 57,
+  "model": "contenttypes.contenttype",
+  "pk": 5,
   "fields": {
-    "name": "Can add discipline record",
-    "content_type": 15,
-    "codename": "add_disciplinerecord"
+    "app_label": "sessions",
+    "model": "session"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 58,
+  "model": "contenttypes.contenttype",
+  "pk": 6,
   "fields": {
-    "name": "Can change discipline record",
-    "content_type": 15,
-    "codename": "change_disciplinerecord"
+    "app_label": "sites",
+    "model": "site"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 59,
+  "model": "contenttypes.contenttype",
+  "pk": 7,
   "fields": {
-    "name": "Can delete discipline record",
-    "content_type": 15,
-    "codename": "delete_disciplinerecord"
+    "app_label": "authentication",
+    "model": "myuser"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 60,
+  "model": "contenttypes.contenttype",
+  "pk": 8,
   "fields": {
-    "name": "Can view discipline record",
-    "content_type": 15,
-    "codename": "view_disciplinerecord"
+    "app_label": "authentication",
+    "model": "classroom"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 61,
+  "model": "contenttypes.contenttype",
+  "pk": 9,
   "fields": {
-    "name": "Can add migrate student",
-    "content_type": 16,
-    "codename": "add_migratestudent"
+    "app_label": "authentication",
+    "model": "student"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 62,
+  "model": "contenttypes.contenttype",
+  "pk": 10,
   "fields": {
-    "name": "Can change migrate student",
-    "content_type": 16,
-    "codename": "change_migratestudent"
+    "app_label": "student_attendance",
+    "model": "studentattendance"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 63,
+  "model": "contenttypes.contenttype",
+  "pk": 11,
   "fields": {
-    "name": "Can delete migrate student",
-    "content_type": 16,
-    "codename": "delete_migratestudent"
+    "app_label": "sahsiah",
+    "model": "sahsiahtype"
   }
 },
 {
-  "model": "auth.permission",
-  "pk": 64,
+  "model": "contenttypes.contenttype",
+  "pk": 12,
   "fields": {
-    "name": "Can view migrate student",
-    "content_type": 16,
-    "codename": "view_migratestudent"
+    "app_label": "sahsiah",
+    "model": "sahsiahrecord"
   }
 },
 {
-  "model": "sessions.session",
-  "pk": "pjp8vslubn2w3xhbsj2etn4ng333ehss",
+  "model": "contenttypes.contenttype",
+  "pk": 13,
   "fields": {
-    "session_data": ".eJxVjDsOwyAQBe9CHSEWWNakTO8zIL7BSYQlY1dR7h5bcpG0b2bemzm_rdVtPS9uSuzKgF1-t-DjM7cDpIdv95nHua3LFPih8JN2Ps4pv26n-3dQfa97TZp0wSGiVEpbWwwZLGAKqBJiGkDIDAlB6F0hApLGRkkCIZAiJMs-X616NhA:1vXaa2:NkQbp97i2PhEnrSe4xVMuRvb9UBqvPX7yWi7cHLP2tM",
-    "expire_date": "2026-01-05T07:43:46.749Z"
+    "app_label": "rmt",
+    "model": "rmtrecord"
   }
 },
 {
@@ -2242,7 +2165,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1000000$qvWyZsf7wha5hfdMDBxR8u$QFGo2H3OWVoxZNHUudMJceqW7KlcLFTgTlN7fSuInhc=",
-    "last_login": "2025-12-22T07:43:46.738Z",
+    "last_login": "2025-12-04T15:29:17Z",
     "is_superuser": true,
     "username": "admin",
     "first_name": "",
@@ -2352,25 +2275,6 @@
   }
 },
 {
-  "model": "authentication.myuser",
-  "pk": 9,
-  "fields": {
-    "password": "pbkdf2_sha256$1000000$in3negGt7Dl9ue2eB3w782$8PCkfXjCyZUAWyfAfCRICaMifWWhl92q+bl5xcKllNo=",
-    "last_login": null,
-    "is_superuser": false,
-    "username": "teacher2",
-    "first_name": "Berani",
-    "last_name": "",
-    "email": "",
-    "is_staff": false,
-    "is_active": true,
-    "date_joined": "2025-12-22T04:44:22Z",
-    "role": "teacher",
-    "groups": [],
-    "user_permissions": []
-  }
-},
-{
   "model": "authentication.classroom",
   "pk": 1,
   "fields": {
@@ -2394,8 +2298,7 @@
   "fields": {
     "class_room": 1,
     "qr_code": "qrcodes/elara.vance.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.366Z"
+    "rmt_elligible": false
   }
 },
 {
@@ -2404,8 +2307,7 @@
   "fields": {
     "class_room": 1,
     "qr_code": "qrcodes/mthorne.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.372Z"
+    "rmt_elligible": false
   }
 },
 {
@@ -2414,8 +2316,7 @@
   "fields": {
     "class_room": 1,
     "qr_code": "qrcodes/sofialee_GmVLy8W.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.376Z"
+    "rmt_elligible": false
   }
 },
 {
@@ -2424,8 +2325,7 @@
   "fields": {
     "class_room": 2,
     "qr_code": "qrcodes/javierc.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.381Z"
+    "rmt_elligible": false
   }
 },
 {
@@ -2434,233 +2334,57 @@
   "fields": {
     "class_room": 2,
     "qr_code": "qrcodes/anyas.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.385Z"
-  }
-},
-{
-  "model": "authentication.migratestudent",
-  "pk": 1,
-  "fields": {
-    "class_room": 1,
-    "qr_code": "qrcodes/student_qr_1.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.366Z",
-    "first_name": "Elara",
-    "last_name": "Vance"
-  }
-},
-{
-  "model": "authentication.migratestudent",
-  "pk": 2,
-  "fields": {
-    "class_room": 1,
-    "qr_code": "qrcodes/student_qr_2.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.372Z",
-    "first_name": "Marcus",
-    "last_name": "Thorne"
-  }
-},
-{
-  "model": "authentication.migratestudent",
-  "pk": 3,
-  "fields": {
-    "class_room": 1,
-    "qr_code": "qrcodes/student_qr_3.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.376Z",
-    "first_name": "Sofia",
-    "last_name": "Lee"
-  }
-},
-{
-  "model": "authentication.migratestudent",
-  "pk": 4,
-  "fields": {
-    "class_room": 2,
-    "qr_code": "qrcodes/student_qr_4.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.381Z",
-    "first_name": "Javier",
-    "last_name": "Cruz"
-  }
-},
-{
-  "model": "authentication.migratestudent",
-  "pk": 5,
-  "fields": {
-    "class_room": 2,
-    "qr_code": "qrcodes/student_qr_5.jpeg",
-    "rmt_elligible": false,
-    "date_of_birth": "2025-12-19T02:16:54.385Z",
-    "first_name": "Anya",
-    "last_name": "Sharma"
+    "rmt_elligible": false
   }
 },
 {
   "model": "student_attendance.studentattendance",
   "pk": 54,
   "fields": {
-    "migrate_student_id": 1,
+    "student_id": 2,
     "status": "absent",
     "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z",
-    "note": null
+    "timestamp": "2025-12-10T16:00:00Z"
   }
 },
 {
   "model": "student_attendance.studentattendance",
   "pk": 55,
   "fields": {
-    "migrate_student_id": 2,
+    "student_id": 3,
     "status": "absent",
     "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z",
-    "note": null
+    "timestamp": "2025-12-10T16:00:00Z"
   }
 },
 {
   "model": "student_attendance.studentattendance",
   "pk": 56,
   "fields": {
-    "migrate_student_id": 3,
+    "student_id": 4,
     "status": "absent",
     "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z",
-    "note": null
+    "timestamp": "2025-12-10T16:00:00Z"
   }
 },
 {
   "model": "student_attendance.studentattendance",
   "pk": 57,
   "fields": {
-    "migrate_student_id": 4,
+    "student_id": 5,
     "status": "absent",
     "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z",
-    "note": null
+    "timestamp": "2025-12-10T16:00:00Z"
   }
 },
 {
   "model": "student_attendance.studentattendance",
   "pk": 58,
   "fields": {
-    "migrate_student_id": 5,
+    "student_id": 6,
     "status": "absent",
     "date": "2025-12-11",
-    "timestamp": "2025-12-10T16:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 59,
-  "fields": {
-    "migrate_student_id": 1,
-    "status": "on-time",
-    "date": "2025-12-21",
-    "timestamp": "2025-12-20T23:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 60,
-  "fields": {
-    "migrate_student_id": 2,
-    "status": "on-time",
-    "date": "2025-12-21",
-    "timestamp": "2025-12-20T23:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 61,
-  "fields": {
-    "migrate_student_id": 3,
-    "status": "on-time",
-    "date": "2025-12-21",
-    "timestamp": "2025-12-20T23:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 62,
-  "fields": {
-    "migrate_student_id": 4,
-    "status": "on-time",
-    "date": "2025-12-21",
-    "timestamp": "2025-12-20T23:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 63,
-  "fields": {
-    "migrate_student_id": 5,
-    "status": "on-time",
-    "date": "2025-12-21",
-    "timestamp": "2025-12-20T23:00:00Z",
-    "note": ""
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 64,
-  "fields": {
-    "migrate_student_id": 1,
-    "status": "absent",
-    "date": "2025-12-22",
-    "timestamp": "2025-12-21T16:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 65,
-  "fields": {
-    "migrate_student_id": 2,
-    "status": "absent",
-    "date": "2025-12-22",
-    "timestamp": "2025-12-21T16:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 66,
-  "fields": {
-    "migrate_student_id": 3,
-    "status": "absent",
-    "date": "2025-12-22",
-    "timestamp": "2025-12-21T16:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 67,
-  "fields": {
-    "migrate_student_id": 4,
-    "status": "absent",
-    "date": "2025-12-22",
-    "timestamp": "2025-12-21T16:00:00Z",
-    "note": null
-  }
-},
-{
-  "model": "student_attendance.studentattendance",
-  "pk": 68,
-  "fields": {
-    "migrate_student_id": 5,
-    "status": "absent",
-    "date": "2025-12-22",
-    "timestamp": "2025-12-21T16:00:00Z",
-    "note": null
+    "timestamp": "2025-12-10T16:00:00Z"
   }
 },
 {
@@ -2674,20 +2398,10 @@
   }
 },
 {
-  "model": "sahsiah.sahsiahtype",
-  "pk": 2,
-  "fields": {
-    "name": "Punctuality",
-    "description": "Punctuality",
-    "points": 10,
-    "tag": "Academic"
-  }
-},
-{
   "model": "sahsiah.sahsiahrecord",
   "pk": 1,
   "fields": {
-    "migrate_student_id": 1,
+    "student_id": 2,
     "sahsiah_type": 1,
     "timestamp": "2025-12-08T06:13:00Z"
   }
@@ -2696,34 +2410,16 @@
   "model": "sahsiah.sahsiahrecord",
   "pk": 2,
   "fields": {
-    "migrate_student_id": 1,
+    "student_id": 2,
     "sahsiah_type": 1,
     "timestamp": "2025-11-14T11:47:00Z"
-  }
-},
-{
-  "model": "sahsiah.sahsiahrecord",
-  "pk": 3,
-  "fields": {
-    "migrate_student_id": 5,
-    "sahsiah_type": 2,
-    "timestamp": "2025-12-20T23:00:00Z"
-  }
-},
-{
-  "model": "sahsiah.sahsiahrecord",
-  "pk": 4,
-  "fields": {
-    "migrate_student_id": 5,
-    "sahsiah_type": 2,
-    "timestamp": "2025-12-20T23:00:00Z"
   }
 },
 {
   "model": "rmt.rmtrecord",
   "pk": 1,
   "fields": {
-    "migrate_student_id": 5,
+    "student_id": 6,
     "created_at": "2025-12-08T16:00:00Z",
     "updated_at": "2025-12-08T16:00:00Z"
   }
