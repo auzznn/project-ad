@@ -6,6 +6,7 @@ import Kehadiran from "./pages/Kehadiran";
 import RMT from "./pages/RMT";
 import PapanPendahulu from "./pages/PapanPendahulu";
 import Sahsiah from "./pages/Sahsiah";
+import Disiplin from "./pages/Disiplin";
 import Pengguna from "./pages/Pengguna";
 import Login from "./pages/Login";
 
@@ -64,6 +65,10 @@ function AppContent({
         <Route
           path="/sahsiah"
           element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Sahsiah />} />}
+        />
+        <Route
+          path="/disiplin"
+          element={<PrivateRoute isAuthenticated={isAuthenticated} element={<Disiplin />} />}
         />
         <Route
           path="/pengguna"

@@ -15,6 +15,7 @@ function SideBar({
     { to: "/rmt", label: "Imbasan RMT", roles: ["admin", "teacher"] },
     { to: "/papanpendahulu", label: "Papan Pendahulu", roles: ["admin", "teacher"] },
     { to: "/sahsiah", label: "Pengurusan Sahsiah", roles: ["admin"] },
+    { to: "/disiplin", label: "Pengurusan Disiplin", roles: ["admin"] },
     { to: "/pengguna", label: "Pengurusan Pengguna", roles: ["admin"]}
   ];
 
