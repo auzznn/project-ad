@@ -18,7 +18,7 @@ from django.utils import timezone
 
 load_dotenv()
 
-AUTH_USER_MODEL = 'authentication.MyUser'
+AUTH_USER_MODEL = "authentication.MyUser"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l7k9wz6=p@n@qx%ecp!18*!&+fl^rs9vnump6$)iq$%%qr)7=&'
+SECRET_KEY = "django-insecure-l7k9wz6=p@n@qx%ecp!18*!&+fl^rs9vnump6$)iq$%%qr)7=&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,68 +39,66 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.sites',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'corsheaders',
-    
-    'base',
-    'authentication',
-    'student_attendance',
-    'sahsiah',
-    'rmt',
-    'record_discipline'
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.sites",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "corsheaders",
+    "base",
+    "authentication",
+    "student_attendance",
+    "sahsiah",
+    "rmt",
+    "record_discipline",
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'backend.urls'
+ROOT_URLCONF = "backend.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+WSGI_APPLICATION = "backend.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv("MYSQL_DATABASE"),
-        'USER': os.getenv("MYSQL_USER"),
-        'PASSWORD': os.getenv("MYSQL_ROOT_PASSWORD"),
-        'HOST': os.getenv("MYSQL_HOST"),
-        'PORT': os.getenv("MYSQL_PORT"),
-
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.getenv("MYSQL_DATABASE"),
+        "USER": os.getenv("MYSQL_USER"),
+        "PASSWORD": os.getenv("MYSQL_ROOT_PASSWORD"),
+        "HOST": os.getenv("MYSQL_HOST"),
+        "PORT": os.getenv("MYSQL_PORT"),
     }
 }
 
@@ -110,16 +108,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -127,9 +125,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'Asia/Kuala_Lumpur'
+TIME_ZONE = "Asia/Kuala_Lumpur"
 
 USE_I18N = True
 
@@ -139,19 +137,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(Path(BASE_DIR).joinpath('media'))) 
+STATIC_URL = "static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(Path(BASE_DIR).joinpath("media")))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-      'rest_framework_simplejwt.authentication.JWTAuthentication',
-      'rest_framework.authentication.SessionAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ]
 }
 
@@ -160,40 +158,48 @@ SITE_ID = 1
 ALLOWED_HOSTS = ["*"]
 
 # Domain Setting
-ACADEMIC_YEAR_START = timezone.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-ACADEMIC_YEAR_END = timezone.now().replace(month=12, day=30, hour=0, minute=0, second=0, microsecond=0)
+ACADEMIC_YEAR_START = timezone.now().replace(
+    month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+)
+ACADEMIC_YEAR_END = timezone.now().replace(
+    month=12, day=30, hour=0, minute=0, second=0, microsecond=0
+)
 
 
 # Celery Setting
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_TIMEZONE = 'Asia/Kuala_Lumpur'
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+CELERY_TIMEZONE = "Asia/Kuala_Lumpur"
 CELERY_ENABLE_UTC = False
 
-CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM = {
-  'hour': 0,
-  'day_of_week': 'mon-fri'
-}
+CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM = {"hour": 0, "day_of_week": "mon-fri"}
 
-CREATE_STUDENT_ATTENDANCE_SCHEDULE_1 = crontab(**CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM)
+CREATE_STUDENT_ATTENDANCE_SCHEDULE_1 = crontab(
+    **CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM
+)
 CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 = 10
 
-CREATE_STUDENT_ATTENDANCE_SCHEDULE = CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 if DEBUG else CREATE_STUDENT_ATTENDANCE_SCHEDULE_1
+CREATE_STUDENT_ATTENDANCE_SCHEDULE = (
+    CREATE_STUDENT_ATTENDANCE_SCHEDULE_2
+    if DEBUG
+    else CREATE_STUDENT_ATTENDANCE_SCHEDULE_1
+)
+
 
 CELERY_BEAT_SCHEDULE = {
-    'create_student_attendance': {
-        'task': 'student_attendance.tasks.create_student_attendance',
-        'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+    "create_student_attendance": {
+        "task": "student_attendance.tasks.create_student_attendance",
+        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
     },
-    'create_rmt_record': {
-      'task': 'rmt.tasks.create_rmt_record',
-      'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+    "update_student_qr_code": {
+        "task": "authentication.tasks.update_qr_code",
+        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
     },
-    'update_student_qr_code': {
-      'task': 'authentication.tasks.update_qr_code',
-      'schedule': CREATE_STUDENT_ATTENDANCE_SCHEDULE,
-    }
+    "create_rmt_record": {
+        "task": "rmt.tasks.create_rmt_record",
+        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+    },
 }
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",

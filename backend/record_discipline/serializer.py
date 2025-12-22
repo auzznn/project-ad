@@ -11,11 +11,4 @@ class DisciplineRecordSerializer(serializers.ModelSerializer):
 
   class Meta:
     model = DisciplineRecord
-    fields = '__all__'
-
-class DisciplineLeaderboardSerializer(serializers.Serializer): 
-  student_id = serializers.IntegerField()
-  student_name = serializers.CharField()
-  discipline_point = serializers.IntegerField()
-  class_room = serializers.CharField()
-  ranking = serializers.IntegerField() 
+    fields = '__all__' 

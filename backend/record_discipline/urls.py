@@ -6,11 +6,11 @@ from .views import (
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
-router = DefaultRouter()
-router.register("type", DisciplineTypeView)
-router.register("record", DisciplineRecordView)
-router.register("leaderboard", DisciplineLeaderboardView, basename="leaderboard") 
+record_discipline_router = DefaultRouter()
+record_discipline_router.register("type", DisciplineTypeView)
+record_discipline_router.register("record", DisciplineRecordView)
+record_discipline_router.register("leaderboard", DisciplineLeaderboardView, basename="leaderboard") 
 
 urlpatterns = [
-  path("", include(router.urls))
+  path("", include(record_discipline_router.urls))
 ]

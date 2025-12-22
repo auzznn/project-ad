@@ -6,11 +6,11 @@ from .views import (
   SahsiahLeaderboardView,
 )
 
-router = DefaultRouter()
-router.register("type", SahsiahTypeView)
-router.register("record", SahsiahRecordView)
-router.register("leaderboard", SahsiahLeaderboardView) 
+sahsiah_router = DefaultRouter()
+sahsiah_router.register("type", SahsiahTypeView)
+sahsiah_router.register("record", SahsiahRecordView)
+sahsiah_router.register("leaderboard", SahsiahLeaderboardView) 
 
 urlpatterns = [
-  path("", include(router.urls))
+  path("", include(sahsiah_router.urls))
 ]
