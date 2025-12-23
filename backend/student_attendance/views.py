@@ -143,7 +143,7 @@ class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
     Subclasses must provide a 'queryset'.
     """
 
-    queryset = None  # To be overridden by subclasses
+    queryset = None
 
     def get_queryset(self):
         assert (
@@ -152,7 +152,7 @@ class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
         return self.queryset
 
     @action(detail=False, methods=["get"])
-    def dashboard(self, request):
+    def dashboard(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
         # Aggregate stats based on the provided queryset
@@ -162,22 +162,19 @@ class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
             absent=Count("id", filter=Q(status=const.ABSENT_STATUS_KEY)),
         )
 
-        total_students = queryset.count()
-        total_present = stats["on_time"] + stats["late"]
+        count = queryset.count()
+        average_attendance = 0 if count == 0 else (stats["on_time"] / queryset.count())
 
         data = {
-            "total_students": total_students,
             "on_time_count": stats["on_time"],
             "late_count": stats["late"],
             "absent_count": stats["absent"],
-            "attendance_rate": (
-                (total_present / total_students * 100) if total_students > 0 else 0
-            ),
+            "attendance_rate": average_attendance,
         }
         return Response(data)
 
     @action(detail=False, methods=["get"])
-    def classroom_breakdown(self, request):
+    def classroom_breakdown(self, request, *args, **kwargs):
         """
         Returns attendance percentage per classroom using the provided queryset
         """
@@ -195,6 +192,7 @@ class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
             )
         )
 
+        print(raw_data)
         structured_data = {}
         for entry in raw_data:
             grade = entry["migrate_student_id__class_room__grade"]
@@ -206,11 +204,12 @@ class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
             class_name = f"{grade}{section}"
 
             if class_name not in structured_data:
-                structured_data[class_name] = {"class_name": class_name, "stats": []}
+                structured_data[class_name] = {"class_name": class_name, "stats": [], "count": 0}
 
             structured_data[class_name]["stats"].append(
                 {"status": entry["status"], "count": entry["count"]}
             )
+            structured_data[class_name]['count'] += entry['count']
 
         return Response(list(structured_data.values()))
 
@@ -219,5 +218,29 @@ class DailyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
     """
     Daily Stats: Only looks at today's records.
     """
+
     # Using the manager method we created earlier for consistency
     queryset = StudentAttendance.objects.today()
+
+
+class YearlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
+    """
+    Yearly Stats: Only looks at Yearly records.
+    """
+
+    # Using the manager method we created earlier for consistency
+    def get_queryset(self):
+        year = self.kwargs.get("year")
+        return StudentAttendance.objects.by_year(year)
+
+
+class MonthlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
+    """
+    Monthly Stats: Only looks at Monthly records.
+    """
+
+    # Using the manager method we created earlier for consistency
+    def get_queryset(self):
+        year = self.kwargs.get("year")
+        month = self.kwargs.get("month")
+        return StudentAttendance.objects.by_year(year).by_month(month)

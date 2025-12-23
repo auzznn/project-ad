@@ -14,6 +14,15 @@ class StudentAttendanceQuerySet(models.QuerySet):
         # Centralized timezone-aware 'today' logic
         today_date = _default_datetime().date()
         return self.filter(date=today_date)
+    
+    def by_year(self, year: int):
+        return self.filter(date__year=year)
+    
+    def by_student(self, student):
+        return self.filter(migrate_student_id=student)
+    
+    def by_month(self, month):
+        return self.filter(date__month=month)
 
 
 # Create your models here.
