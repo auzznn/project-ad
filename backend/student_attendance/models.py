@@ -2,11 +2,25 @@ from django.db import models
 from django.utils import timezone
 from authentication.models import MigrateStudent
 from datetime import time
-from django.conf import settings
-import pytz
 
 from . import const
 from base.utils import default_datetime as _default_datetime, set_timezone
+
+
+class StudentAttendanceQuerySet(models.QuerySet):
+    def today(self):
+        # Centralized timezone-aware 'today' logic
+        today_date = _default_datetime().date()
+        return self.filter(date=today_date)
+    
+    def by_year(self, year: int):
+        return self.filter(date__year=year)
+    
+    def by_student(self, student):
+        return self.filter(migrate_student_id=student)
+    
+    def by_month(self, month):
+        return self.filter(date__month=month)
 
 
 # Create your models here.
@@ -33,6 +47,7 @@ class StudentAttendance(models.Model):
     date = models.DateField(default=timezone.now)
     timestamp = models.DateTimeField(default=default_datetime)
     note = models.TextField(blank=True, null=True)
+    objects = StudentAttendanceQuerySet.as_manager()
 
     def __str__(self) -> str:
         return self.migrate_student_id.fullname

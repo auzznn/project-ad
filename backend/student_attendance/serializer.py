@@ -1,13 +1,18 @@
-from rest_framework.serializers import ModelSerializer, ValidationError, IntegerField
+from rest_framework.serializers import (
+    ModelSerializer,
+    ValidationError,
+    IntegerField,
+    Serializer,
+    CharField,
+    SerializerMethodField,
+)
 from django.utils import timezone
-from django.conf import settings
 
 from authentication.serializer import StudentSerializer
 from authentication.models import Student
 from .models import StudentAttendance
 from base.utils import set_timezone
 from sahsiah.models import SahsiahType, SahsiahRecord
-import pytz
 
 
 class StudentAttendanceSerializer(ModelSerializer):
@@ -20,11 +25,11 @@ class StudentAttendanceSerializer(ModelSerializer):
 
 class RecordStudentAttendanceSerializer(ModelSerializer):
     student_id = IntegerField(write_only=True)
-    
+
     class Meta:
         model = StudentAttendance
         fields = ["student_id", "timestamp"]
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attendance_instance = None
@@ -57,7 +62,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
     def _get_instance(self, migrate_student_id: int) -> Meta.model:
         if self.attendance_instance:
             return self.attendance_instance
-        
+
         today = set_timezone(timezone.now()).date()
         print(f"today: {today}")
         self.attendance_instance = self.Meta.model.objects.get(
@@ -104,3 +109,30 @@ class AddNoteSerializer(ModelSerializer):
         instance.save(update_fields=["note"])
 
         return instance
+
+
+class AttendanceStudentRecordStatsSerializer(Serializer):
+    student_id = IntegerField(source="id")
+    name = CharField(source="fullname")
+    grade = IntegerField(source="class_room.grade")
+    class_name = CharField(source="class_room.class_section")
+    present = IntegerField()
+    absent = IntegerField()
+    late = IntegerField()
+    attendance_rate = SerializerMethodField()
+    status = SerializerMethodField()
+
+    def get_attendance_rate(self, obj):
+        total = obj.present + obj.absent + obj.late
+        if total == 0:
+            return 0.0
+        return obj.present / total
+
+    def get_status(self, obj):
+        rate = self.get_attendance_rate(obj)
+        if rate >= 90:
+            return "Excellent"
+        elif rate >= 80:
+            return "Average"
+        else:
+            return "Poor"
