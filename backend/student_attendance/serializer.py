@@ -1,4 +1,10 @@
-from rest_framework.serializers import ModelSerializer, ValidationError, IntegerField
+from rest_framework.serializers import (
+    ModelSerializer,
+    ValidationError,
+    IntegerField,
+    FloatField,
+    Serializer,
+)
 from django.utils import timezone
 from django.conf import settings
 
@@ -20,11 +26,11 @@ class StudentAttendanceSerializer(ModelSerializer):
 
 class RecordStudentAttendanceSerializer(ModelSerializer):
     student_id = IntegerField(write_only=True)
-    
+
     class Meta:
         model = StudentAttendance
         fields = ["student_id", "timestamp"]
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attendance_instance = None
@@ -57,7 +63,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
     def _get_instance(self, migrate_student_id: int) -> Meta.model:
         if self.attendance_instance:
             return self.attendance_instance
-        
+
         today = set_timezone(timezone.now()).date()
         print(f"today: {today}")
         self.attendance_instance = self.Meta.model.objects.get(
@@ -104,3 +110,11 @@ class AddNoteSerializer(ModelSerializer):
         instance.save(update_fields=["note"])
 
         return instance
+
+
+class AttendanceStatsSerializer(Serializer):
+    total_students = IntegerField()
+    on_time_count = IntegerField()
+    late_count = IntegerField()
+    absent_count = IntegerField()
+    attendance_rate = FloatField()
