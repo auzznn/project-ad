@@ -1,26 +1,24 @@
-from django.utils import timezone
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
-from django.utils import timezone
-from django.conf import settings
 from django.db.models import (
     Q,
     Count,
 )
+from django.db.models.functions import Coalesce
 
 from authentication.models import Classroom, MigrateStudent
 from .serializer import (
     StudentAttendanceSerializer,
     RecordStudentAttendanceSerializer,
     AddNoteSerializer,
+    AttendanceStudentRecordStatsSerializer
 )
 from . import const
 from .models import StudentAttendance
 from base.pagination import StandardResultsSetPagination
-import pytz
 
 
 # Create your views here.
@@ -137,14 +135,19 @@ class DateStudentAttendanceViewSet(GeneralStudentAttendanceViewSet):
         return super().get_queryset()
 
 
-class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
+class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
     """
     Super class for all statistics.
     Subclasses must provide a 'queryset'.
     """
-
+    
     queryset = None
+    pagination_class = StandardResultsSetPagination
 
+    def get_serializer_class(self):
+        if self.action == self.student_attendance_records.__name__:
+            return AttendanceStudentRecordStatsSerializer
+    
     def get_queryset(self):
         assert (
             self.queryset is not None
@@ -191,8 +194,7 @@ class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
                 "migrate_student_id__class_room__class_section",
             )
         )
-
-        print(raw_data)
+        
         structured_data = {}
         for entry in raw_data:
             grade = entry["migrate_student_id__class_room__grade"]
@@ -212,6 +214,38 @@ class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
             structured_data[class_name]['count'] += entry['count']
 
         return Response(list(structured_data.values()))
+    
+    @action(detail=False, methods=["get"])
+    def student_attendance_records(self, request, *args, **kwargs):
+        """
+        Returns a list of students with their aggregated attendance metrics.
+        """
+        period_queryset = self.get_queryset()
+
+        # We annotate MigrateStudent with counts filtered by the current period
+        students = MigrateStudent.objects.annotate(
+            present=Coalesce(Count(
+                'attendance', 
+                filter=Q(attendance__in=period_queryset, attendance__status=const.ON_TIME_STATUS_KEY)
+            ), 0),
+            late=Coalesce(Count(
+                'attendance', 
+                filter=Q(attendance__in=period_queryset, attendance__status=const.LATE_STATUS_KEY)
+            ), 0),
+            absent=Coalesce(Count(
+                'attendance', 
+                filter=Q(attendance__in=period_queryset, attendance__status=const.ABSENT_STATUS_KEY)
+            ), 0),
+        ).select_related('class_room')
+
+        # Apply pagination if necessary
+        page = self.paginate_queryset(students)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(students, many=True)
+        return Response(serializer.data)
 
 
 class DailyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):

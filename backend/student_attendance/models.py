@@ -2,8 +2,6 @@ from django.db import models
 from django.utils import timezone
 from authentication.models import MigrateStudent
 from datetime import time
-from django.conf import settings
-import pytz
 
 from . import const
 from base.utils import default_datetime as _default_datetime, set_timezone
