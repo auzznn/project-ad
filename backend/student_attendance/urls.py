@@ -5,14 +5,14 @@ from base.const import (
     GENERAL_STUDENT_ATTENDANCE_BASENAME_PATH,
     DAILY_STUDENT_ATTENDANCE_BASENAME_PATH,
     DATE_STUDENT_ATTENDANCE_BASENAME_PATH,
-    STATISTIC_STUDENT_ATTENDANCE_BASENAME_PATH,
+    DAILY_STATISTIC_STUDENT_ATTENDANCE_BASENAME_PATH,
 )
 
 from .views import (
     StudentAttendanceViewSet,
     DailyStudentAttendanceViewSet,
     DateStudentAttendanceViewSet,
-    AttendanceStatsViewSet,
+    DailyAttendanceStatsViewSet,
 )
 
 student_attendance_router = DefaultRouter()
@@ -30,9 +30,9 @@ student_attendance_router.register(
     basename=DATE_STUDENT_ATTENDANCE_BASENAME_PATH,
 )
 student_attendance_router.register(
-    "statistic",
-    AttendanceStatsViewSet,
-    basename=STATISTIC_STUDENT_ATTENDANCE_BASENAME_PATH,
+    "statistic/daily",
+    DailyAttendanceStatsViewSet,
+    basename=DAILY_STATISTIC_STUDENT_ATTENDANCE_BASENAME_PATH,
 )
 
 urlpatterns = [

@@ -7,7 +7,7 @@ USER_BASENAME_PATH = "user"
 GENERAL_STUDENT_ATTENDANCE_BASENAME_PATH = "student-attendance" 
 DAILY_STUDENT_ATTENDANCE_BASENAME_PATH = "student-attendance-daily"
 DATE_STUDENT_ATTENDANCE_BASENAME_PATH = "student-attendance-date"
-STATISTIC_STUDENT_ATTENDANCE_BASENAME_PATH = "student-attendance-statistic" 
+DAILY_STATISTIC_STUDENT_ATTENDANCE_BASENAME_PATH = "student-attendance-daily-statistic" 
 
 #Sahsiah
 

@@ -7,7 +7,8 @@ from rest_framework import status
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import (
-    Q, Count, 
+    Q,
+    Count,
 )
 
 from authentication.models import Classroom, MigrateStudent
@@ -106,7 +107,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
     def by_status(self, request, attend_status: str, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = queryset.filter(status=attend_status)
-        
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -135,53 +136,88 @@ class DateStudentAttendanceViewSet(GeneralStudentAttendanceViewSet):
 
         return super().get_queryset()
 
-class AttendanceStatsViewSet(viewsets.ViewSet):
+
+class GeneralAttendanceStatsViewSet(viewsets.ViewSet):
     """
-    ViewSet to handle Dashboard Statistics and Analytics
+    Super class for all statistics.
+    Subclasses must provide a 'queryset'.
     """
-    
-    @action(detail=False, methods=['get'])
+
+    queryset = None  # To be overridden by subclasses
+
+    def get_queryset(self):
+        assert (
+            self.queryset is not None
+        ), f"'{self.__class__.__name__}' must include a 'queryset' attribute."
+        return self.queryset
+
+    @action(detail=False, methods=["get"])
     def dashboard(self, request):
-        today = timezone.now().date()
-        
-        # Aggregate today's stats
-        stats = StudentAttendance.objects.filter(date=today).aggregate(
-            on_time=Count('id', filter=Q(status=const.ON_TIME_STATUS_KEY)),
-            late=Count('id', filter=Q(status=const.LATE_STATUS_KEY)),
-            absent=Count('id', filter=Q(status=const.ABSENT_STATUS_KEY)),
+        queryset = self.get_queryset()
+
+        # Aggregate stats based on the provided queryset
+        stats = queryset.aggregate(
+            on_time=Count("id", filter=Q(status=const.ON_TIME_STATUS_KEY)),
+            late=Count("id", filter=Q(status=const.LATE_STATUS_KEY)),
+            absent=Count("id", filter=Q(status=const.ABSENT_STATUS_KEY)),
         )
-        
-        total_students = MigrateStudent.objects.count()
-        total_present = stats['on_time'] + stats['late']
-        
+
+        total_students = queryset.count()
+        total_present = stats["on_time"] + stats["late"]
+
         data = {
             "total_students": total_students,
-            "on_time_count": stats['on_time'],
-            "late_count": stats['late'],
-            "absent_count": stats['absent'],
-            "attendance_rate": (total_present / total_students * 100) if total_students > 0 else 0
+            "on_time_count": stats["on_time"],
+            "late_count": stats["late"],
+            "absent_count": stats["absent"],
+            "attendance_rate": (
+                (total_present / total_students * 100) if total_students > 0 else 0
+            ),
         }
-        
         return Response(data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def classroom_breakdown(self, request):
         """
-        Returns attendance percentage per classroom as seen in Figma charts
+        Returns attendance percentage per classroom using the provided queryset
         """
-        today = timezone.now().date()
-        classrooms = Classroom.objects.all()
-        result = []
+        raw_data = (
+            self.get_queryset()
+            .values(
+                "migrate_student_id__class_room__grade",
+                "migrate_student_id__class_room__class_section",
+                "status",
+            )
+            .annotate(count=Count("id"))
+            .order_by(
+                "migrate_student_id__class_room__grade",
+                "migrate_student_id__class_room__class_section",
+            )
+        )
 
-        for cls in classrooms:
-            attendance = StudentAttendance.objects.filter(
-                date=today, 
-                migrate_student_id__class_room=cls
-            ).values('status').annotate(count=Count('status'))
-            
-            result.append({
-                "class_name": cls.name,
-                "stats": list(attendance)
-            })
-            
-        return Response(result)
+        structured_data = {}
+        for entry in raw_data:
+            grade = entry["migrate_student_id__class_room__grade"]
+            section = entry["migrate_student_id__class_room__class_section"]
+
+            if grade is None:
+                continue
+
+            class_name = f"{grade}{section}"
+
+            if class_name not in structured_data:
+                structured_data[class_name] = {"class_name": class_name, "stats": []}
+
+            structured_data[class_name]["stats"].append(
+                {"status": entry["status"], "count": entry["count"]}
+            )
+
+        return Response(list(structured_data.values()))
+
+
+class DailyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
+    """
+    Daily Stats: Only looks at today's records.
+    """
+    # Using the manager method we created earlier for consistency
+    queryset = StudentAttendance.objects.today()
