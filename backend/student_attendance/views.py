@@ -23,7 +23,7 @@ import pytz
 
 
 # Create your views here.
-class StudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+class StudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = StudentAttendance.objects.all()
     serializer_class = StudentAttendanceSerializer
     pagination_class = StandardResultsSetPagination
