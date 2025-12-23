@@ -117,11 +117,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
 
 
 class DailyStudentAttendanceViewSet(GeneralStudentAttendanceViewSet):
-    def _get_current_date_aware() -> timezone.datetime:
-        tz = pytz.timezone(settings.TIME_ZONE)
-        return timezone.now().astimezone(tz).date()
-
-    queryset = StudentAttendance.objects.filter(date=_get_current_date_aware())
+    queryset = StudentAttendance.objects.today()
 
 
 class DateStudentAttendanceViewSet(GeneralStudentAttendanceViewSet):

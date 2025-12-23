@@ -9,6 +9,13 @@ from . import const
 from base.utils import default_datetime as _default_datetime, set_timezone
 
 
+class StudentAttendanceQuerySet(models.QuerySet):
+    def today(self):
+        # Centralized timezone-aware 'today' logic
+        today_date = _default_datetime().date()
+        return self.filter(date=today_date)
+
+
 # Create your models here.
 class StudentAttendance(models.Model):
     ON_TIME_CODE = "on-time"
@@ -33,6 +40,7 @@ class StudentAttendance(models.Model):
     date = models.DateField(default=timezone.now)
     timestamp = models.DateTimeField(default=default_datetime)
     note = models.TextField(blank=True, null=True)
+    objects = StudentAttendanceQuerySet.as_manager()
 
     def __str__(self) -> str:
         return self.migrate_student_id.fullname
