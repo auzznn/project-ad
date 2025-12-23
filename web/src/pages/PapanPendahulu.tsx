@@ -4,121 +4,153 @@ import "./Sahsiah.css";
 interface LeaderboardEntry {
   student_id: number;
   student_name: string;
-  sahsiah_point: number;
+  point: number;
   class_room: string;
   ranking: number;
 }
 
+interface Classroom {
+  id: number;
+  name: string;
+  grade: string;
+}
+
+interface SahsiahRecord {
+  id: number;
+  category: string;
+  description: string;
+  point: number;
+  date: string;
+}
+
 export default function LeaderboardPage() {
+  // ---------------- State ----------------
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [gradeFilter, setGradeFilter] = useState(""); // e.g., "Form1"
-  const [classFilter, setClassFilter] = useState(""); // e.g., "1Abu Bakar"
 
-  // ---------- Fetch leaderboard ----------
+  const [gradeFilter, setGradeFilter] = useState("");
+  const [classFilter, setClassFilter] = useState("");
+
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+
+  // Modal
+  const [selectedStudent, setSelectedStudent] = useState<LeaderboardEntry | null>(null);
+  const [studentRecords, setStudentRecords] = useState<SahsiahRecord[]>([]);
+  const [recordLoading, setRecordLoading] = useState(false);
+
+  // ---------------- Fetch classrooms ----------------
+  const fetchClassrooms = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/authentication/classroom/");
+      const data = await res.json();
+      setClassrooms(Array.isArray(data) ? data : []);
+    } catch {
+      setClassrooms([]);
+    }
+  };
+
+  // ---------------- Fetch leaderboard ----------------
   const fetchLeaderboard = async () => {
     setLoading(true);
 
     try {
       let url = "http://localhost:8080/api/sahsiah/leaderboard/";
 
-      // Only append grade/class if both are selected
       if (gradeFilter && classFilter) {
-        url += `${encodeURIComponent(gradeFilter)}/${encodeURIComponent(classFilter)}/`;
+        url += `${gradeFilter}/${classFilter}/`;
+      } else if (gradeFilter) {
+        url += `${gradeFilter}/`;
       }
-
-      console.log("Fetching leaderboard from URL:", url); // debug
 
       const res = await fetch(url);
       const data = await res.json();
 
-      if (Array.isArray(data)) setLeaderboard(data);
-      else if (Array.isArray(data.records)) setLeaderboard(data.records);
-      else setLeaderboard([]);
-    } catch (err) {
-      console.error("Failed to fetch leaderboard:", err);
+      setLeaderboard(Array.isArray(data.entry) ? data.entry : []);
+    } catch {
       setLeaderboard([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch whenever grade/class changes
+  // ---------------- Fetch student records ----------------
+const fetchStudentRecords = async (studentId: number) => {
+  setRecordLoading(true);
+
+  try {
+    const res = await fetch(
+      `http://localhost:8080/api/sahsiah/record/?student_id=${studentId}`
+    );
+
+    const data = await res.json();
+
+    console.log("Student records response:", data); // 🔍 IMPORTANT
+
+    if (Array.isArray(data.entry)) {
+      setStudentRecords(data.entry);
+    } else {
+      setStudentRecords([]);
+    }
+  } catch (err) {
+    console.error("Failed to fetch student records:", err);
+    setStudentRecords([]);
+  } finally {
+    setRecordLoading(false);
+  }
+};
+
+
+  // ---------------- Effects ----------------
+  useEffect(() => {
+    fetchClassrooms();
+  }, []);
+
   useEffect(() => {
     fetchLeaderboard();
   }, [gradeFilter, classFilter]);
 
-  // ---------- Local search ----------
-  const filteredList = leaderboard.filter((item) => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      item.student_name.toLowerCase().includes(term) ||
-      item.class_room.toLowerCase().includes(term) ||
-      String(item.sahsiah_point).includes(term)
-    );
-  });
-
+  // ---------------- Render ----------------
   return (
     <div className="page-container">
-      <h1 className="page-title">Leaderboard Pelajar</h1>
+      <h1 className="page-title">Papan Pendahulu Sahsiah</h1>
 
       <div className="section-box">
-        {/* ---- Controls ---- */}
+        {/* -------- Filters -------- */}
         <div className="controls-row">
-          <input
-            className="search-input"
-            placeholder="Cari pelajar..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-
-          {/* Grade Filter */}
           <select
             className="search-input"
             value={gradeFilter}
             onChange={(e) => {
               setGradeFilter(e.target.value);
-              setClassFilter(""); // reset class when grade changes
+              setClassFilter("");
             }}
           >
-            <option value="">-- Pilih Grade --</option>
-            <option value="Form1">Form 1</option>
-            <option value="Form2">Form 2</option>
-            <option value="Form3">Form 3</option>
+            <option value="">Semua Grade</option>
+            {[...new Set(classrooms.map((c) => c.grade))].map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
           </select>
 
-          {/* Class Filter */}
           <select
             className="search-input"
             value={classFilter}
             onChange={(e) => setClassFilter(e.target.value)}
-            disabled={!gradeFilter} // must select grade first
+            disabled={!gradeFilter}
           >
-            <option value="">-- Pilih Kelas --</option>
-            {gradeFilter === "Form1" && (
-              <>
-                <option value="1Abu Bakar">1Abu Bakar</option>
-                <option value="1Ali">1Ali</option>
-              </>
-            )}
-            {gradeFilter === "Form2" && (
-              <>
-                <option value="2Umar">2Umar</option>
-                <option value="2Uthman">2Uthman</option>
-              </>
-            )}
-            {gradeFilter === "Form3" && (
-              <>
-                <option value="3Abu Bakar">3Abu Bakar</option>
-                <option value="3Ali">3Ali</option>
-              </>
-            )}
+            <option value="">Semua Kelas</option>
+            {classrooms
+              .filter((c) => c.grade === gradeFilter)
+              .map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
           </select>
         </div>
 
-        {/* ---- Table ---- */}
+        {/* -------- Table -------- */}
         <div className="table-wrapper">
           <table className="custom-table">
             <thead>
@@ -126,7 +158,7 @@ export default function LeaderboardPage() {
                 <th>Ranking</th>
                 <th>Nama Pelajar</th>
                 <th>Kelas</th>
-                <th>Markah Sahsiah</th>
+                <th>Jumlah Mata</th>
               </tr>
             </thead>
 
@@ -134,31 +166,86 @@ export default function LeaderboardPage() {
               {loading ? (
                 <tr>
                   <td colSpan={4} className="empty-row">
-                    Loading leaderboard...
+                    Memuatkan leaderboard...
                   </td>
                 </tr>
-              ) : filteredList.length === 0 ? (
+              ) : leaderboard.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="empty-row">
-                    Tiada rekod dijumpai
+                    Tiada rekod
                   </td>
                 </tr>
               ) : (
-                filteredList
-                  .sort((a, b) => a.ranking - b.ranking)
-                  .map((item) => (
-                    <tr key={item.student_id}>
-                      <td>{item.ranking}</td>
-                      <td>{item.student_name}</td>
-                      <td>{item.class_room}</td>
-                      <td>{item.sahsiah_point}</td>
-                    </tr>
-                  ))
+                leaderboard.map((item) => (
+                  <tr key={item.student_id}>
+                    <td>{item.ranking}</td>
+                    <td>
+                      <button
+                        className="link-btn"
+                        onClick={() => {
+                          setSelectedStudent(item);
+                          fetchStudentRecords(item.student_id);
+                        }}
+                      >
+                        {item.student_name}
+                      </button>
+                    </td>
+                    <td>{item.class_room}</td>
+                    <td>{item.point}</td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* -------- Student Modal -------- */}
+      {selectedStudent && (
+        <div className="modal-backdrop">
+          <div className="modal-box large-modal">
+            <h2 className="modal-title">
+              Rekod Sahsiah — {selectedStudent.student_name}
+            </h2>
+
+            {recordLoading ? (
+              <p>Memuatkan rekod...</p>
+            ) : studentRecords.length === 0 ? (
+              <p>Tiada rekod sahsiah</p>
+            ) : (
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Tarikh</th>
+                    <th>Kategori</th>
+                    <th>Penerangan</th>
+                    <th>Mata</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentRecords.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.date}</td>
+                      <td>{r.category}</td>
+                      <td>{r.description}</td>
+                      <td>{r.point}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <div className="modal-btn-row">
+              <button
+                className="modal-cancel"
+                onClick={() => setSelectedStudent(null)}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
