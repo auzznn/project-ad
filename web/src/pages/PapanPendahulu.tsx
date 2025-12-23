@@ -17,10 +17,17 @@ interface Classroom {
 
 interface SahsiahRecord {
   id: number;
-  category: string;
+  timestamp: string;
+  migrate_student_id: number;
+  sahsiah_type: number;
+}
+
+interface SahsiahType {
+  id: number;
+  name: string;
   description: string;
-  point: number;
-  date: string;
+  points: number;
+  tag: string;
 }
 
 export default function LeaderboardPage() {
@@ -30,6 +37,7 @@ export default function LeaderboardPage() {
 
   const [gradeFilter, setGradeFilter] = useState("");
   const [classFilter, setClassFilter] = useState("");
+  const [sahsiahTypes, setSahsiahTypes] = useState<SahsiahType[]>([]);
 
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
 
@@ -73,21 +81,39 @@ export default function LeaderboardPage() {
     }
   };
 
+  // fetch sahsiah type
+  const fetchSahsiahTypes = async () => {
+  try {
+    const res = await fetch("http://localhost:8080/api/sahsiah/type/");
+    const data = await res.json();
+
+    if (Array.isArray(data.entry)) {
+      setSahsiahTypes(data.entry);
+    } else {
+      setSahsiahTypes([]);
+    }
+  } catch (err) {
+    console.error("Failed to fetch sahsiah types:", err);
+    setSahsiahTypes([]);
+  }
+};
+
+
   // ---------------- Fetch student records ----------------
 const fetchStudentRecords = async (studentId: number) => {
   setRecordLoading(true);
 
   try {
-    const res = await fetch(
-      `http://localhost:8080/api/sahsiah/record/?student_id=${studentId}`
-    );
-
+    const res = await fetch(`http://localhost:8080/api/sahsiah/record/`);
     const data = await res.json();
 
-    console.log("Student records response:", data); // 🔍 IMPORTANT
-
     if (Array.isArray(data.entry)) {
-      setStudentRecords(data.entry);
+      // Filter by student ID here
+      const filteredRecords = data.entry.filter(
+        (r: SahsiahRecord) => r.migrate_student_id === studentId
+      );
+
+      setStudentRecords(filteredRecords);
     } else {
       setStudentRecords([]);
     }
@@ -99,6 +125,10 @@ const fetchStudentRecords = async (studentId: number) => {
   }
 };
 
+  // helper to set sahsiah type
+  const getSahsiahType = (typeId: number) =>
+  sahsiahTypes.find((t) => t.id === typeId);
+
 
   // ---------------- Effects ----------------
   useEffect(() => {
@@ -108,6 +138,11 @@ const fetchStudentRecords = async (studentId: number) => {
   useEffect(() => {
     fetchLeaderboard();
   }, [gradeFilter, classFilter]);
+
+  useEffect(() => {
+  fetchClassrooms();
+  fetchSahsiahTypes();
+}, []);
 
   // ---------------- Render ----------------
   return (
@@ -217,20 +252,24 @@ const fetchStudentRecords = async (studentId: number) => {
                 <thead>
                   <tr>
                     <th>Tarikh</th>
-                    <th>Kategori</th>
+                    <th>Jenis Sahsiah</th>
                     <th>Penerangan</th>
                     <th>Mata</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {studentRecords.map((r) => (
-                    <tr key={r.id}>
-                      <td>{r.date}</td>
-                      <td>{r.category}</td>
-                      <td>{r.description}</td>
-                      <td>{r.point}</td>
-                    </tr>
-                  ))}
+                  {studentRecords.map((r) => {
+                    const type = getSahsiahType(r.sahsiah_type);
+
+                    return (
+                      <tr key={r.id}>
+                        <td>{new Date(r.timestamp).toLocaleDateString()}</td>
+                        <td>{type?.name || "Tidak diketahui"}</td>
+                        <td>{type?.description || "-"}</td>
+                        <td>{type?.points ?? "-"}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
