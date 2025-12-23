@@ -1,18 +1,22 @@
 from django.utils import timezone
-from rest_framework import viewsets, mixins, pagination
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 from django.utils import timezone
 from django.conf import settings
+from django.db.models import (
+    Q, Count, 
+)
 
-from authentication.models import Classroom
+from authentication.models import Classroom, MigrateStudent
 from .serializer import (
     StudentAttendanceSerializer,
     RecordStudentAttendanceSerializer,
     AddNoteSerializer,
 )
+from . import const
 from .models import StudentAttendance
 from base.pagination import StandardResultsSetPagination
 import pytz
@@ -134,3 +138,54 @@ class DateStudentAttendanceViewSet(GeneralStudentAttendanceViewSet):
             )
 
         return super().get_queryset()
+
+class AttendanceStatsViewSet(viewsets.ViewSet):
+    """
+    ViewSet to handle Dashboard Statistics and Analytics
+    """
+    
+    @action(detail=False, methods=['get'])
+    def dashboard(self, request):
+        today = timezone.now().date()
+        
+        # Aggregate today's stats
+        stats = StudentAttendance.objects.filter(date=today).aggregate(
+            on_time=Count('id', filter=Q(status=const.ON_TIME_STATUS_KEY)),
+            late=Count('id', filter=Q(status=const.LATE_STATUS_KEY)),
+            absent=Count('id', filter=Q(status=const.ABSENT_STATUS_KEY)),
+        )
+        
+        total_students = MigrateStudent.objects.count()
+        total_present = stats['on_time'] + stats['late']
+        
+        data = {
+            "total_students": total_students,
+            "on_time_count": stats['on_time'],
+            "late_count": stats['late'],
+            "absent_count": stats['absent'],
+            "attendance_rate": (total_present / total_students * 100) if total_students > 0 else 0
+        }
+        
+        return Response(data)
+
+    @action(detail=False, methods=['get'])
+    def classroom_breakdown(self, request):
+        """
+        Returns attendance percentage per classroom as seen in Figma charts
+        """
+        today = timezone.now().date()
+        classrooms = Classroom.objects.all()
+        result = []
+
+        for cls in classrooms:
+            attendance = StudentAttendance.objects.filter(
+                date=today, 
+                migrate_student_id__class_room=cls
+            ).values('status').annotate(count=Count('status'))
+            
+            result.append({
+                "class_name": cls.name,
+                "stats": list(attendance)
+            })
+            
+        return Response(result)
