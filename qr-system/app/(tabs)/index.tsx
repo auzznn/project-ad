@@ -6,8 +6,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Ionicons } from "@expo/vector-icons";
 import { studentApi } from "@/api/studentApi";
+import { ParentOnly } from "@/components/RoleBasedUI";
 
 export default function TabIndex() {
   const router = useRouter();
@@ -34,27 +36,43 @@ export default function TabIndex() {
     { label: "Messages", value: "2", icon: "chatbubble", color: primaryColor },
   ];
 
+  // Parent-specific children data (placeholder)
+  const childrenData = [
+    { name: "Ahmad", grade: "5A", attendance: "Present", lastSeen: "2 hours ago" },
+    { name: "Siti", grade: "3B", attendance: "Present", lastSeen: "1 hour ago" },
+  ];
+
   // Logout handler function
   const handleLogout = async () => {
     await logout();
     router.replace("/(onboarding)");
   };
 
-  // Quick actions
-  const quickActions = [
-    {
-      title: "Scan QR Code",
-      icon: "qr-code-outline",
-      onPress: () => router.push("/scanner"),
-      primary: true
-    },
-    {
-      title: "Log Out",
-      icon: "log-out-outline",
-      onPress: handleLogout,
-      primary: true
+  // Quick actions for different roles
+  const getQuickActions = () => {
+    const baseActions = [
+      {
+        title: "Log Out",
+        icon: "log-out-outline",
+        onPress: handleLogout,
+        primary: false
+      }
+    ];
+
+    // Only add scan action for admin/teacher
+    if (role === 'admin' || role === 'teacher') {
+      baseActions.unshift({
+        title: "Scan QR Code",
+        icon: "qr-code-outline",
+        onPress: async () => router.push("/scanner"),
+        primary: true
+      });
     }
-  ];
+
+    return baseActions;
+  };
+
+  const quickActions = getQuickActions();
 
   const getActionClassName = (primary: boolean) => {
     return `rounded-2xl p-5 mb-3 items-center shadow-lg ${primary ? 'border-0' : 'border'}`;
@@ -150,8 +168,60 @@ export default function TabIndex() {
           </View>
         </View>
 
+        {/* Parent-specific Children View */}
+        <ParentOnly>
+          <View
+            className="mx-5 rounded-2xl p-5 shadow-md border mb-6"
+            style={{ backgroundColor: cardColor, borderColor }}
+          >
+            <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
+              My Children
+            </Text>
+            <View className="mt-4">
+              {childrenData.map((child, index) => (
+                <View key={index} className="flex-row items-center mb-4 p-3 rounded-xl" style={{ backgroundColor: cardColor, borderColor, borderWidth: 1 }}>
+                  <View
+                    className="w-12 h-12 rounded-full justify-center items-center mr-3"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    <Text className="text-white font-bold">{child.name.charAt(0)}</Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold mb-1" style={{ color: textColor }}>
+                      {child.name}
+                    </Text>
+                    <View className="flex-row items-center">
+                      <Text className="text-sm mr-3" style={{ color: mutedColor }}>
+                        Grade {child.grade}
+                      </Text>
+                      <View
+                        className="px-2 py-1 rounded-full mr-2"
+                        style={{ backgroundColor: successColor }}
+                      >
+                        <Text className="text-xs text-white font-medium">
+                          {child.attendance}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="text-xs opacity-70" style={{ color: mutedColor }}>
+                      Last seen: {child.lastSeen}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    className="p-2 rounded-full"
+                    style={{ backgroundColor: primaryColor }}
+                    onPress={() => router.push(`/student-details?studentId=${child.name.toLowerCase()}`)}
+                  >
+                    <Ionicons name="chevron-forward" size={16} color="white" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        </ParentOnly>
+
         {/* Recent Activity */}
-        <View 
+        <View
           className="mx-5 rounded-2xl p-5 shadow-md border"
           style={{ backgroundColor: cardColor, borderColor }}
         >
@@ -160,7 +230,7 @@ export default function TabIndex() {
           </Text>
           <View className="mt-4">
             <View className="flex-row items-center mb-4">
-              <View 
+              <View
                 className="w-8 h-8 rounded-full justify-center items-center mr-3"
                 style={{ backgroundColor: primaryColor }}
               >
@@ -176,7 +246,7 @@ export default function TabIndex() {
               </View>
             </View>
             <View className="flex-row items-center">
-              <View 
+              <View
                 className="w-8 h-8 rounded-full justify-center items-center mr-3"
                 style={{ backgroundColor: successColor }}
               >

@@ -2,9 +2,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi } from '@/api/studentApi';
 import { useFocusEffect } from 'expo-router';
+import { RoleBasedUI, AdminOrTeacher } from '@/components/RoleBasedUI';
 
 // Dynamic student data structure
 interface StudentData {
@@ -46,6 +48,9 @@ export default function Discipline() {
   const borderColor = useThemeColor('border');
   const accentColor = useThemeColor('accent');
   const successColor = useThemeColor('success');
+  
+  // Role-based permissions
+  const { hasPermission } = usePermissions();
   
   // Load student data from API on component mount
   useEffect(() => {
@@ -295,6 +300,7 @@ export default function Discipline() {
                       <Text className="text-xs" style={{ color: mutedColor }}>
                         discipline points
                       </Text>
+                      
                     </View>
                   </View>
                 </View>
