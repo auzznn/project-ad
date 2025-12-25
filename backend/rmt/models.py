@@ -13,5 +13,5 @@ class RMTRecord(models.Model):
         on_delete=models.CASCADE,
         null=True,
     )
-    created_at = models.DateTimeField(default=default_datetime)
-    updated_at = models.DateTimeField(default=default_datetime)
+    date = models.DateField(default=default_datetime)
+    timestamp = models.DateTimeField(default=default_datetime)
