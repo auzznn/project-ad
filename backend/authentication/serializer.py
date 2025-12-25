@@ -2,7 +2,7 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.reverse import reverse
-from django.contrib.sites.models import Site
+from django.conf import settings
 
 from .models import MyUser, Student, MigrateStudent, Classroom
 from .const import TOKEN_REFRESH_PATH_NAME
@@ -10,22 +10,23 @@ from .const import TOKEN_REFRESH_PATH_NAME
 
 class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
     
-    def _get_refresh_url(self) -> str:
-        request = self.context.get('request')
+    @classmethod
+    def _get_refresh_url(cls) -> str:
+        domain_name = settings.DOMAIN_NAME
         module_name = 'authentication'
         view_name = TOKEN_REFRESH_PATH_NAME
         reverse_lookup = f'{module_name}:{view_name}'
-        return reverse(reverse_lookup, request=request)
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        data["first_name"] = self.user.first_name
-        data["last_name"] = self.user.last_name
-        data["role"] = self.user.role
-        
-        data['refresh_url'] = self._get_refresh_url()
-        
-        return data
+        relative_url = reverse(reverse_lookup)
+        return f'{domain_name.rstrip("/")}{relative_url}'
+    
+    @classmethod
+    def get_token(cls, user: MyUser):
+        token = super().get_token(user)
+        token['first_name'] = user.first_name
+        token['last_name'] = user.last_name
+        token['role'] = user.role
+        token['refresh_url'] = cls._get_refresh_url()
+        return token
 
 
 class MyUserRetrieveSerializer(ModelSerializer):

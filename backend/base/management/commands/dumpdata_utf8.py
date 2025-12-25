@@ -9,5 +9,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         with io.open(DUMMY_DATA_FILEDIR, 'w', encoding='utf-8') as f:
-            call_command('dumpdata', indent=2, stdout=f)
+            call_command(
+                'dumpdata', 
+                indent=2, 
+                stdout=f, 
+                exclude=['contenttypes', 'auth.permission'] 
+            )
         self.stdout.write(self.style.SUCCESS('Data exported successfully in UTF-8!'))
