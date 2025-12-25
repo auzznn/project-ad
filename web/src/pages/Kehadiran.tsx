@@ -4,7 +4,7 @@ import "./Kehadiran.css";
 /* ================= Interfaces ================= */
 
 interface Student {
-  student_id: number;
+  id: number;
   name: string;
   grade: number;
   section: string;
@@ -103,7 +103,7 @@ export default function KehadiranPage() {
   };
 
 const submitEditAttendance = async () => {
-  if (!editRecord?.student?.student_id || !editTime) return;
+  if (!editRecord?.student?.id || !editTime) return;
 
   // 🔑 USE EXISTING RECORD DATE
   const date = editRecord.date; // YYYY-MM-DD
@@ -116,7 +116,7 @@ const submitEditAttendance = async () => {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          student_id: editRecord.student.student_id,
+          student_id: editRecord.student.id,
           timestamp,
         }),
       }

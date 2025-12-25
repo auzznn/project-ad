@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Sahsiah.css";
 
 interface LeaderboardEntry {
-  student_id: number;
+  id: number;
   student_name: string;
   sahsiah_point: number;
   class_room: string;
@@ -147,7 +147,7 @@ export default function LeaderboardPage() {
                 filteredList
                   .sort((a, b) => a.ranking - b.ranking)
                   .map((item) => (
-                    <tr key={item.student_id}>
+                    <tr key={item.id}>
                       <td>{item.ranking}</td>
                       <td>{item.student_name}</td>
                       <td>{item.class_room}</td>

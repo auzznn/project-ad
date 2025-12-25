@@ -36,7 +36,7 @@ export default function scanner() {
 
   // Handle successful QR scan
   const handleScanSuccess = useCallback((scannedStudent: Student) => {
-    setQrData(scannedStudent.student_id);
+    setQrData(scannedStudent.id);
     setStudent(scannedStudent);
     setShowStudentModal(true);
     setShowSahsiahForm(false);
@@ -111,7 +111,7 @@ export default function scanner() {
   }
 
   const studentActions = student
-    ? getStudentActions(student.student_id)
+    ? getStudentActions(student.id)
     : {
         attendance: false,
         rmt: false,
@@ -162,8 +162,8 @@ export default function scanner() {
           const success = await handleSahsiah(student, sahsiahType, notes);
           return success || false;
         }}
-        onDiscipline={async (student, violationType, notes, points) => {
-          const success = await handleDiscipline(student, violationType, notes, points);
+        onDiscipline={async (student, disciplineType, notes) => {
+          const success = await handleDiscipline(student, disciplineType, notes);
           return success || false;
         }}
         onOpenSahsiahForm={handleOpenSahsiahForm}

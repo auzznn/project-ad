@@ -46,7 +46,7 @@ export const useStudentData = () => {
 
     try {
       // Fetch today's attendance record
-      const record = await studentApi.checkAttendanceStatus(student.student_id);
+      const record = await studentApi.checkAttendanceStatus(student.id);
 
       // Check if student already has attendance and is not absent
       if (record && record.status !== "absent") {
@@ -56,7 +56,7 @@ export const useStudentData = () => {
 
       // Mark attendance
       const attendancePayload: AttendancePayload = {
-        student_id: student.student_id,
+        id: student.id,
         timestamp: new Date().toISOString(),
       };
 
@@ -115,7 +115,7 @@ export const useStudentData = () => {
     showAlert("Eligible for RMT", "success");
 
     // Update state immediately after showing alert
-    updateStudentAction(student.student_id, "rmt", true);
+    updateStudentAction(student.id, "rmt", true);
     setLoading((prev) => ({ ...prev, rmt: false }));
   };
 
@@ -141,7 +141,7 @@ export const useStudentData = () => {
       // Create sahsiah record for API
       const sahsiahRecord = {
         timestamp: timestamp,
-        student_id: parseInt(student.student_id),
+        migrate_student_id: parseInt(student.id),
         sahsiah_type: sahsiahType,
       };
 
@@ -150,7 +150,7 @@ export const useStudentData = () => {
 
       showAlert("Good deed recorded successfully", "success");
       return true;
-    } catch (error) {
+    } catch (error) { 
       showAlert("Failed to record good deed", "error");
       console.error("Sahsiah error:", error);
       return false;
@@ -179,60 +179,25 @@ export const useStudentData = () => {
    */
   const handleDiscipline = async (
     student: Student,
-    violationType: string,
-    notes: string,
-    points?: number
+    disciplineType: number,
+    notes: string
   ): Promise<boolean> => {
     if (!student) return false;
 
     setLoading((prev) => ({ ...prev, discipline: true }));
     try {
-      const today = new Date().toISOString().split("T")[0];
       const timestamp = new Date().toISOString();
 
-      // Create comprehensive discipline record with all student data
-      // This ensures we have complete information for reporting and tracking
-      const disciplineKey = `discipline_${student.student_id}_${today}_${timestamp}`;
-      const disciplineData = {
-        student_id: student.student_id,
-        student_name: student.name,
-        program: student.program,
-        eligible_rmt: student.eligible_rmt,
-        violation_type: violationType,
-        notes: notes,
-        points: points || 0, // Points will be determined in DisciplineForm (negative)
+      // Create discipline record for API with exact payload structure
+      const disciplineRecord = {
         timestamp: timestamp,
+        student_id: parseInt(student.id),
+        migrate_student_id: parseInt(student.id),
+        discipline_type: disciplineType,
       };
 
-      // Store the discipline record for historical tracking
-      await AsyncStorage.setItem(disciplineKey, JSON.stringify(disciplineData));
-
-      // Update student points if points are provided (will be negative)
-      if (points && points !== 0) {
-        // Update the student's total and daily points (deducting)
-        await updateStudentPoints(student.student_id, points);
-
-        // Add to today's violations list for display
-        // This ensures violations are tracked alongside good deeds
-        await updateTodayViolations(
-          student.student_id,
-          student.name,
-          student.program || "Unknown",
-          violationType,
-          points,
-          timestamp
-        );
-
-        // Update class statistics for reporting and analytics (negative points)
-        await updateClassStatistics(student.program || "Unknown", points);
-      }
-
-      // Increment discipline count for this student (for UI display)
-      setDisciplineCount((prev) => prev + 1);
-
-      // Mark discipline action as completed for today
-      // This prevents duplicate recordings and tracks daily progress
-      updateStudentAction(student.student_id, "discipline", true);
+      // Post discipline record to API
+      await studentApi.recordDiscipline(disciplineRecord);
 
       showAlert("Discipline issue recorded successfully", "success");
       return true;

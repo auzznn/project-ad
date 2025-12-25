@@ -46,10 +46,23 @@ export default function TabLayout() {
       <Tabs.Screen
         name="leaderboard"
         options={{
-          title: 'Leaderboard',
+          title: 'Sahsiah',
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? 'trophy' : 'trophy-outline'}
+              size={size || 22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="discipline"
+        options={{
+          title: 'Discipline',
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialCommunityIcons
+              name={focused ? 'shield-check' : 'shield-check-outline'}
               size={size || 22}
               color={color}
             />

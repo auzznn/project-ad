@@ -1,7 +1,7 @@
 import { apiRequest } from './axiosClient';
 
 export interface Student {
-  student_id: string;
+  id: string;
   name: string;
   class: string;
   grade?: string;
@@ -13,18 +13,18 @@ export interface Student {
 }
 
 export interface AttendanceRecord {
-  student_id: string;
+  id: string;
   timestamp: string;
 }
 
 export interface AttendancePayload {
-  student_id: string;
+  id: string;
   timestamp: string;
 }
 
 export interface SahsiahRecord {
   timestamp: string;
-  student_id: number;
+  migrate_student_id: number;
   sahsiah_type: number;
 }
 
@@ -45,17 +45,41 @@ export interface SahsiahCategory {
   types: SahsiahType[];
 }
 
+export interface DisciplineRecord {
+  timestamp: string | null;
+  student_id: number | null;
+  migrate_student_id: number | null;
+  discipline_type: number | null;
+}
+
+export interface DisciplineType {
+  id: string;
+  name: string;
+  points: number;
+  tag: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface DisciplineCategory {
+  tag: string;
+  name: string;
+  icon?: string;
+  color?: string;
+  types: DisciplineType[];
+}
+
 export const studentApi = {
   // Get student data by ID
   getStudent: async (studentId: string): Promise<Student> => {
-    return apiRequest.get(`/authentication/user/${studentId}`);
+    return apiRequest.get(`/authentication/student/${studentId}`);
   },
   
   // Mark attendance for a student
   markAttendance: async (payload: AttendancePayload): Promise<any> => {
     try {
       const response = await apiRequest.patch('/student_attendance/record/', {
-        student_id: payload.student_id,
+        student_id: payload.id,
        timestamp: payload.timestamp
       });
       return response;
@@ -68,15 +92,16 @@ export const studentApi = {
   checkAttendanceStatus: async (studentId: string): Promise<any> => {
     // Get all attendance for today and filter by student_id on the client side
     const response = await apiRequest.get('student_attendance/daily/');
+    console.log(response)
     
     // Filter for the specific student - the student_id is nested inside a student object
-    const studentRecord = response.find((record: any) => {
-      return record.student && record.student.student_id === Number(studentId);
+    const studentRecord = response.entry.find((record: any) => {
+      return record.student && record.student.id === Number(studentId);
     }) || null;
     
     // This ensures students without attendance records can be marked
     if (!studentRecord) {
-      return { status: "absent", student_id: studentId };
+      return { status: "absent", id: studentId };
     }
     
     return studentRecord;
@@ -94,7 +119,8 @@ export const studentApi = {
   
   // Get sahsiah types from API
   getSahsiahTypes: async (): Promise<SahsiahType[]> => {
-    return apiRequest.get('/sahsiah/type/');
+    const response = await apiRequest.get('/sahsiah/type/')
+    return response.entry;
   },
   
   // Reset all sahsiah data
@@ -104,6 +130,33 @@ export const studentApi = {
   
   // Get leaderboard data from sahsiah/leaderboard/
   getLeaderboard: async (): Promise<any> => {
-    return apiRequest.get('/sahsiah/leaderboard/');
+    const response = await apiRequest.get('/sahsiah/leaderboard/');
+    return response.entry;
+  },
+  
+  // Record discipline for a student
+  recordDiscipline: async (data: DisciplineRecord): Promise<any> => {
+    return apiRequest.post('/discipline/record/', data);
+  },
+  
+  // Get discipline types from API
+  getDisciplineTypes: async (): Promise<DisciplineType[]> => {
+    const response = await apiRequest.get('/discipline/type/')
+    return response.entry;
+  },
+  
+  // Reset all discipline data
+  resetDiscipline: async (): Promise<any> => {
+    return apiRequest.post('/discipline/reset');
+  },
+  
+  // Get discipline leaderboard data from discipline/leaderboard/
+  getDisciplineLeaderboard: async (): Promise<any> => {
+    const response = await apiRequest.get('/discipline/leaderboard/');
+    return response.entry;
   }
 };
+
+const anjay = () => {
+  
+}
