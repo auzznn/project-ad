@@ -348,7 +348,7 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
               </View>
               <View style={styles.studentDetails}>
                 <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
-                <Text style={[styles.studentId, { color: mutedColor }]}>{student.student_id}</Text>
+                <Text style={[styles.studentId, { color: mutedColor }]}>{student.id}</Text>
                 <Text style={[styles.studentProgram, { color: mutedColor }]}>{student.program}</Text>
               </View>
             </View>

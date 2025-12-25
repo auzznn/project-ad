@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Student, studentApi, SahsiahType, SahsiahCategory } from '../api/studentApi';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColor } from '../hooks/useThemeColor';
 
@@ -359,7 +358,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
               </View>
               <View style={styles.studentDetails}>
                 <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
-                <Text style={[styles.studentId, { color: mutedColor }]}>{student.student_id}</Text>
+                <Text style={[styles.studentId, { color: mutedColor }]}>{student.id}</Text>
                 <Text style={[styles.studentProgram, { color: mutedColor }]}>{student.program}</Text>
               </View>
             </View>

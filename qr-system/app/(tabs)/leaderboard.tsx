@@ -247,7 +247,7 @@ export default function Leaderboard() {
               const rank = student.id;
               return (
                 <View
-                  key={student.student_id}
+                  key={student.id}
                   className="rounded-2xl p-4 mb-3 border shadow-sm"
                   style={{
                     backgroundColor: cardColor,

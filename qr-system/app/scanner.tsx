@@ -36,7 +36,7 @@ export default function scanner() {
 
   // Handle successful QR scan
   const handleScanSuccess = useCallback((scannedStudent: Student) => {
-    setQrData(scannedStudent.student_id);
+    setQrData(scannedStudent.id);
     setStudent(scannedStudent);
     setShowStudentModal(true);
     setShowSahsiahForm(false);
@@ -111,7 +111,7 @@ export default function scanner() {
   }
 
   const studentActions = student
-    ? getStudentActions(student.student_id)
+    ? getStudentActions(student.id)
     : {
         attendance: false,
         rmt: false,

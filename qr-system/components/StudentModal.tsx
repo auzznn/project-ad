@@ -61,7 +61,7 @@ export default function StudentModal({
       
       setCheckingAttendance(true);
       try {
-        const record = await studentApi.checkAttendanceStatus(student.student_id);
+        const record = await studentApi.checkAttendanceStatus(student.id);
         
         // Enable button only if no record exists or status is "absent"
         const canMark = !record || record.status === "absent";
@@ -128,7 +128,7 @@ export default function StudentModal({
             <View style={styles.infoRow}>
               <Text style={styles.emoji}>🎓</Text>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Student ID</Text>
-              <Text style={[styles.infoValue, { color: theme.text }]}>{student.student_id}</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>{student.id}</Text>
             </View>
             
             <View style={styles.infoRow}>
