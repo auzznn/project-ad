@@ -162,8 +162,8 @@ export default function scanner() {
           const success = await handleSahsiah(student, sahsiahType, notes);
           return success || false;
         }}
-        onDiscipline={async (student, violationType, notes, points) => {
-          const success = await handleDiscipline(student, violationType, notes, points);
+        onDiscipline={async (student, disciplineType, notes) => {
+          const success = await handleDiscipline(student, disciplineType, notes);
           return success || false;
         }}
         onOpenSahsiahForm={handleOpenSahsiahForm}

@@ -27,7 +27,7 @@ interface StudentModalProps {
   onAttendance: () => void;
   onRMT: () => void;
   onSahsiah: (deedType: string, notes: string, points?: number) => Promise<void>;
-  onDiscipline: (violationType: string, notes: string, points?: number) => Promise<void>;
+  onDiscipline: (disciplineType: number, notes: string) => Promise<void>;
   onOpenSahsiahForm: () => void;
   onOpenDisciplineForm: () => void;
   onAttendanceSuccess?: () => void; // New callback for successful attendance

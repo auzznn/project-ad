@@ -24,7 +24,7 @@ export interface AttendancePayload {
 
 export interface SahsiahRecord {
   timestamp: string;
-  id: number;
+  migrate_student_id: number;
   sahsiah_type: number;
 }
 
@@ -43,6 +43,30 @@ export interface SahsiahCategory {
   icon?: string;
   color?: string;
   types: SahsiahType[];
+}
+
+export interface DisciplineRecord {
+  timestamp: string | null;
+  student_id: number | null;
+  migrate_student_id: number | null;
+  discipline_type: number | null;
+}
+
+export interface DisciplineType {
+  id: string;
+  name: string;
+  points: number;
+  tag: string;
+  icon?: string;
+  color?: string;
+}
+
+export interface DisciplineCategory {
+  tag: string;
+  name: string;
+  icon?: string;
+  color?: string;
+  types: DisciplineType[];
 }
 
 export const studentApi = {
@@ -106,7 +130,30 @@ export const studentApi = {
   
   // Get leaderboard data from sahsiah/leaderboard/
   getLeaderboard: async (): Promise<any> => {
-    return apiRequest.get('/sahsiah/leaderboard/');
+    const response = await apiRequest.get('/sahsiah/leaderboard/');
+    return response.entry;
+  },
+  
+  // Record discipline for a student
+  recordDiscipline: async (data: DisciplineRecord): Promise<any> => {
+    return apiRequest.post('/discipline/record/', data);
+  },
+  
+  // Get discipline types from API
+  getDisciplineTypes: async (): Promise<DisciplineType[]> => {
+    const response = await apiRequest.get('/discipline/type/')
+    return response.entry;
+  },
+  
+  // Reset all discipline data
+  resetDiscipline: async (): Promise<any> => {
+    return apiRequest.post('/discipline/reset');
+  },
+  
+  // Get discipline leaderboard data from discipline/leaderboard/
+  getDisciplineLeaderboard: async (): Promise<any> => {
+    const response = await apiRequest.get('/discipline/leaderboard/');
+    return response.entry;
   }
 };
 
