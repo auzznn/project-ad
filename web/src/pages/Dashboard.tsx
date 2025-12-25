@@ -20,13 +20,13 @@ function Dashboard() {
 
   useEffect(() => {
     // Fetch attendance statistics
-    fetch("http://localhost:8080/api/student_attendance/statistic/2025/dashboard/")
+    fetch("http://localhost:8080/api/student_attendance/statistic/daily/dashboard/")
       .then((res) => res.json())
       .then((data: AttendanceStats) => setAttendanceStats(data))
       .catch((err) => console.error("Error loading attendance stats:", err));
 
     // Fetch classroom breakdown
-    fetch("http://localhost:8080/api/student_attendance/statistic/2025/classroom_breakdown/")
+    fetch("http://localhost:8080/api/student_attendance/statistic/daily/classroom_breakdown/")
       .then((res) => res.json())
       .then((data: ClassroomBreakdown[]) => setClassroomBreakdown(data))
       .catch((err) => console.error("Error loading classroom breakdown:", err));

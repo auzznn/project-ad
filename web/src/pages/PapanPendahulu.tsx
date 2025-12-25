@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import "./Sahsiah.css";
+import "./PapanPendahulu.css";
+import SearchBar from "../components/SearchBar";
+import Pagination from "../components/pagination";
 
 interface LeaderboardEntry {
   student_id: number;
@@ -11,8 +13,8 @@ interface LeaderboardEntry {
 
 interface Classroom {
   id: number;
-  name: string;
-  grade: string;
+  grade: number;
+  class_section: string;
 }
 
 interface SahsiahRecord {
@@ -35,11 +37,16 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [gradeFilter, setGradeFilter] = useState("");
+  const [gradeFilter, setGradeFilter] = useState<number | "">("");
   const [classFilter, setClassFilter] = useState("");
   const [sahsiahTypes, setSahsiahTypes] = useState<SahsiahType[]>([]);
 
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Modal
   const [selectedStudent, setSelectedStudent] = useState<LeaderboardEntry | null>(null);
@@ -62,24 +69,55 @@ export default function LeaderboardPage() {
     setLoading(true);
 
     try {
-      let url = "http://localhost:8080/api/sahsiah/leaderboard/";
+      // Build the URL depending on filters
+      let url = `http://localhost:8080/api/sahsiah/leaderboard/?page=${page}`;
 
       if (gradeFilter && classFilter) {
-        url += `${gradeFilter}/${classFilter}/`;
+        url = `http://localhost:8080/api/sahsiah/leaderboard/${gradeFilter}/${classFilter}/?page=${page}`;
       } else if (gradeFilter) {
-        url += `${gradeFilter}/`;
+        url = `http://localhost:8080/api/sahsiah/leaderboard/${gradeFilter}/?page=${page}`;
       }
 
       const res = await fetch(url);
-      const data = await res.json();
+      const data: {
+        links: { next: string | null; previous: string | null };
+        total_items: number;
+        page_number: number;
+        entry: LeaderboardEntry[];
+      } = await res.json();
 
+      // Set the leaderboard entries
       setLeaderboard(Array.isArray(data.entry) ? data.entry : []);
-    } catch {
+
+      // Set pagination info
+      setPage(data.page_number ?? 1);
+      setTotalPages(
+        data.total_items && data.entry?.length
+          ? Math.ceil(data.total_items / data.entry.length)
+          : 1
+      );
+    } catch (err) {
+      console.error("Failed to fetch leaderboard:", err);
       setLeaderboard([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
+
+
+  // search filter
+  const filteredLeaderboard = leaderboard.filter((item) => {
+  const term = searchTerm.toLowerCase().trim();
+
+  if (!term) return true;
+
+  return (
+    item.student_name.toLowerCase().includes(term) ||
+    item.class_room.toLowerCase().includes(term)
+  );
+});
+
 
   // fetch sahsiah type
   const fetchSahsiahTypes = async () => {
@@ -137,7 +175,11 @@ const fetchStudentRecords = async (studentId: number) => {
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [gradeFilter, classFilter]);
+  }, [gradeFilter, classFilter, page]);
+
+  useEffect(() => {
+  setPage(1);
+}, [gradeFilter, classFilter]);
 
   useEffect(() => {
   fetchClassrooms();
@@ -156,14 +198,15 @@ const fetchStudentRecords = async (studentId: number) => {
             className="search-input"
             value={gradeFilter}
             onChange={(e) => {
-              setGradeFilter(e.target.value);
+              const value = e.target.value;
+              setGradeFilter(value === "" ? "" : Number(value));
               setClassFilter("");
             }}
           >
-            <option value="">Semua Grade</option>
+            <option value="">Semua Tingkat</option>
             {[...new Set(classrooms.map((c) => c.grade))].map((g) => (
               <option key={g} value={g}>
-                {g}
+                Tingkat {g}
               </option>
             ))}
           </select>
@@ -172,17 +215,25 @@ const fetchStudentRecords = async (studentId: number) => {
             className="search-input"
             value={classFilter}
             onChange={(e) => setClassFilter(e.target.value)}
-            disabled={!gradeFilter}
+            disabled={gradeFilter === ""}
           >
             <option value="">Semua Kelas</option>
             {classrooms
               .filter((c) => c.grade === gradeFilter)
               .map((c) => (
-                <option key={c.id} value={c.name}>
-                  {c.name}
+                <option key={c.id} value={c.class_section}>
+                  {c.class_section}
                 </option>
               ))}
           </select>
+        </div>
+
+        <div className="controls-row">
+          <SearchBar
+            value={searchTerm}
+            placeholder="Cari pelajar..."
+            onChange={setSearchTerm}
+          />
         </div>
 
         {/* -------- Table -------- */}
@@ -190,7 +241,7 @@ const fetchStudentRecords = async (studentId: number) => {
           <table className="custom-table">
             <thead>
               <tr>
-                <th>Ranking</th>
+                <th>Urutan</th>
                 <th>Nama Pelajar</th>
                 <th>Kelas</th>
                 <th>Jumlah Mata</th>
@@ -211,7 +262,7 @@ const fetchStudentRecords = async (studentId: number) => {
                   </td>
                 </tr>
               ) : (
-                leaderboard.map((item) => (
+                filteredLeaderboard.map((item) => (
                   <tr key={item.student_id}>
                     <td>{item.ranking}</td>
                     <td>

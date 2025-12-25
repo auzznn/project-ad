@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./Kehadiran.css";
 import Pagination from "../components/pagination";
+import SearchBar from "../components/SearchBar";
+import FilterDropdown from "../components/FilterDropdown";
 
 /* ================= Interfaces ================= */
 
@@ -58,7 +60,7 @@ export default function KehadiranPage() {
     setLoading(true);
     try {
       // you can add &page_size=XX if needed
-      const res = await fetch(`http://127.0.0.1:8080/api/student_attendance/?page=${pageNumber}`);
+      const res = await fetch(`http://127.0.0.1:8080/api/student_attendance/daily/?page=${pageNumber}`);
       const data: AttendanceResponse = await res.json();
 
       setAttendanceList(Array.isArray(data.entry) ? data.entry : []);
@@ -180,12 +182,10 @@ export default function KehadiranPage() {
 
       <div className="section-box">
         <div className="controls-row">
-          <input
-            type="text"
-            placeholder="Search student attendance..."
-            className="search-input"
+          <SearchBar
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Cari kehadiran pelajar..."
+            onChange={setSearchTerm}
           />
         </div>
 
@@ -194,12 +194,12 @@ export default function KehadiranPage() {
             <thead>
               <tr>
                 <th>No.</th>
-                <th>Student Name</th>
-                <th>Class</th>
-                <th>Time</th>
+                <th>Nama</th>
+                <th>Kelas</th>
+                <th>Waktu</th>
                 <th>Status</th>
-                <th>Notes</th>
-                <th>Action</th>
+                <th>Catatan</th>
+                <th>Tindakan</th>
               </tr>
             </thead>
 

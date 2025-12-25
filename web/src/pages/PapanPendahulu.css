@@ -259,3 +259,28 @@
     font-size: 0.85rem;
   }
 }
+
+.link-btn {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  margin: -2px -4px; /* keeps alignment in table */
+
+  font: inherit;
+  color: inherit;
+  text-align: left;
+
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.link-btn:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.link-btn:focus-visible {
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
