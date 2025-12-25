@@ -7,4 +7,4 @@ class RMTRecordSerializer(ModelSerializer):
   
   class Meta:
     model = RMTRecord
-    fields = ['created_at', 'updated_at', 'student']
+    fields = ['student', 'date', 'timestamp']
