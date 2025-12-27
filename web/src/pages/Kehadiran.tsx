@@ -34,6 +34,12 @@ interface AttendanceResponse {
   entry: AttendanceRecord[];
 }
 
+interface Classroom {
+  id: number;
+  grade: number;
+  class_section: string;
+}
+
 /* ================= Component ================= */
 
 export default function KehadiranPage() {
@@ -54,43 +60,84 @@ export default function KehadiranPage() {
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
   const [noteText, setNoteText] = useState("");
 
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+
+  const [gradeFilter, setGradeFilter] = useState<number | "">("");
+  const [classFilter, setClassFilter] = useState<string>("");
+
   /* ================= Fetch ================= */
+    const fetchAttendance = async (pageNumber: number = 1) => {
+      setLoading(true);
+      try {
+        let url = `http://127.0.0.1:8080/api/student_attendance/daily/?page=${pageNumber}`;
 
-  const fetchAttendance = async (pageNumber: number = 1) => {
-    setLoading(true);
+        // Only filter on backend if both grade and class are selected
+        if (gradeFilter !== "" && classFilter !== "") {
+          url = `http://127.0.0.1:8080/api/student_attendance/daily/${gradeFilter}/${classFilter}/?page=${pageNumber}`;
+        }
+
+        const res = await fetch(url);
+        const data: AttendanceResponse = await res.json();
+
+        let entries = Array.isArray(data.entry) ? data.entry : [];
+
+        // Frontend filter by grade if only grade is selected
+        if (gradeFilter !== "" && classFilter === "") {
+          entries = entries.filter((rec) => rec.student?.grade === gradeFilter);
+        }
+
+        setAttendanceList(entries);
+        setPage(data.page_number ?? 1);
+        setPageSize(entries.length || 20);
+        setTotalPages(Math.ceil(data.total_items / pageSize));
+      } catch (err) {
+        console.error("Fetch error:", err);
+        setAttendanceList([]);
+        setTotalPages(1);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  // Fetch whenever page changes or filters change
+    useEffect(() => {
+      setPage(1); // reset page whenever filters change
+    }, [gradeFilter, classFilter]);
+
+    useEffect(() => {
+      fetchAttendance(page);
+    }, [page, gradeFilter, classFilter]);
+
+  // get classroom list
+  const fetchClassrooms = async () => {
     try {
-      // you can add &page_size=XX if needed
-      const res = await fetch(`http://127.0.0.1:8080/api/student_attendance/daily/?page=${pageNumber}`);
-      const data: AttendanceResponse = await res.json();
-
-      setAttendanceList(Array.isArray(data.entry) ? data.entry : []);
-      setPage(data.page_number);
-      setPageSize(data.entry.length || 20); // fallback if entry empty
-      setTotalPages(Math.ceil(data.total_items / (data.entry.length || 20)));
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setAttendanceList([]);
-    } finally {
-      setLoading(false);
+      const res = await fetch("http://127.0.0.1:8080/api/authentication/classroom/");
+      const data = await res.json();
+      setClassrooms(Array.isArray(data) ? data : []);
+    } catch {
+      setClassrooms([]);
     }
   };
 
   useEffect(() => {
-    fetchAttendance(page);
-  }, [page]);
+    fetchClassrooms();
+  }, []);
 
   /* ================= Helpers ================= */
 
-  const filteredAttendance = attendanceList.filter((rec) => rec.student !== null)
+  const filteredAttendance = attendanceList
+    .filter((rec) => rec.student !== null)
     .filter((rec) =>
-      (rec.student?.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+      (rec.student?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
     );
 
-  const getStatusLabel = (status: AttendanceRecord["status"]) => {
-    if (status === "on-time") return "Tepat Waktu";
-    if (status === "late") return "Lambat";
-    return "Tidak Hadir";
-  };
+    const getStatusLabel = (status: AttendanceRecord["status"]) => {
+      if (status === "on-time") return "Tepat Waktu";
+      if (status === "late") return "Lambat";
+      return "Tidak Hadir";
+    };
 
   const getStatusClass = (label: string) => {
     if (label === "Tepat Waktu") return "status-present";
@@ -186,6 +233,40 @@ export default function KehadiranPage() {
             value={searchTerm}
             placeholder="Cari kehadiran pelajar..."
             onChange={setSearchTerm}
+          />
+        </div>
+
+        <div className="controls-row">
+          <FilterDropdown
+            label="Tingkat"
+            value={gradeFilter}
+            onChange={(value) => {
+              setGradeFilter(value === "" ? "" : Number(value));
+              setClassFilter("");
+            }}
+            options={[
+              { value: "", label: "Semua Tingkat" },
+              ...[...new Set(classrooms.map((c) => c.grade))].map((g) => ({
+                value: g,
+                label: `Tingkat ${g}`,
+              })),
+            ]}
+          />
+
+          <FilterDropdown
+            label="Kelas"
+            value={classFilter}
+            onChange={(value) => setClassFilter(String(value))}
+            disabled={gradeFilter === ""}
+            options={[
+              { value: "", label: "Semua Kelas" },
+              ...classrooms
+                .filter((c) => c.grade === gradeFilter)
+                .map((c) => ({
+                  value: c.class_section,
+                  label: c.class_section,
+                })),
+            ]}
           />
         </div>
 

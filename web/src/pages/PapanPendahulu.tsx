@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import "./PapanPendahulu.css";
 import SearchBar from "../components/SearchBar";
 import Pagination from "../components/pagination";
+import FilterDropdown from "../components/FilterDropdown";
+
 
 interface LeaderboardEntry {
   student_id: number;
@@ -142,19 +144,18 @@ const fetchStudentRecords = async (studentId: number) => {
   setRecordLoading(true);
 
   try {
-    const res = await fetch(`http://localhost:8080/api/sahsiah/record/`);
-    const data = await res.json();
+    const res = await fetch(
+      `http://localhost:8080/api/sahsiah/record/student/${studentId}`
+    );
 
-    if (Array.isArray(data.entry)) {
-      // Filter by student ID here
-      const filteredRecords = data.entry.filter(
-        (r: SahsiahRecord) => r.migrate_student_id === studentId
-      );
+    const data: {
+      links?: { next: string | null; previous: string | null };
+      total_items?: number;
+      page_number?: number;
+      entry: SahsiahRecord[];
+    } = await res.json();
 
-      setStudentRecords(filteredRecords);
-    } else {
-      setStudentRecords([]);
-    }
+    setStudentRecords(Array.isArray(data.entry) ? data.entry : []);
   } catch (err) {
     console.error("Failed to fetch student records:", err);
     setStudentRecords([]);
@@ -162,7 +163,6 @@ const fetchStudentRecords = async (studentId: number) => {
     setRecordLoading(false);
   }
 };
-
   // helper to set sahsiah type
   const getSahsiahType = (typeId: number) =>
   sahsiahTypes.find((t) => t.id === typeId);
@@ -193,46 +193,46 @@ const fetchStudentRecords = async (studentId: number) => {
 
       <div className="section-box">
         {/* -------- Filters -------- */}
-        <div className="controls-row">
-          <select
-            className="search-input"
-            value={gradeFilter}
-            onChange={(e) => {
-              const value = e.target.value;
-              setGradeFilter(value === "" ? "" : Number(value));
-              setClassFilter("");
-            }}
-          >
-            <option value="">Semua Tingkat</option>
-            {[...new Set(classrooms.map((c) => c.grade))].map((g) => (
-              <option key={g} value={g}>
-                Tingkat {g}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="search-input"
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
-            disabled={gradeFilter === ""}
-          >
-            <option value="">Semua Kelas</option>
-            {classrooms
-              .filter((c) => c.grade === gradeFilter)
-              .map((c) => (
-                <option key={c.id} value={c.class_section}>
-                  {c.class_section}
-                </option>
-              ))}
-          </select>
-        </div>
 
         <div className="controls-row">
           <SearchBar
             value={searchTerm}
             placeholder="Cari pelajar..."
             onChange={setSearchTerm}
+          />
+        </div>
+
+        <div className="controls-row">
+          <FilterDropdown
+            label="Tingkat"
+            value={gradeFilter}
+            onChange={(value) => {
+              setGradeFilter(value === "" ? "" : Number(value));
+              setClassFilter("");
+            }}
+            options={[
+              { value: "", label: "Semua Tingkat" },
+              ...[...new Set(classrooms.map((c) => c.grade))].map((g) => ({
+                value: g,
+                label: `Tingkat ${g}`,
+              })),
+            ]}
+          />
+
+          <FilterDropdown
+            label="Kelas"
+            value={classFilter}
+            onChange={(value) => setClassFilter(String(value))}
+            disabled={gradeFilter === ""}
+            options={[
+              { value: "", label: "Semua Kelas" },
+              ...classrooms
+                .filter((c) => c.grade === gradeFilter)
+                .map((c) => ({
+                  value: c.class_section,
+                  label: c.class_section,
+                })),
+            ]}
           />
         </div>
 
@@ -283,6 +283,14 @@ const fetchStudentRecords = async (studentId: number) => {
               )}
             </tbody>
           </table>
+
+          {/* -------- Pagination -------- */}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+          
         </div>
       </div>
 
