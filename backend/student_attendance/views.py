@@ -14,12 +14,12 @@ from .serializer import (
     StudentAttendanceSerializer,
     RecordStudentAttendanceSerializer,
     AddNoteSerializer,
-    AttendanceStudentRecordStatsSerializer
+    AttendanceStudentRecordStatsSerializer,
 )
 from . import const
 from .models import StudentAttendance
 from base.pagination import StandardResultsSetPagination
-
+from .utils import ATTENDANCE_RATE_STATUS
 
 # Create your views here.
 class StudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
@@ -140,19 +140,71 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
     Super class for all statistics.
     Subclasses must provide a 'queryset'.
     """
-    
+
     queryset = None
     pagination_class = StandardResultsSetPagination
 
     def get_serializer_class(self):
-        if self.action == self.student_attendance_records.__name__:
+        view = [
+            self.student_attendance_records.__name__,
+            self.dashboard.__name__,
+        ]
+        
+        if self.action in view:
             return AttendanceStudentRecordStatsSerializer
-    
+
     def get_queryset(self):
         assert (
             self.queryset is not None
         ), f"'{self.__class__.__name__}' must include a 'queryset' attribute."
         return self.queryset
+
+    def get_student_record(self):
+        period_queryset = self.get_queryset()
+        students = MigrateStudent.objects.annotate(
+            present=Coalesce(
+                Count(
+                    "attendance",
+                    filter=Q(
+                        attendance__in=period_queryset,
+                        attendance__status=const.ON_TIME_STATUS_KEY,
+                    ),
+                ),
+                0,
+            ),
+            late=Coalesce(
+                Count(
+                    "attendance",
+                    filter=Q(
+                        attendance__in=period_queryset,
+                        attendance__status=const.LATE_STATUS_KEY,
+                    ),
+                ),
+                0,
+            ),
+            absent=Coalesce(
+                Count(
+                    "attendance",
+                    filter=Q(
+                        attendance__in=period_queryset,
+                        attendance__status=const.ABSENT_STATUS_KEY,
+                    ),
+                ),
+                0,
+            ),
+        ).select_related("class_room")
+        return students
+    
+    def get_attendance_rate_status_distribution(self):
+        distribution =  dict().fromkeys(ATTENDANCE_RATE_STATUS, 0)
+        students = self.get_student_record()
+        serializer = self.get_serializer(students, many=True)
+        
+        for student in serializer.data:
+           status =  student['status']
+           distribution[status] += 1
+        
+        return distribution
 
     @action(detail=False, methods=["get"])
     def dashboard(self, request, *args, **kwargs):
@@ -167,12 +219,14 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
 
         count = queryset.count()
         average_attendance = 0 if count == 0 else (stats["on_time"] / queryset.count())
+        attendance_rate_distribution = self.get_attendance_rate_status_distribution()
 
         data = {
             "on_time_count": stats["on_time"],
             "late_count": stats["late"],
             "absent_count": stats["absent"],
             "attendance_rate": average_attendance,
+            "attendance_rate_distirbution": attendance_rate_distribution
         }
         return Response(data)
 
@@ -194,7 +248,7 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
                 "migrate_student_id__class_room__class_section",
             )
         )
-        
+
         structured_data = {}
         for entry in raw_data:
             grade = entry["migrate_student_id__class_room__grade"]
@@ -206,37 +260,25 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
             class_name = f"{grade}{section}"
 
             if class_name not in structured_data:
-                structured_data[class_name] = {"class_name": class_name, "stats": [], "count": 0}
+                structured_data[class_name] = {
+                    "class_name": class_name,
+                    "stats": [],
+                    "count": 0,
+                }
 
             structured_data[class_name]["stats"].append(
                 {"status": entry["status"], "count": entry["count"]}
             )
-            structured_data[class_name]['count'] += entry['count']
+            structured_data[class_name]["count"] += entry["count"]
 
         return Response(list(structured_data.values()))
-    
+
     @action(detail=False, methods=["get"])
     def student_attendance_records(self, request, *args, **kwargs):
         """
         Returns a list of students with their aggregated attendance metrics.
         """
-        period_queryset = self.get_queryset()
-
-        # We annotate MigrateStudent with counts filtered by the current period
-        students = MigrateStudent.objects.annotate(
-            present=Coalesce(Count(
-                'attendance', 
-                filter=Q(attendance__in=period_queryset, attendance__status=const.ON_TIME_STATUS_KEY)
-            ), 0),
-            late=Coalesce(Count(
-                'attendance', 
-                filter=Q(attendance__in=period_queryset, attendance__status=const.LATE_STATUS_KEY)
-            ), 0),
-            absent=Coalesce(Count(
-                'attendance', 
-                filter=Q(attendance__in=period_queryset, attendance__status=const.ABSENT_STATUS_KEY)
-            ), 0),
-        ).select_related('class_room')
+        students = self.get_student_record()
 
         # Apply pagination if necessary
         page = self.paginate_queryset(students)

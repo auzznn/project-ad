@@ -11,6 +11,12 @@ from django.utils import timezone
 from authentication.serializer import StudentSerializer
 from authentication.models import Student
 from .models import StudentAttendance
+from .utils import (
+    ATTENDANCE_RATE_STATUS_EXCELLENT,
+    ATTENDANCE_RATE_STATUS_GOOD,
+    ATTENDANCE_RATE_STATUS_AVERAGE,
+    ATTENDANCE_RATE_STATUS_POOR
+)
 from base.utils import set_timezone
 from sahsiah.models import SahsiahType, SahsiahRecord
 
@@ -130,9 +136,12 @@ class AttendanceStudentRecordStatsSerializer(Serializer):
 
     def get_status(self, obj):
         rate = self.get_attendance_rate(obj)
-        if rate >= 90:
-            return "Excellent"
-        elif rate >= 80:
-            return "Average"
+        if rate >= 0.95:
+            return ATTENDANCE_RATE_STATUS_EXCELLENT
+        elif rate >= 0.85:
+            return ATTENDANCE_RATE_STATUS_GOOD
+        elif rate >= 0.75:
+            return ATTENDANCE_RATE_STATUS_AVERAGE
         else:
-            return "Poor"
+            return ATTENDANCE_RATE_STATUS_POOR
+        

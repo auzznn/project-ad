@@ -16,10 +16,6 @@ class DisciplineType(models.Model):
 
 class DisciplineRecord(models.Model):
     student_id = models.ForeignKey(
-        to='authentication.Student', on_delete=models.CASCADE, related_name="discipline"
-    )
-    
-    migrate_student_id = models.ForeignKey(
         MigrateStudent,
         related_name="discipline",
         on_delete=models.CASCADE,
