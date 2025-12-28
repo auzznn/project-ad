@@ -48,7 +48,6 @@ export interface SahsiahCategory {
 export interface DisciplineRecord {
   timestamp: string | null;
   student_id: number | null;
-  migrate_student_id: number | null;
   discipline_type: number | null;
 }
 
@@ -156,7 +155,3 @@ export const studentApi = {
     return response.entry;
   }
 };
-
-const anjay = () => {
-  
-}
