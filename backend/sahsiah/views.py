@@ -69,3 +69,4 @@ class SahsiahLeaderboardView(GeneralLeaderboardView):
 class SahsiahAnalyticsViewSet(GeneralMeritAnalyticView):
     queryset = SahsiahRecord.objects.all()
     record_type = "sahsiah_type"
+    student_id = "migrate_student_id"
