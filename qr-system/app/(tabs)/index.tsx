@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Alert, RefreshControl } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -15,11 +15,12 @@ export default function TabIndex() {
   const router = useRouter();
   const { theme, themeMode } = useTheme();
   const { isAuthenticated, user, logout } = useAuth();
-  
+  const [childrenData, setChildrenData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   // Using placeholder username as requested
-  const username = user?.username || "User";
-  const role = user?.role;
-  
+
   // Get theme colors
   const backgroundColor = useThemeColor("background");
   const cardColor = useThemeColor("card");
@@ -29,17 +30,77 @@ export default function TabIndex() {
   const borderColor = useThemeColor("border");
   const successColor = useThemeColor("success");
 
+  // Fetch children data when component mounts
+  const fetchChildrenData = useCallback(async () => {
+    try {
+      if (user?.user_id && user.role === "parent") {
+        const children = await studentApi.getChildren(user.user_id);
+        
+        // Get all children IDs for batch attendance check
+        const childrenIds = children.map((child: any) => child.id);
+
+        
+        // Check attendance status for all children at once
+        const attendanceData = await studentApi.checkChildrenAttendance(childrenIds);
+        console.log("attendance data", attendanceData)
+        // Transform the data to match the expected structure
+        const transformedChildren = children.map((child: any) => {
+          // Find attendance data for this child
+          const childAttendance = attendanceData.find((attendance: any) =>
+            attendance.studentId === child.id
+          );
+
+          console.log("child attendace", childAttendance)
+          
+          return {
+            name: child.username || child.name || "Unknown",
+            grade:
+              child.grade && child.section
+                ? `${child.grade} ${child.section}`
+                : child.grade || child.section || "N/A",
+            attendance: childAttendance.status,
+            lastSeen: childAttendance?.timestamp
+              ? new Date(childAttendance.timestamp).toLocaleString()
+              : "No record today",
+          };
+        });
+        
+        setChildrenData(transformedChildren);
+      } else {
+        // Not a parent or no user_id, set empty array
+        setChildrenData([]);
+      }
+    } catch (error) {
+      console.error("Error fetching children data:", error);
+      // Set empty array on error to prevent crashes
+      setChildrenData([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user?.user_id, user?.role]);
+
+  // Fetch children data when component mounts
+  useEffect(() => {
+    fetchChildrenData();
+  }, [fetchChildrenData]);
+
+  // Function to handle manual refresh
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchChildrenData();
+  }, []);
+
   // Quick stats data (placeholder)
   const quickStats = [
-    { label: "Today's Check-ins", value: "3", icon: "checkmark-circle", color: successColor },
+    {
+      label: "Today's Check-ins",
+      value: "3",
+      icon: "checkmark-circle",
+      color: successColor,
+    },
     { label: "Pending Tasks", value: "5", icon: "time", color: primaryColor },
     { label: "Messages", value: "2", icon: "chatbubble", color: primaryColor },
-  ];
-
-  // Parent-specific children data (placeholder)
-  const childrenData = [
-    { name: "Ahmad", grade: "5A", attendance: "Present", lastSeen: "2 hours ago" },
-    { name: "Siti", grade: "3B", attendance: "Present", lastSeen: "1 hour ago" },
   ];
 
   // Logout handler function
@@ -55,17 +116,17 @@ export default function TabIndex() {
         title: "Log Out",
         icon: "log-out-outline",
         onPress: handleLogout,
-        primary: false
-      }
+        primary: false,
+      },
     ];
 
     // Only add scan action for admin/teacher
-    if (role === 'admin' || role === 'teacher') {
+    if (user?.role === "admin" || user?.role === "teacher") {
       baseActions.unshift({
         title: "Scan QR Code",
         icon: "qr-code-outline",
         onPress: async () => router.push("/scanner"),
-        primary: true
+        primary: true,
       });
     }
 
@@ -75,31 +136,47 @@ export default function TabIndex() {
   const quickActions = getQuickActions();
 
   const getActionClassName = (primary: boolean) => {
-    return `rounded-2xl p-5 mb-3 items-center shadow-lg ${primary ? 'border-0' : 'border'}`;
+    return `rounded-2xl p-5 mb-3 items-center shadow-lg ${primary ? "border-0" : "border"}`;
   };
 
   const getTextClassName = (primary: boolean) => {
-    return `text-base font-semibold text-center${primary ? ' text-white' : ''}`;
+    return `text-base font-semibold text-center${primary ? " text-white" : ""}`;
   };
-
 
   return (
     <SafeAreaView className="flex-1 pt-8" style={{ backgroundColor }}>
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={primaryColor}
+            colors={[primaryColor]}
+          />
+        }
+      >
         {/* Header Section */}
         <View className="px-5 pt-5 pb-8">
           <View className="flex-row items-center">
-            <View 
+            <View
               className="w-16 h-16 rounded-full justify-center items-center mr-4 shadow-md border"
               style={{ backgroundColor: cardColor, borderColor }}
             >
               <Text className="text-2xl">👤</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-3xl font-semibold mb-1" style={{ color: textColor }}>
-                Hey, {username} 👋 You are a {role}
+              <Text
+                className="text-3xl font-semibold mb-1"
+                style={{ color: textColor }}
+              >
+                Hey, {user?.first_name} + {user?.last_name} 👋 You are a {user?.role}
               </Text>
-              <Text className="text-base opacity-80" style={{ color: mutedColor }}>
+              <Text
+                className="text-base opacity-80"
+                style={{ color: mutedColor }}
+              >
                 Welcome back to your dashboard
               </Text>
             </View>
@@ -137,7 +214,10 @@ export default function TabIndex() {
 
         {/* Quick Actions */}
         <View className="mb-8">
-          <Text className="text-xl font-semibold mb-4 px-5" style={{ color: textColor }}>
+          <Text
+            className="text-xl font-semibold mb-4 px-5"
+            style={{ color: textColor }}
+          >
             Quick Actions
           </Text>
           <View className="px-5">
@@ -145,19 +225,20 @@ export default function TabIndex() {
               <TouchableOpacity
                 key={index}
                 className={getActionClassName(action.primary)}
-                style={action.primary 
-                  ? { backgroundColor: primaryColor }
-                  : { backgroundColor: cardColor, borderColor }
+                style={
+                  action.primary
+                    ? { backgroundColor: primaryColor }
+                    : { backgroundColor: cardColor, borderColor }
                 }
                 onPress={action.onPress}
               >
-                <Ionicons 
-                  name={action.icon as any} 
-                  size={28} 
-                  color={action.primary ? "white" : primaryColor} 
-                  className="mb-2" 
+                <Ionicons
+                  name={action.icon as any}
+                  size={28}
+                  color={action.primary ? "white" : primaryColor}
+                  className="mb-2"
                 />
-                <Text 
+                <Text
                   className={getTextClassName(action.primary)}
                   style={action.primary ? {} : { color: textColor }}
                 >
@@ -174,48 +255,115 @@ export default function TabIndex() {
             className="mx-5 rounded-2xl p-5 shadow-md border mb-6"
             style={{ backgroundColor: cardColor, borderColor }}
           >
-            <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
-              My Children
-            </Text>
+            <View className="flex-row justify-between items-center mb-4">
+              <Text
+                className="text-xl font-semibold"
+                style={{ color: textColor }}
+              >
+                My Children
+              </Text>
+              <TouchableOpacity
+                className="p-2 rounded-full"
+                style={{ backgroundColor: primaryColor }}
+                onPress={handleRefresh}
+                disabled={refreshing}
+              >
+                <Ionicons
+                  name={refreshing ? "sync" : "refresh"}
+                  size={20}
+                  color="white"
+                />
+              </TouchableOpacity>
+            </View>
             <View className="mt-4">
-              {childrenData.map((child, index) => (
-                <View key={index} className="flex-row items-center mb-4 p-3 rounded-xl" style={{ backgroundColor: cardColor, borderColor, borderWidth: 1 }}>
+              {loading ? (
+                <Text
+                  className="text-center py-4"
+                  style={{ color: mutedColor }}
+                >
+                  Loading children data...
+                </Text>
+              ) : childrenData.length > 0 ? (
+                childrenData.map((child, index) => (
                   <View
-                    className="w-12 h-12 rounded-full justify-center items-center mr-3"
-                    style={{ backgroundColor: primaryColor }}
+                    key={index}
+                    className="flex-row items-center mb-4 p-3 rounded-xl"
+                    style={{
+                      backgroundColor: cardColor,
+                      borderColor,
+                      borderWidth: 1,
+                    }}
                   >
-                    <Text className="text-white font-bold">{child.name.charAt(0)}</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-base font-semibold mb-1" style={{ color: textColor }}>
-                      {child.name}
-                    </Text>
-                    <View className="flex-row items-center">
-                      <Text className="text-sm mr-3" style={{ color: mutedColor }}>
-                        Grade {child.grade}
+                    <View
+                      className="w-12 h-12 rounded-full justify-center items-center mr-3"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      <Text className="text-white font-bold">
+                        {child.name.charAt(0)}
                       </Text>
-                      <View
-                        className="px-2 py-1 rounded-full mr-2"
-                        style={{ backgroundColor: successColor }}
-                      >
-                        <Text className="text-xs text-white font-medium">
-                          {child.attendance}
-                        </Text>
-                      </View>
                     </View>
-                    <Text className="text-xs opacity-70" style={{ color: mutedColor }}>
-                      Last seen: {child.lastSeen}
-                    </Text>
+                    <View className="flex-1">
+                      <Text
+                        className="text-base font-semibold mb-1"
+                        style={{ color: textColor }}
+                      >
+                        {child.name}
+                      </Text>
+                      <View className="flex-row items-center">
+                        <Text
+                          className="text-sm mr-3"
+                          style={{ color: mutedColor }}
+                        >
+                          Class: {child.grade}
+                        </Text>
+                        <View
+                          className="px-2 py-1 rounded-full mr-2"
+                          style={{
+                            backgroundColor:
+                              child.attendance === "present"
+                                ? successColor
+                                : child.attendance === "late"
+                                  ? "#ef4444"
+                                  : "#f59e0b",
+                          }}
+                        >
+                          <Text className="text-xs text-white font-medium">
+                            {child.attendance}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text
+                        className="text-xs opacity-70"
+                        style={{ color: mutedColor }}
+                      >
+                        Last seen: {child.lastSeen}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      className="p-2 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                      onPress={() =>
+                        router.push(
+                          `/student-details?studentId=${child.name.toLowerCase()}`
+                        )
+                      }
+                    >
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
+                        color="white"
+                      />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    className="p-2 rounded-full"
-                    style={{ backgroundColor: primaryColor }}
-                    onPress={() => router.push(`/student-details?studentId=${child.name.toLowerCase()}`)}
-                  >
-                    <Ionicons name="chevron-forward" size={16} color="white" />
-                  </TouchableOpacity>
-                </View>
-              ))}
+                ))
+              ) : (
+                <Text
+                  className="text-center py-4"
+                  style={{ color: mutedColor }}
+                >
+                  No children data available
+                </Text>
+              )}
             </View>
           </View>
         </ParentOnly>
@@ -225,7 +373,10 @@ export default function TabIndex() {
           className="mx-5 rounded-2xl p-5 shadow-md border"
           style={{ backgroundColor: cardColor, borderColor }}
         >
-          <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
+          <Text
+            className="text-xl font-semibold mb-4"
+            style={{ color: textColor }}
+          >
             Recent Activity
           </Text>
           <View className="mt-4">
@@ -237,10 +388,16 @@ export default function TabIndex() {
                 <Ionicons name="checkmark" size={16} color="white" />
               </View>
               <View className="flex-1">
-                <Text className="text-base font-medium mb-1" style={{ color: textColor }}>
+                <Text
+                  className="text-base font-medium mb-1"
+                  style={{ color: textColor }}
+                >
                   Check-in completed
                 </Text>
-                <Text className="text-sm opacity-70" style={{ color: mutedColor }}>
+                <Text
+                  className="text-sm opacity-70"
+                  style={{ color: mutedColor }}
+                >
                   2 hours ago
                 </Text>
               </View>
@@ -253,10 +410,16 @@ export default function TabIndex() {
                 <Ionicons name="trophy" size={16} color="white" />
               </View>
               <View className="flex-1">
-                <Text className="text-base font-medium mb-1" style={{ color: textColor }}>
+                <Text
+                  className="text-base font-medium mb-1"
+                  style={{ color: textColor }}
+                >
                   Achievement unlocked
                 </Text>
-                <Text className="text-sm opacity-70" style={{ color: mutedColor }}>
+                <Text
+                  className="text-sm opacity-70"
+                  style={{ color: mutedColor }}
+                >
                   Yesterday
                 </Text>
               </View>
@@ -267,4 +430,3 @@ export default function TabIndex() {
     </SafeAreaView>
   );
 }
-

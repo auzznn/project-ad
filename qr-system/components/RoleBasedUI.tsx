@@ -10,17 +10,22 @@ interface RoleBasedUIProps {
   hideCompletely?: boolean; // If true, component won't render at all when no access
 }
 
-export const RoleBasedUI: React.FC<RoleBasedUIProps> = ({ 
-  children, 
-  allowedRoles, 
+export const RoleBasedUI: React.FC<RoleBasedUIProps> = ({
+  children,
+  allowedRoles,
   requiredPermissions,
   fallback,
   hideCompletely = false
 }) => {
-  const { hasAnyRole, hasAnyPermission } = usePermissions();
+  const { hasAnyRole, hasAnyPermission, hasAuthContext } = usePermissions();
   
   // Check if user has required role or permission
   const hasAccess = React.useMemo(() => {
+    // If we don't have auth context, default to no access
+    if (!hasAuthContext) {
+      return false;
+    }
+    
     if (allowedRoles && hasAnyRole(allowedRoles as any[])) {
       return true;
     }
@@ -30,7 +35,7 @@ export const RoleBasedUI: React.FC<RoleBasedUIProps> = ({
     }
     
     return false;
-  }, [allowedRoles, requiredPermissions, hasAnyRole, hasAnyPermission]);
+  }, [allowedRoles, requiredPermissions, hasAnyRole, hasAnyPermission, hasAuthContext]);
   
   // If user has access, render children
   if (hasAccess) {

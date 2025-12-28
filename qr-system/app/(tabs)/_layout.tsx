@@ -4,15 +4,19 @@ import { usePermissions } from '@/hooks/usePermissions';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { HapticTab } from '@/components/haptic-tab';
-import { RoleBasedUI } from '@/components/RoleBasedUI';
-
+import React from 'react';
 
 export default function TabLayout() {
   const backgroundColor = useThemeColor('background');
   const cardColor = useThemeColor('card');
   const textColor = useThemeColor('text');
   const primaryColor = useThemeColor('primary');
-  const { canAccessRoute } = usePermissions();
+  const { hasAnyRole } = usePermissions();
+
+  // Check if user has specific roles
+  const isAdminOrTeacher = hasAnyRole(['admin', 'teacher']);
+  const isAdmin = hasAnyRole(['admin']);
+  const isParent = hasAnyRole(['parent']);
 
   return (
     <Tabs
@@ -48,7 +52,7 @@ export default function TabLayout() {
       />
       
       {/* Scanner Tab - Only for admin/teacher */}
-      <RoleBasedUI allowedRoles={['admin', 'teacher']}>
+      {isAdminOrTeacher && (
         <Tabs.Screen
           name="scanner"
           options={{
@@ -62,7 +66,7 @@ export default function TabLayout() {
             ),
           }}
         />
-      </RoleBasedUI>
+      )}
       
       {/* Leaderboard Tab - All users can view */}
       <Tabs.Screen
@@ -80,7 +84,7 @@ export default function TabLayout() {
       />
       
       {/* Discipline Tab - Only for admin/teacher */}
-      <RoleBasedUI allowedRoles={['admin', 'teacher']}>
+      {isAdminOrTeacher && (
         <Tabs.Screen
           name="discipline"
           options={{
@@ -94,10 +98,10 @@ export default function TabLayout() {
             ),
           }}
         />
-      </RoleBasedUI>
+      )}
       
       {/* RMT Tab - Only for admin/teacher */}
-      <RoleBasedUI allowedRoles={['admin', 'teacher']}>
+      {isAdminOrTeacher && (
         <Tabs.Screen
           name="rmt"
           options={{
@@ -111,7 +115,7 @@ export default function TabLayout() {
             ),
           }}
         />
-      </RoleBasedUI>
+      )}
       
       {/* Theme Tab - All users can access */}
       <Tabs.Screen
@@ -127,8 +131,9 @@ export default function TabLayout() {
           ),
         }}
       />
+      
       {/* Attendance Tab - Only for admin/teacher */}
-      <RoleBasedUI allowedRoles={['admin', 'teacher']}>
+      {isAdminOrTeacher && (
         <Tabs.Screen
           name="attendance"
           options={{
@@ -142,10 +147,10 @@ export default function TabLayout() {
             ),
           }}
         />
-      </RoleBasedUI>
+      )}
       
       {/* Reports Tab - Only for admin/teacher/parent */}
-      <RoleBasedUI allowedRoles={['admin', 'teacher', 'parent']}>
+      {(isAdminOrTeacher || isParent) && (
         <Tabs.Screen
           name="reports"
           options={{
@@ -159,7 +164,7 @@ export default function TabLayout() {
             ),
           }}
         />
-      </RoleBasedUI>
+      )}
       
       {/* Profile Tab - All users can access their own profile */}
       <Tabs.Screen
@@ -177,7 +182,7 @@ export default function TabLayout() {
         />
         
       {/* Student Details Tab - Only for parent */}
-      <RoleBasedUI allowedRoles={['parent']}>
+      {isParent && (
         <Tabs.Screen
           name="student-details"
           options={{
@@ -191,10 +196,10 @@ export default function TabLayout() {
             ),
           }}
         />
-      </RoleBasedUI>
+      )}
       
       {/* Role Test Tab - Only for admin (for testing purposes) */}
-      <RoleBasedUI allowedRoles={['admin']}>
+      {isAdmin && (
         <Tabs.Screen
           name="role-test"
           options={{
@@ -208,7 +213,7 @@ export default function TabLayout() {
             ),
           }}
         />
-      </RoleBasedUI>
+      )}
     </Tabs>
   );
 }

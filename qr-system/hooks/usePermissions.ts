@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/AuthContext';
+import { useContext } from 'react';
 
 export type UserRole = 'admin' | 'teacher' | 'parent';
 
@@ -48,7 +49,16 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
 };
 
 export const usePermissions = () => {
-  const { user } = useAuth();
+  let user = null;
+  let hasAuthContext = true;
+  
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+  } catch (error) {
+    hasAuthContext = false;
+    console.warn('usePermissions: Auth context not available, defaulting to no permissions');
+  }
   
   const hasRole = (role: UserRole): boolean => {
     return user?.role === role;
@@ -111,6 +121,7 @@ export const usePermissions = () => {
     canAccessRoute,
     isHigherOrEqualRole,
     userRole: user?.role as UserRole | null,
-    allPermissions: user ? ROLE_PERMISSIONS[user.role as UserRole] : []
+    allPermissions: user ? ROLE_PERMISSIONS[user.role as UserRole] : [],
+    hasAuthContext
   };
 };

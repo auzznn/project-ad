@@ -1,4 +1,5 @@
 import { apiRequest } from './axiosClient';
+import { User } from '@/context/AuthContext';
 
 export interface Student {
   id: string;
@@ -65,10 +66,19 @@ export interface DisciplineCategory {
   name: string;
   icon?: string;
   color?: string;
-  types: DisciplineType[];
+  types: DisciplineType[]; 
 }
 
 export const studentApi = {
+
+  getChildren: async (userId: string): Promise<User[]> => {
+    try {
+      const response = await apiRequest.get(`/authentication/user/${userId}/`);
+      return response.children || [];
+    } catch (error) {
+      throw error;
+    }
+  },
   // Get student data by ID
   getStudent: async (studentId: string): Promise<Student> => {
     return apiRequest.get(`/authentication/student/${studentId}`);
@@ -104,6 +114,36 @@ export const studentApi = {
     }
     
     return studentRecord;
+  },
+  
+  // Check attendance status for multiple children at once
+  checkChildrenAttendance: async (childrenIds: string[]): Promise<any[]> => {
+    try {
+      const response = await apiRequest.get('student_attendance/daily/');
+      const attendanceData = response.entry || [];
+      
+      return childrenIds.map(childId => {
+        const studentRecord = attendanceData.find((record: any) => {
+          return record.student && record.student.id === Number(childId);
+        }) || null;
+        
+        if (!studentRecord) {
+          return {
+            studentId: childId,
+            status: "absent",
+            timestamp: null
+          };
+        }
+        
+        return {
+          studentId: childId,
+          status: studentRecord.status || "present",
+          timestamp: studentRecord.timestamp
+        };
+      });
+    } catch (error) {
+      throw error;
+    }
   },
   
   // Record sahsiah (behavior/conduct) for a student
