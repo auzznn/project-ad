@@ -74,11 +74,12 @@ class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
 
 class GeneralMeritAnalyticView(viewsets.GenericViewSet):
     record_type = None
+    student_id = None
 
     def get_tag_summary(self):
         return (
             self.get_queryset()
-            .values(tag=F("sahsiah_type_id__tag"))
+            .values(tag=F(f'{self.record_type}__tag'))
             .annotate(
                 total_points=Sum(self.get_point_name()),
                 record_count=Count("id"),
@@ -108,7 +109,7 @@ class GeneralMeritAnalyticView(viewsets.GenericViewSet):
         # 3. Average points per student
         # We find how many unique students were involved this month
         student_count = (
-            current_month_records.values("migrate_student_id").distinct().count()
+            current_month_records.values(self.student_id).distinct().count()
         )
 
         avg_per_student = 0
@@ -194,7 +195,7 @@ class GeneralMeritAnalyticView(viewsets.GenericViewSet):
         # Note: We query SahsiahType to get all unique tags defined
         tag_counts = (
             self.get_queryset()
-            .values(tag=F("sahsiah_type_id__tag"))
+            .values(tag=F(f"{self.record_type}__tag"))
             .annotate(count=Count("id"))
             .filter(count__gt=0)
         )
