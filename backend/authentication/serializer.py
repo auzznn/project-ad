@@ -28,11 +28,34 @@ class MyTokenObtenPairSerializer(TokenObtainPairSerializer):
         token['refresh_url'] = cls._get_refresh_url()
         return token
 
+class StudentSerializer(ModelSerializer):
+    name = serializers.CharField(source="fullname")
+    section = serializers.CharField(source="class_room.class_section")
+    grade = serializers.IntegerField(source="class_room.grade")
+
+    class Meta:
+        model = MigrateStudent
+        fields = ["id", "name", "grade", "section", "academic_year", "rmt_elligible", "qr_code"]
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        student = self.Meta.model(**validated_data)
+        student.generate_qr(request=request)
+        student.save()
+        return student
 
 class MyUserRetrieveSerializer(ModelSerializer):
+    children = serializers.SerializerMethodField()
+    
     class Meta:
         model = MyUser
-        fields = ["id", "fullname"]
+        fields = ["id", "fullname", "role", "children"]
+    
+    def get_children(self, instance: Meta.model):
+        if not instance.role == 'parent':
+            return None
+        serializer = StudentSerializer(instance.children.all(), many=True)
+        return serializer.data
 
 
 class MyUserCreateSerializer(ModelSerializer):
@@ -49,23 +72,6 @@ class MyUserCreateSerializer(ModelSerializer):
         
         instance.save()
         return instance
-
-
-class StudentSerializer(ModelSerializer):
-    name = serializers.CharField(source="fullname")
-    section = serializers.CharField(source="class_room.class_section")
-    grade = serializers.IntegerField(source="class_room.grade")
-
-    class Meta:
-        model = MigrateStudent
-        fields = ["id", "name", "grade", "section", "academic_year", "rmt_elligible", "qr_code"]
-
-    def create(self, validated_data):
-        request = self.context.get('request')
-        student = self.Meta.model(**validated_data)
-        student.generate_qr(request=request)
-        student.save()
-        return student
 
 
 class CreateStudentSerializer(ModelSerializer):

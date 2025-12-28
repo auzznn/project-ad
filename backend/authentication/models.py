@@ -61,6 +61,7 @@ class Classroom(models.Model):
     def name(self) -> str:
         return self.__str__()
 
+
 class Student(models.Model):
     QR_IMAGE_FORMAT = "jpeg"
 
@@ -87,6 +88,7 @@ class Student(models.Model):
 
         return f"{return_value}"
 
+
 class MigrateStudent(models.Model):
     QR_IMAGE_FORMAT = "jpeg"
 
@@ -102,10 +104,19 @@ class MigrateStudent(models.Model):
     date_of_birth = models.DateTimeField(blank=False, null=False, default=timezone.now)
     first_name = models.CharField(max_length=50, blank=False, null=False)
     last_name = models.CharField(max_length=50, blank=False, null=False)
-    
+
+    parent = models.ForeignKey(
+        MyUser,
+        on_delete=models.CASCADE,
+        related_name="children",
+        blank=True,
+        null=True,
+        limit_choices_to={"role": "parent"},
+    )
+
     @property
     def fullname(self) -> str:
-        return f'{self.first_name} {self.last_name}'
+        return f"{self.first_name} {self.last_name}"
 
     @classmethod
     def generate_qr_image(cls, url_link: str) -> File:
@@ -114,15 +125,15 @@ class MigrateStudent(models.Model):
         qr_image.save(buffer, format=cls.QR_IMAGE_FORMAT)
         buffer.seek(0)
         return File(buffer, name=f"qr.{cls.QR_IMAGE_FORMAT}")
-    
+
     @staticmethod
     def get_student_data_url(pk, request=None, base_url=None) -> str:
-        module_name = 'authentication'
+        module_name = "authentication"
         base_name = STUDENT_BASENAME_PATH
-        action_name = 'detail' 
-        
-        url_name = f'{module_name}:{base_name}-{action_name}'
-        
+        action_name = "detail"
+
+        url_name = f"{module_name}:{base_name}-{action_name}"
+
         url_path = reverse(url_name, args=[pk])
         if request:
             return request.build.absoulte_uri(url_path)
@@ -130,7 +141,9 @@ class MigrateStudent(models.Model):
             return f"{base_url.rstrip('/')}{url_path}"
 
     def generate_qr(self, request=None, base_url=None) -> None:
-        student_data_url = self.get_student_data_url(pk=self.pk, request=request, base_url=base_url)
+        student_data_url = self.get_student_data_url(
+            pk=self.pk, request=request, base_url=base_url
+        )
         qr_file = self.generate_qr_image(student_data_url)
         self.qr_code.save(
             f"student_qr_{self.pk}.{self.QR_IMAGE_FORMAT}", qr_file, save=False
@@ -145,3 +158,10 @@ class MigrateStudent(models.Model):
         return_value = timezone.now().year
 
         return f"{return_value}"
+
+    def clean(self):
+        super().clean()
+        if self.parent and self.parent.role != "parent":
+            raise models.ValidationError(
+                {"parent": "The assigned user must have the 'parent' role."}
+            )
