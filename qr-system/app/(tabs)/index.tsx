@@ -14,8 +14,9 @@ import { ParentOnly } from "@/components/RoleBasedUI";
 export default function TabIndex() {
   const router = useRouter();
   const { theme, themeMode } = useTheme();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [childrenData, setChildrenData] = useState<any[]>([]);
+  const [originalChildren, setOriginalChildren] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -36,6 +37,9 @@ export default function TabIndex() {
       if (user?.user_id && user.role === "parent") {
         const children = await studentApi.getChildren(user.user_id);
         
+        // Store original children data with IDs
+        setOriginalChildren(children);
+        
         // Get all children IDs for batch attendance check
         const childrenIds = children.map((child: any) => child.id);
 
@@ -53,6 +57,7 @@ export default function TabIndex() {
           console.log("child attendace", childAttendance)
           
           return {
+            id: child.id, // Keep the ID for navigation
             name: child.username || child.name || "Unknown",
             grade:
               child.grade && child.section
@@ -69,11 +74,13 @@ export default function TabIndex() {
       } else {
         // Not a parent or no user_id, set empty array
         setChildrenData([]);
+        setOriginalChildren([]);
       }
     } catch (error) {
       console.error("Error fetching children data:", error);
       // Set empty array on error to prevent crashes
       setChildrenData([]);
+      setOriginalChildren([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -92,37 +99,14 @@ export default function TabIndex() {
   }, []);
 
   // Quick stats data (placeholder)
-  const quickStats = [
-    {
-      label: "Today's Check-ins",
-      value: "3",
-      icon: "checkmark-circle",
-      color: successColor,
-    },
-    { label: "Pending Tasks", value: "5", icon: "time", color: primaryColor },
-    { label: "Messages", value: "2", icon: "chatbubble", color: primaryColor },
-  ];
-
-  // Logout handler function
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/(onboarding)");
-  };
 
   // Quick actions for different roles
   const getQuickActions = () => {
-    const baseActions = [
-      {
-        title: "Log Out",
-        icon: "log-out-outline",
-        onPress: handleLogout,
-        primary: false,
-      },
-    ];
+    const baseActions = [];
 
     // Only add scan action for admin/teacher
     if (user?.role === "admin" || user?.role === "teacher") {
-      baseActions.unshift({
+      baseActions.push({
         title: "Scan QR Code",
         icon: "qr-code-outline",
         onPress: async () => router.push("/scanner"),
@@ -136,7 +120,7 @@ export default function TabIndex() {
   const quickActions = getQuickActions();
 
   const getActionClassName = (primary: boolean) => {
-    return `rounded-2xl p-5 mb-3 items-center shadow-lg ${primary ? "border-0" : "border"}`;
+    return `rounded-2xl p-5 mb-3 items-center shadow-sm ${primary ? "border-0" : "border"}`;
   };
 
   const getTextClassName = (primary: boolean) => {
@@ -147,7 +131,7 @@ export default function TabIndex() {
     <SafeAreaView className="flex-1 pt-8" style={{ backgroundColor }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 0 }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -161,7 +145,7 @@ export default function TabIndex() {
         <View className="px-5 pt-5 pb-8">
           <View className="flex-row items-center">
             <View
-              className="w-16 h-16 rounded-full justify-center items-center mr-4 shadow-md border"
+              className="w-16 h-16 rounded-full justify-center items-center mr-4 shadow-sm border"
               style={{ backgroundColor: cardColor, borderColor }}
             >
               <Text className="text-2xl">👤</Text>
@@ -171,7 +155,7 @@ export default function TabIndex() {
                 className="text-3xl font-semibold mb-1"
                 style={{ color: textColor }}
               >
-                Hey, {user?.first_name} + {user?.last_name} 👋 You are a {user?.role}
+                Hey, {user?.first_name} {user?.last_name} 👋
               </Text>
               <Text
                 className="text-base opacity-80"
@@ -182,35 +166,6 @@ export default function TabIndex() {
             </View>
           </View>
         </View>
-
-        {/* Quick Stats */}
-        {/* <View className="mb-8">
-          <Text className="text-xl font-semibold mb-4 px-5" style={{ color: textColor }}>
-            Quick Overview
-          </Text>
-          <View className="flex-row justify-between px-5">
-            {quickStats.map((stat, index) => (
-              <View 
-                key={index}
-                className="w-[30%] rounded-2xl p-4 items-center shadow-md border"
-                style={{ backgroundColor: cardColor, borderColor }}
-              >
-                <Ionicons 
-                  name={stat.icon as any} 
-                  size={24} 
-                  color={stat.color} 
-                  className="mb-2" 
-                />
-                <Text className="text-2xl font-bold mb-1" style={{ color: textColor }}>
-                  {stat.value}
-                </Text>
-                <Text className="text-xs text-center" style={{ color: mutedColor }}>
-                  {stat.label}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View> */}
 
         {/* Quick Actions */}
         <View className="mb-8">
@@ -252,7 +207,7 @@ export default function TabIndex() {
         {/* Parent-specific Children View */}
         <ParentOnly>
           <View
-            className="mx-5 rounded-2xl p-5 shadow-md border mb-6"
+            className="mx-5 rounded-2xl p-5 shadow-sm border mb-6"
             style={{ backgroundColor: cardColor, borderColor }}
           >
             <View className="flex-row justify-between items-center mb-4">
@@ -342,11 +297,10 @@ export default function TabIndex() {
                     <TouchableOpacity
                       className="p-2 rounded-full"
                       style={{ backgroundColor: primaryColor }}
-                      onPress={() =>
-                        router.push(
-                          `/student-details?studentId=${child.name.toLowerCase()}`
-                        )
-                      }
+                      onPress={() => {
+                        // Use the child's ID directly from the transformed data
+                        router.push(`/student-details?studentId=${child.id}`);
+                      }}
                     >
                       <Ionicons
                         name="chevron-forward"
@@ -369,63 +323,7 @@ export default function TabIndex() {
         </ParentOnly>
 
         {/* Recent Activity */}
-        <View
-          className="mx-5 rounded-2xl p-5 shadow-md border"
-          style={{ backgroundColor: cardColor, borderColor }}
-        >
-          <Text
-            className="text-xl font-semibold mb-4"
-            style={{ color: textColor }}
-          >
-            Recent Activity
-          </Text>
-          <View className="mt-4">
-            <View className="flex-row items-center mb-4">
-              <View
-                className="w-8 h-8 rounded-full justify-center items-center mr-3"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <Ionicons name="checkmark" size={16} color="white" />
-              </View>
-              <View className="flex-1">
-                <Text
-                  className="text-base font-medium mb-1"
-                  style={{ color: textColor }}
-                >
-                  Check-in completed
-                </Text>
-                <Text
-                  className="text-sm opacity-70"
-                  style={{ color: mutedColor }}
-                >
-                  2 hours ago
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center">
-              <View
-                className="w-8 h-8 rounded-full justify-center items-center mr-3"
-                style={{ backgroundColor: successColor }}
-              >
-                <Ionicons name="trophy" size={16} color="white" />
-              </View>
-              <View className="flex-1">
-                <Text
-                  className="text-base font-medium mb-1"
-                  style={{ color: textColor }}
-                >
-                  Achievement unlocked
-                </Text>
-                <Text
-                  className="text-sm opacity-70"
-                  style={{ color: mutedColor }}
-                >
-                  Yesterday
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
+
       </ScrollView>
     </SafeAreaView>
   );

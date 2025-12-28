@@ -172,10 +172,10 @@ export default function Discipline() {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor }} className="flex-1">
+    <SafeAreaView style={{ backgroundColor }} className="flex-1 pt-8">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
         {/* Header */}
-        <View className="px-5 pt-5 pb-6">
+        <View className="px-5 pt-5 pb-8">
           <View className="flex-row justify-between items-center">
             <View>
               <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
@@ -187,10 +187,10 @@ export default function Discipline() {
             </View>
             <TouchableOpacity
               className="p-3 rounded-full"
-              style={{ backgroundColor: cardColor }}
+              style={{ backgroundColor: primaryColor }}
               onPress={loadStudentData}
             >
-              <Ionicons name="refresh" size={20} color={primaryColor} />
+              <Ionicons name="refresh" size={20} color="white" />
             </TouchableOpacity>
           </View>
         </View>

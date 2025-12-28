@@ -5,41 +5,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
 import { ParentOnly } from '@/components/RoleBasedUI';
+import { studentApi, StudentDetails } from '@/api/studentApi';
 
-// Student data interface
-interface StudentDetails {
-  id: string;
-  name: string;
-  grade: string;
-  section: string;
-  attendance: {
-    present: number;
-    absent: number;
-    late: number;
-    rate: number;
-  };
-  discipline: {
-    points: number;
-    incidents: number;
-  };
-  sahsiah: {
-    points: number;
-    achievements: number;
-  };
-  rmt: {
-    eligible: boolean;
-    claimed: boolean;
-    lastClaim: string;
-  };
-  recentActivity: Array<{
-    type: 'attendance' | 'discipline' | 'sahsiah' | 'rmt';
-    description: string;
-    date: string;
-    points?: number;
-  }>;
-}
 
-export default function StudentDetails() {
+export default function StudentDetailsScreen() {
   const router = useRouter();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
   
@@ -57,73 +26,48 @@ export default function StudentDetails() {
   const [student, setStudent] = useState<StudentDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with actual API call when ready
+  // Load student data from API
   useEffect(() => {
     const loadStudentDetails = async () => {
       try {
         setLoading(true);
         
-        // TODO: Replace with actual API call
-        // const studentData = await studentApi.getStudentDetails(studentId);
+        // Fetch student data from API
+        const studentData: any = await studentApi.getStudentDetails(studentId);
         
-        // Mock data for demonstration
-        const mockStudent: StudentDetails = {
-          id: studentId,
-          name: 'Ahmad',
-          grade: '5A',
-          section: 'Science',
+        // Log the API response to understand the structure
+        console.log('API Response:', JSON.stringify(studentData, null, 2));
+        
+        // Transform the API response to match our expected structure
+        const transformedData: StudentDetails = {
+          id: studentData.id || studentId,
+          name: studentData.name || studentData.username || 'Unknown',
+          grade: studentData.grade || studentData.class || 'N/A',
+          section: studentData.section || 'N/A',
           attendance: {
-            present: 145,
-            absent: 8,
-            late: 12,
-            rate: 92.5
+            present: studentData.attendance?.present || 0,
+            absent: studentData.attendance?.absent || 0,
+            late: studentData.attendance?.late || 0,
+            rate: studentData.attendance?.rate || 0
           },
           discipline: {
-            points: 85,
-            incidents: 2
+            points: studentData.discipline?.points || 0,
+            incidents: studentData.discipline?.incidents || 0
           },
           sahsiah: {
-            points: 120,
-            achievements: 8
+            points: studentData.sahsiah?.points || 0,
+            achievements: studentData.sahsiah?.achievements || 0
           },
           rmt: {
-            eligible: true,
-            claimed: true,
-            lastClaim: '2025-12-20'
+            eligible: studentData.rmt?.eligible || studentData.rmt_elligible || false,
+            claimed: studentData.rmt?.claimed || false,
+            lastClaim: studentData.rmt?.lastClaim || 'Never'
           },
-          recentActivity: [
-            {
-              type: 'attendance',
-              description: 'Present - On time',
-              date: '2025-12-25',
-              points: 0
-            },
-            {
-              type: 'sahsiah',
-              description: 'Helped classmates',
-              date: '2025-12-24',
-              points: 5
-            },
-            {
-              type: 'discipline',
-              description: 'Late to class',
-              date: '2025-12-23',
-              points: -3
-            },
-            {
-              type: 'rmt',
-              description: 'Monthly ration claimed',
-              date: '2025-12-20',
-              points: 0
-            }
-          ]
+          recentActivity: studentData.recentActivity || []
         };
         
-        // Simulate API delay
-        setTimeout(() => {
-          setStudent(mockStudent);
-          setLoading(false);
-        }, 1000);
+        setStudent(transformedData);
+        setLoading(false);
         
       } catch (error) {
         console.error('Error loading student details:', error);
@@ -206,8 +150,8 @@ export default function StudentDetails() {
         {/* Header */}
         <View className="px-5 pt-5 pb-6">
           <View className="flex-row items-center">
-            <View 
-              className="w-16 h-16 rounded-full justify-center items-center mr-4 shadow-md border"
+            <View
+              className="w-16 h-16 rounded-full justify-center items-center mr-4 shadow-sm border"
               style={{ backgroundColor: cardColor, borderColor }}
             >
               <Text className="text-2xl">{student.name.charAt(0)}</Text>
@@ -217,7 +161,7 @@ export default function StudentDetails() {
                 {student.name}
               </Text>
               <Text className="text-base opacity-80" style={{ color: mutedColor }}>
-                Grade {student.grade} • Section {student.section}
+                Class {student.grade} • {student.section}
               </Text>
             </View>
             <TouchableOpacity
@@ -233,7 +177,7 @@ export default function StudentDetails() {
         {/* Stats Overview */}
         <View className="px-5 mb-6">
           <View className="flex-row justify-between">
-            <View className="w-[30%] rounded-2xl p-4 items-center shadow-md border" style={{ backgroundColor: cardColor, borderColor }}>
+            <View className="w-[30%] rounded-2xl p-4 items-center shadow-sm border" style={{ backgroundColor: cardColor, borderColor }}>
               <Ionicons name="checkmark-circle" size={24} color={successColor} />
               <Text className="text-2xl font-bold mt-2 mb-1" style={{ color: textColor }}>
                 {student.attendance.rate}%
@@ -243,7 +187,7 @@ export default function StudentDetails() {
               </Text>
             </View>
             
-            <View className="w-[30%] rounded-2xl p-4 items-center shadow-md border" style={{ backgroundColor: cardColor, borderColor }}>
+            <View className="w-[30%] rounded-2xl p-4 items-center shadow-sm border" style={{ backgroundColor: cardColor, borderColor }}>
               <Ionicons name="trophy" size={24} color={primaryColor} />
               <Text className="text-2xl font-bold mt-2 mb-1" style={{ color: textColor }}>
                 {student.sahsiah.points}
@@ -253,7 +197,7 @@ export default function StudentDetails() {
               </Text>
             </View>
             
-            <View className="w-[30%] rounded-2xl p-4 items-center shadow-md border" style={{ backgroundColor: cardColor, borderColor }}>
+            <View className="w-[30%] rounded-2xl p-4 items-center shadow-sm border" style={{ backgroundColor: cardColor, borderColor }}>
               <Ionicons name="warning" size={24} color={warningColor} />
               <Text className="text-2xl font-bold mt-2 mb-1" style={{ color: textColor }}>
                 {student.discipline.points}
@@ -267,7 +211,7 @@ export default function StudentDetails() {
 
         {/* Detailed Information */}
         <View className="px-5 mb-6">
-          <View className="rounded-2xl p-5 border shadow-md" style={{ backgroundColor: cardColor, borderColor }}>
+          <View className="rounded-2xl p-5 border shadow-sm" style={{ backgroundColor: cardColor, borderColor }}>
             <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
               Detailed Information
             </Text>
@@ -312,7 +256,7 @@ export default function StudentDetails() {
 
         {/* Recent Activity */}
         <View className="px-5 mb-6">
-          <View className="rounded-2xl p-5 border shadow-md" style={{ backgroundColor: cardColor, borderColor }}>
+          <View className="rounded-2xl p-5 border shadow-sm" style={{ backgroundColor: cardColor, borderColor }}>
             <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
               Recent Activity
             </Text>
@@ -352,37 +296,6 @@ export default function StudentDetails() {
         </View>
 
         {/* Parent-only actions */}
-        <ParentOnly>
-          <View className="px-5 mb-6">
-            <View className="flex-row space-x-3">
-              <TouchableOpacity
-                className="flex-1 py-3 rounded-xl border"
-                style={{ backgroundColor: cardColor, borderColor }}
-                onPress={() => {
-                  // TODO: Navigate to attendance details
-                  console.log('View attendance details for:', student.id);
-                }}
-              >
-                <Text className="text-center font-medium" style={{ color: textColor }}>
-                  View Attendance
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                className="flex-1 py-3 rounded-xl border"
-                style={{ backgroundColor: cardColor, borderColor }}
-                onPress={() => {
-                  // TODO: Navigate to reports
-                  console.log('Generate report for:', student.id);
-                }}
-              >
-                <Text className="text-center font-medium" style={{ color: textColor }}>
-                  Generate Report
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ParentOnly>
       </ScrollView>
     </SafeAreaView>
   );

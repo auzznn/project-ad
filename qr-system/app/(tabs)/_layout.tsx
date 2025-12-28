@@ -84,22 +84,19 @@ export default function TabLayout() {
       />
       
       {/* Discipline Tab - Only for admin/teacher */}
-      {isAdminOrTeacher && (
         <Tabs.Screen
           name="discipline"
           options={{
             title: 'Discipline',
             tabBarIcon: ({ color, size, focused }) => (
-              <MaterialCommunityIcons
+              <Ionicons
                 name={focused ? 'alert-circle' : 'alert-circle-outline'}
                 size={size || 22}
                 color={color}
               />
             ),
           }}
-        />
-      )}
-      
+        />      
       {/* RMT Tab - Only for admin/teacher */}
       {isAdminOrTeacher && (
         <Tabs.Screen
@@ -118,53 +115,8 @@ export default function TabLayout() {
       )}
       
       {/* Theme Tab - All users can access */}
-      <Tabs.Screen
-        name="theme"
-        options={{
-          title: 'Theme',
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? 'color-palette' : 'color-palette-outline'}
-              size={size || 22}
-              color={color}
-            />
-          ),
-        }}
-      />
-      
       {/* Attendance Tab - Only for admin/teacher */}
-      {isAdminOrTeacher && (
-        <Tabs.Screen
-          name="attendance"
-          options={{
-            title: 'Attendance',
-            tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons
-                name={focused ? 'people' : 'people-outline'}
-                size={size || 22}
-                color={color}
-              />
-            ),
-          }}
-        />
-      )}
-      
-      {/* Reports Tab - Only for admin/teacher/parent */}
-      {(isAdminOrTeacher || isParent) && (
-        <Tabs.Screen
-          name="reports"
-          options={{
-            title: 'Reports',
-            tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons
-                name={focused ? 'document-text' : 'document-text-outline'}
-                size={size || 22}
-                color={color}
-              />
-            ),
-          }}
-        />
-      )}
+
       
       {/* Profile Tab - All users can access their own profile */}
       <Tabs.Screen
@@ -182,7 +134,7 @@ export default function TabLayout() {
         />
         
       {/* Student Details Tab - Only for parent */}
-      {isParent && (
+      {isAdmin && (
         <Tabs.Screen
           name="student-details"
           options={{
@@ -198,22 +150,6 @@ export default function TabLayout() {
         />
       )}
       
-      {/* Role Test Tab - Only for admin (for testing purposes) */}
-      {isAdmin && (
-        <Tabs.Screen
-          name="role-test"
-          options={{
-            title: 'Test RBAC',
-            tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons
-                name={focused ? 'shield-checkmark' : 'shield-checkmark-outline'}
-                size={size || 22}
-                color={color}
-              />
-            ),
-          }}
-        />
-      )}
     </Tabs>
   );
 }

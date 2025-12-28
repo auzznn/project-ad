@@ -69,6 +69,38 @@ export interface DisciplineCategory {
   types: DisciplineType[]; 
 }
 
+export interface StudentDetails {
+  id: string;
+  name: string;
+  grade: string;
+  section: string;
+  attendance: {
+    present: number;
+    absent: number;
+    late: number;
+    rate: number;
+  };
+  discipline: {
+    points: number;
+    incidents: number;
+  };
+  sahsiah: {
+    points: number;
+    achievements: number;
+  };
+  rmt: {
+    eligible: boolean;
+    claimed: boolean;
+    lastClaim: string;
+  };
+  recentActivity: Array<{
+    type: 'attendance' | 'discipline' | 'sahsiah' | 'rmt';
+    description: string;
+    date: string;
+    points?: number;
+  }>;
+}
+
 export const studentApi = {
 
   getChildren: async (userId: string): Promise<User[]> => {
@@ -81,6 +113,11 @@ export const studentApi = {
   },
   // Get student data by ID
   getStudent: async (studentId: string): Promise<Student> => {
+    return apiRequest.get(`/authentication/student/${studentId}`);
+  },
+  
+  // Get detailed student information including attendance, discipline, etc.
+  getStudentDetails: async (studentId: string): Promise<StudentDetails> => {
     return apiRequest.get(`/authentication/student/${studentId}`);
   },
   
@@ -193,5 +230,6 @@ export const studentApi = {
   getDisciplineLeaderboard: async (): Promise<any> => {
     const response = await apiRequest.get('/discipline/leaderboard/');
     return response.entry;
-  }
+  },
+  
 };
