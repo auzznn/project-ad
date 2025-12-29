@@ -1,4 +1,5 @@
 import { apiRequest } from './axiosClient';
+import { User } from '@/context/AuthContext';
 
 export interface Student {
   id: string;
@@ -65,12 +66,58 @@ export interface DisciplineCategory {
   name: string;
   icon?: string;
   color?: string;
-  types: DisciplineType[];
+  types: DisciplineType[]; 
+}
+
+export interface StudentDetails {
+  id: string;
+  name: string;
+  grade: string;
+  section: string;
+  attendance: {
+    present: number;
+    absent: number;
+    late: number;
+    rate: number;
+  };
+  discipline: {
+    points: number;
+    incidents: number;
+  };
+  sahsiah: {
+    points: number;
+    achievements: number;
+  };
+  rmt: {
+    eligible: boolean;
+    claimed: boolean;
+    lastClaim: string;
+  };
+  recentActivity: Array<{
+    type: 'attendance' | 'discipline' | 'sahsiah' | 'rmt';
+    description: string;
+    date: string;
+    points?: number;
+  }>;
 }
 
 export const studentApi = {
+
+  getChildren: async (userId: string): Promise<User[]> => {
+    try {
+      const response = await apiRequest.get(`/authentication/user/${userId}/`);
+      return response.children || [];
+    } catch (error) {
+      throw error;
+    }
+  },
   // Get student data by ID
   getStudent: async (studentId: string): Promise<Student> => {
+    return apiRequest.get(`/authentication/student/${studentId}`);
+  },
+  
+  // Get detailed student information including attendance, discipline, etc.
+  getStudentDetails: async (studentId: string): Promise<StudentDetails> => {
     return apiRequest.get(`/authentication/student/${studentId}`);
   },
   
@@ -93,10 +140,16 @@ export const studentApi = {
     const response = await apiRequest.get('student_attendance/daily/');
     console.log(response)
     
-    // Filter for the specific student - the student_id is nested inside a student object
-    const studentRecord = response.entry.find((record: any) => {
-      return record.student && record.student.id === Number(studentId);
-    }) || null;
+    // Create a hash map for O(1) lookups
+    const attendanceMap: { [key: string]: any } = {};
+    response.entry.forEach((record: any) => {
+      if (record.student && record.student.id) {
+        attendanceMap[record.student.id.toString()] = record;
+      }
+    });
+    
+    // Direct lookup for the specific student - O(1) complexity
+    const studentRecord = attendanceMap[studentId] || null;
     
     // This ensures students without attendance records can be marked
     if (!studentRecord) {
@@ -104,6 +157,43 @@ export const studentApi = {
     }
     
     return studentRecord;
+  },
+  
+  // Check attendance status for multiple children at once
+  checkChildrenAttendance: async (childrenIds: string[]): Promise<any[]> => {
+    try {
+      const response = await apiRequest.get('student_attendance/daily/');
+      const attendanceData = response.entry || [];
+      
+      // Create a hash map for O(1) lookups
+      const attendanceMap: { [key: string]: any } = {};
+      attendanceData.forEach((record: any) => {
+        if (record.student && record.student.id) {
+          attendanceMap[record.student.id.toString()] = record;
+        }
+      });
+      
+      // Now lookup each child in O(1) time
+      return childrenIds.map(childId => {
+        const studentRecord = attendanceMap[childId] || null;
+        
+        if (!studentRecord) {
+          return {
+            studentId: childId,
+            status: "absent",
+            timestamp: null
+          };
+        }
+        
+        return {
+          studentId: childId,
+          status: studentRecord.status || "present",
+          timestamp: studentRecord.timestamp
+        };
+      });
+    } catch (error) {
+      throw error;
+    }
   },
   
   // Record sahsiah (behavior/conduct) for a student
@@ -153,5 +243,6 @@ export const studentApi = {
   getDisciplineLeaderboard: async (): Promise<any> => {
     const response = await apiRequest.get('/discipline/leaderboard/');
     return response.entry;
-  }
+  },
+  
 };

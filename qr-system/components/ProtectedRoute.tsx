@@ -12,18 +12,23 @@ interface ProtectedRouteProps {
   onAccessDenied?: () => void;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  allowedRoles, 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  allowedRoles,
   requiredPermissions,
   fallback,
   showAccessDeniedMessage = true,
   onAccessDenied
 }) => {
-  const { hasAnyRole, hasAnyPermission } = usePermissions();
+  const { hasAnyRole, hasAnyPermission, hasAuthContext } = usePermissions();
   
   // Check if user has required role or permission
   const hasAccess = React.useMemo(() => {
+    // If we don't have auth context, default to no access
+    if (!hasAuthContext) {
+      return false;
+    }
+    
     if (allowedRoles && hasAnyRole(allowedRoles as any[])) {
       return true;
     }
@@ -33,7 +38,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
     
     return false;
-  }, [allowedRoles, requiredPermissions, hasAnyRole, hasAnyPermission]);
+  }, [allowedRoles, requiredPermissions, hasAnyRole, hasAnyPermission, hasAuthContext]);
   
   // If user has access, render children
   if (hasAccess) {
@@ -55,8 +60,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           You don't have permission to access this feature.
         </Text>
         {onAccessDenied && (
-          <TouchableOpacity 
-            style={styles.goBackButton} 
+          <TouchableOpacity
+            style={styles.goBackButton}
             onPress={onAccessDenied}
           >
             <Text style={styles.goBackButtonText}>Go Back</Text>

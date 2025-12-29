@@ -3,11 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authApi } from "../api/authApi";
 import { jwtDecode } from "jwt-decode";
 
-interface User {
+export interface User {
   username: string;
   role: string;
   first_name?: string;
   last_name?: string;
+  user_id: string;
   // Add other user properties as needed
 }
 
@@ -74,7 +75,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
                 ...userData,
                 first_name: decodedToken.first_name,
                 last_name: decodedToken.last_name,
-                role: decodedToken.role
+                role: decodedToken.role,
+                user_id: decodedToken.user_id.toString()
               };
               setUser(updatedUserData);
               setIsAuthenticated(true);
@@ -137,7 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           username: decodedToken.username,
           role: decodedToken.role,
           first_name: decodedToken.first_name,
-          last_name: decodedToken.last_name
+          last_name: decodedToken.last_name,
+          user_id: decodedToken.user_id.toString()
         };
 
         console.log("Created user data:", userData);
@@ -202,3 +205,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
