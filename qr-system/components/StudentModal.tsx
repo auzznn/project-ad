@@ -120,25 +120,21 @@ export default function StudentModal({
           
           <View style={[styles.studentInfoContainer, { backgroundColor: theme.card }]}>
             <View style={styles.infoRow}>
-              <Text style={styles.emoji}>👤</Text>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Name</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>{student.name}</Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Text style={styles.emoji}>🎓</Text>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Student ID</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>{student.id}</Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Text style={styles.emoji}>🏫</Text>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>Class</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>{student.class}</Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Text style={styles.emoji}>🍽</Text>
               <Text style={[styles.infoLabel, { color: theme.muted }]}>RMT Eligible</Text>
               <Text style={[
                 styles.infoValue,

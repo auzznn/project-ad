@@ -124,12 +124,23 @@ export const studentApi = {
   // Mark attendance for a student
   markAttendance: async (payload: AttendancePayload): Promise<any> => {
     try {
-      const response = await apiRequest.patch('/student_attendance/record/', {
-        student_id: payload.id,
-       timestamp: payload.timestamp
-      });
+      console.log('markAttendance - payload:', payload);
+      console.log('markAttendance - student_id (raw):', payload.id);
+      console.log('markAttendance - student_id (parsed):', parseInt(payload.id, 10));
+      console.log('markAttendance - timestamp:', payload.timestamp);
+      
+      const requestData = {
+        student_id: parseInt(payload.id, 10),
+        timestamp: payload.timestamp
+      };
+      console.log('markAttendance - request data:', requestData);
+      
+      const response = await apiRequest.patch('/student_attendance/record/', requestData);
+      console.log('markAttendance - response:', response);
       return response;
     } catch (error) {
+      console.error('markAttendance - error:', error);
+      console.error('markAttendance - error response:', (error as any).response?.data);
       throw error;
     }
   },
@@ -209,7 +220,6 @@ export const studentApi = {
   // Check if student already has RMT for today
   checkRMTStatus: async (studentId: string): Promise<any> => {
     const response = await apiRequest.get('rmt/daily/');
-    console.log("ini responsenya loh", response.entry)
     
     // Create a hash map for O(1) lookups
     const rmtMap: { [key: string]: any } = {};

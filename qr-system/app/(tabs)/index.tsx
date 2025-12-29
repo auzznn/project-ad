@@ -275,7 +275,7 @@ export default function TabIndex() {
                           className="px-2 py-1 rounded-full mr-2"
                           style={{
                             backgroundColor:
-                              child.attendance === "present"
+                              child.attendance === "on-time"
                                 ? successColor
                                 : child.attendance === "late"
                                   ? "#ef4444"

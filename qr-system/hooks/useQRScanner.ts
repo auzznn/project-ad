@@ -40,7 +40,7 @@ export const useQRScanner = () => {
         return {
           id: data.id?.toString() || "",
           name: data.name || "",
-          class: (data.grade || "") + (data.section || "") || "",
+          class: (data.grade || "") + " " + (data.section || "") || "",
           rmt_elligible: data.rmt_elligible ?? false,
           timestamp: new Date().toISOString(),
         };

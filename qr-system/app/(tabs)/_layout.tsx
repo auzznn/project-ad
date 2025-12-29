@@ -29,7 +29,7 @@ export default function TabLayout() {
           paddingBottom: 8,
           height: 82,
           borderTopColor: useThemeColor('border'),
-          borderTopWidth: 1,
+          borderTopWidth: 0,
         },
         tabBarItemStyle: {
           paddingVertical: 4,

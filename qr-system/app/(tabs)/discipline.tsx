@@ -2,11 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { usePermissions } from '@/hooks/usePermissions';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi } from '@/api/studentApi';
 import { useFocusEffect } from 'expo-router';
-import { RoleBasedUI, AdminOrTeacher } from '@/components/RoleBasedUI';
 
 // Dynamic student data structure
 interface StudentData {
@@ -37,7 +35,6 @@ export default function Discipline() {
   
   // Dynamic filter options extracted from data
   const [availableGrades, setAvailableGrades] = useState<string[]>(['All Grades']);
-  const [availableSections, setAvailableSections] = useState<string[]>(['All Sections']);
   
   // Theme colors
   const backgroundColor = useThemeColor('background');
@@ -48,9 +45,6 @@ export default function Discipline() {
   const borderColor = useThemeColor('border');
   const accentColor = useThemeColor('accent');
   const successColor = useThemeColor('success');
-  
-  // Role-based permissions
-  const { hasPermission } = usePermissions();
   
   // Load student data from API on component mount
   useEffect(() => {
@@ -108,20 +102,15 @@ export default function Discipline() {
       console.log(`Loaded ${studentsArray.length} students from API discipline leaderboard`);
       setStudents(studentsArray);
       
-      // Extract unique grades and sections from the data
+      // Extract unique grades from the data
       const uniqueGrades = Array.from(new Set(studentsArray.map(s => s.grade).filter(g => g && g !== 'Unknown')));
-      const uniqueSections = Array.from(new Set(studentsArray.map(s => s.section).filter(c => c && c !== 'Unknown')));
       
       // Update filter options with actual data
       setAvailableGrades(['All Grades', ...uniqueGrades.sort()]);
-      setAvailableSections(['All Sections', ...uniqueSections.sort()]);
       
-      // Reset filters if current selection no longer exists
+      // Reset grade filter if current selection no longer exists
       if (selectedGrade !== 'All Grades' && !uniqueGrades.includes(selectedGrade)) {
         setSelectedGrade('All Grades');
-      }
-      if (selectedSection !== 'All Sections' && !uniqueSections.includes(selectedSection)) {
-        setSelectedSection('All Sections');
       }
       
     } catch (error) {
@@ -142,6 +131,28 @@ export default function Discipline() {
       )
       .sort((a, b) => b.points - a.points);
   }, [students, selectedGrade, selectedSection]);
+  
+  // Get available sections based on selected grade
+  const availableSectionsForGrade = useMemo(() => {
+    if (selectedGrade === 'All Grades') {
+      return ['All Sections'];
+    }
+    const sections = Array.from(
+      new Set(
+        students
+          .filter(s => s.grade === selectedGrade)
+          .map(s => s.section)
+          .filter(c => c && c !== 'Unknown')
+      )
+    );
+    return ['All Sections', ...sections.sort()];
+  }, [students, selectedGrade]);
+  
+  // Handle grade selection change
+  const handleGradeChange = (grade: string) => {
+    setSelectedGrade(grade);
+    setSelectedSection('All Sections');
+  };
   
   // Get rank badge color based on position
   const getRankBadgeColor = (rank: number) => {
@@ -172,69 +183,73 @@ export default function Discipline() {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor }} className="flex-1 pt-8">
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
-        {/* Header */}
-        <View className="px-5 pt-5 pb-8">
-          <View className="flex-row justify-between items-center">
-            <View>
-              <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
-                Discipline Leaderboard
-              </Text>
-              <Text className="text-base" style={{ color: mutedColor }}>
-                Top disciplined students this year.
-              </Text>
-            </View>
+    <SafeAreaView style={{ backgroundColor }} className="flex-1" edges={['top']}>
+      {/* Header - Fixed */}
+      <View className="px-5 pt-5 pb-4">
+        <View className="flex-row justify-between items-center">
+          <View>
+            <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
+              Discipline Leaderboard
+            </Text>
+            <Text className="text-base" style={{ color: mutedColor }}>
+              Top disciplined students this year.
+            </Text>
+          </View>
+          <TouchableOpacity
+            className="p-3 rounded-full"
+            style={{ backgroundColor: primaryColor }}
+            onPress={loadStudentData}
+          >
+            <Ionicons name="refresh" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      {/* Filters - Fixed */}
+      <View className="px-5 mb-4">
+        <View className="flex-row space-x-3">
+          {/* Grade Filter */}
+          <View className="flex-1">
+            <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
+              Grade
+            </Text>
             <TouchableOpacity
-              className="p-3 rounded-full"
-              style={{ backgroundColor: primaryColor }}
-              onPress={loadStudentData}
+              className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
+              style={{ backgroundColor: cardColor, borderColor }}
+              onPress={() => setGradeDropdownOpen(true)}
             >
-              <Ionicons name="refresh" size={20} color="white" />
+              <Text className="text-base" style={{ color: textColor }}>
+                {selectedGrade}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={mutedColor} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Section Filter */}
+          <View className="flex-1">
+            <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
+              Section
+            </Text>
+            <TouchableOpacity
+              className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
+              style={{
+                backgroundColor: selectedGrade === 'All Grades' ? `${mutedColor}20` : cardColor,
+                borderColor: selectedGrade === 'All Grades' ? `${mutedColor}40` : borderColor
+              }}
+              onPress={() => selectedGrade !== 'All Grades' && setSectionDropdownOpen(true)}
+              disabled={selectedGrade === 'All Grades'}
+            >
+              <Text className="text-base" style={{ color: selectedGrade === 'All Grades' ? mutedColor : textColor }}>
+                {selectedGrade === 'All Grades' ? 'Select Grade First' : selectedSection}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={selectedGrade === 'All Grades' ? mutedColor : mutedColor} />
             </TouchableOpacity>
           </View>
         </View>
-        
-        {/* Filters */}
-        <View className="px-5 mb-6">
-          <View className="flex-row space-x-3">
-            {/* Grade Filter */}
-            <View className="flex-1">
-              <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
-                Grade
-              </Text>
-              <TouchableOpacity
-                className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
-                style={{ backgroundColor: cardColor, borderColor }}
-                onPress={() => setGradeDropdownOpen(true)}
-              >
-                <Text className="text-base" style={{ color: textColor }}>
-                  {selectedGrade}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={mutedColor} />
-              </TouchableOpacity>
-            </View>
-            
-            {/* Section Filter */}
-            <View className="flex-1">
-              <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
-                Section
-              </Text>
-              <TouchableOpacity
-                className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
-                style={{ backgroundColor: cardColor, borderColor }}
-                onPress={() => setSectionDropdownOpen(true)}
-              >
-                <Text className="text-base" style={{ color: textColor }}>
-                  {selectedSection}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={mutedColor} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-        
-        {/* Leaderboard List */}
+      </View>
+      
+      {/* Leaderboard List - Scrollable */}
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
         <View className="px-5">
           {loading ? (
             <View
@@ -367,7 +382,7 @@ export default function Discipline() {
                     className="py-3 px-2 border-b"
                     style={{ borderColor }}
                     onPress={() => {
-                      setSelectedGrade(item);
+                      handleGradeChange(item);
                       setGradeDropdownOpen(false);
                     }}
                   >
@@ -414,7 +429,7 @@ export default function Discipline() {
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={availableSections}
+                data={availableSectionsForGrade}
                 keyExtractor={(item) => item}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (

@@ -1,29 +1,23 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { SafeAreaView, Button, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { Vibration } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useCallback } from "react";
+import { SafeAreaView, Button, Text, StyleSheet } from "react-native";
+import { useCameraPermissions } from "expo-camera";
 import { Student } from "../api/studentApi";
 import CameraViewComponent from "../components/CameraView";
 import ModalManager from "../components/ModalManager";
-import DebugPanel from "../components/DebugPanel";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
 import { ProtectedRoute } from "../components/ProtectedRoute";
-import { CanScan } from "../components/RoleBasedUI";
 
 
 export default function scanner() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<"back" | "front">("back");
-  const [qrData, setQrData] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [showSahsiahForm, setShowSahsiahForm] = useState(false);
   const [showDisciplineForm, setShowDisciplineForm] = useState(false);
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
-  const { isScanning, cooldown, handleBarcodeScanned, resetScanner } = useQRScanner();
+  const { isScanning, handleBarcodeScanned, resetScanner } = useQRScanner();
   const {
     loading,
     sahsiahCount,
@@ -38,7 +32,6 @@ export default function scanner() {
 
   // Handle successful QR scan
   const handleScanSuccess = useCallback((scannedStudent: Student) => {
-    setQrData(scannedStudent.id);
     setStudent(scannedStudent);
     setShowStudentModal(true);
     setShowSahsiahForm(false);
@@ -56,7 +49,6 @@ export default function scanner() {
     setShowSahsiahForm(false);
     setShowDisciplineForm(false);
     setStudent(null);
-    setQrData(null);
     // Resume scanning after modal close
     setTimeout(() => {
       resetScanner();
@@ -68,7 +60,6 @@ export default function scanner() {
     setShowSahsiahForm(false);
     setShowDisciplineForm(false);
     setStudent(null);
-    setQrData(null);
     // Resume scanning immediately
     resetScanner();
   }, [resetScanner]);
@@ -143,16 +134,6 @@ export default function scanner() {
           onToggleCamera={toggleCameraFacing}
         />
 
-        {/* Debug button - positioned in top-right corner */}
-        <CanScan>
-          <TouchableOpacity
-            style={styles.debugButton}
-            onPress={() => setShowDebugPanel(true)}
-          >
-            <Ionicons name="bug" size={24} color="white" />
-          </TouchableOpacity>
-        </CanScan>
-
         <ModalManager
           student={student}
           actions={studentActions}
@@ -181,10 +162,6 @@ export default function scanner() {
           onFormSubmit={closeAllAndReturnToScanner}
         />
 
-        <DebugPanel
-          visible={showDebugPanel}
-          onClose={() => setShowDebugPanel(false)}
-        />
       </SafeAreaView>
     </ProtectedRoute>
   );
@@ -201,14 +178,5 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     color: "white",
     fontSize: 16,
-  },
-  debugButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 20,
-    zIndex: 100,
   },
 });
