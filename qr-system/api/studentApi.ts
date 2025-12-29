@@ -140,10 +140,16 @@ export const studentApi = {
     const response = await apiRequest.get('student_attendance/daily/');
     console.log(response)
     
-    // Filter for the specific student - the student_id is nested inside a student object
-    const studentRecord = response.entry.find((record: any) => {
-      return record.student && record.student.id === Number(studentId);
-    }) || null;
+    // Create a hash map for O(1) lookups
+    const attendanceMap: { [key: string]: any } = {};
+    response.entry.forEach((record: any) => {
+      if (record.student && record.student.id) {
+        attendanceMap[record.student.id.toString()] = record;
+      }
+    });
+    
+    // Direct lookup for the specific student - O(1) complexity
+    const studentRecord = attendanceMap[studentId] || null;
     
     // This ensures students without attendance records can be marked
     if (!studentRecord) {
@@ -159,10 +165,17 @@ export const studentApi = {
       const response = await apiRequest.get('student_attendance/daily/');
       const attendanceData = response.entry || [];
       
+      // Create a hash map for O(1) lookups
+      const attendanceMap: { [key: string]: any } = {};
+      attendanceData.forEach((record: any) => {
+        if (record.student && record.student.id) {
+          attendanceMap[record.student.id.toString()] = record;
+        }
+      });
+      
+      // Now lookup each child in O(1) time
       return childrenIds.map(childId => {
-        const studentRecord = attendanceData.find((record: any) => {
-          return record.student && record.student.id === Number(childId);
-        }) || null;
+        const studentRecord = attendanceMap[childId] || null;
         
         if (!studentRecord) {
           return {
