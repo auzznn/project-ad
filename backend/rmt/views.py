@@ -9,21 +9,28 @@ from .models import RMTRecord
 from .serializer import RMTRecordSerializer, RecordRMTRecordSerializer
 from base.pagination import StandardResultsSetPagination
 
+
 # Create your views here.
 class RMTView(ModelViewSet):
-  queryset = RMTRecord.objects.all().order_by("-date")
-  serializer_class = RMTRecordSerializer
-  pagination_class = StandardResultsSetPagination
-  
-  def get_serializer_class(self):
-      if self.action == 'record':
-          return RecordRMTRecordSerializer
-      return super().get_serializer_class()
-  
-  @action(detail=False, methods=['patch'])
-  def record(self, request: Request, *args, **kwargs):
-    serializer = self.get_serializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    instance = serializer.save()
-    return_response = RecordRMTRecordSerializer(instance)
-    return Response(return_response.data, status=status.HTTP_200_OK)
+    queryset = RMTRecord.objects.all().order_by("-date")
+    serializer_class = RMTRecordSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_serializer_class(self):
+        if self.action == "record":
+            return RecordRMTRecordSerializer
+        return super().get_serializer_class()
+
+    @action(detail=False, methods=["patch"])
+    def record(self, request: Request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        return_response = RecordRMTRecordSerializer(instance)
+        return Response(return_response.data, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path='daily')
+    def daily(self, request: Request, *args, **kwargs):
+        queryset = self.get_queryset().today()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
