@@ -259,3 +259,62 @@
     font-size: 0.85rem;
   }
 }
+
+.link-btn {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  margin: -2px -4px; /* keeps alignment in table */
+
+  font: inherit;
+  color: inherit;
+  text-align: left;
+
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.link-btn:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.link-btn:focus-visible {
+  outline: none;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Marks Highlight: Same as TypeManagement, with thin border ===== */
+
+.marks-positive {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #e6f5ea;  /* soft green background */
+  color: #047857;             /* deep green text */
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #047857;  /* thin green border */
+}
+
+.marks-negative {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #fdecea;  /* soft red background */
+  color: #b91c1c;             /* deep red text */
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #b91c1c;  /* thin red border */
+}
+
+.marks-zero {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #f1f5f9;  /* neutral gray background */
+  color: #475569;             /* neutral text */
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #cbd5e1;  /* thin gray border */
+}

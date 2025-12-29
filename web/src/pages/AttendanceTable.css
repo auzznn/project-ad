@@ -1,0 +1,264 @@
+/* ===== Global Page Layout ===== */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px;
+  padding-left: 60px;
+  background: #f3f6fc;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* ===== Page Header ===== */
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1d2d6c;
+  margin-bottom: 20px;
+}
+
+/* ===== Section Box ===== */
+.section-box {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+}
+
+/* ===== Controls ===== */
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* ===== Table Wrapper ===== */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* ===== Table ===== */
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  margin: 0px;
+}
+
+.table-custom thead {
+  background: #4a71ff;
+  color: white;
+}
+
+.table-custom th {
+  padding: 12px 10px;
+  text-align: left;
+  font-size: 15px;
+}
+
+.table-custom td {
+  padding: 6px 10px;   /* half the vertical padding */
+  vertical-align: middle;
+}
+
+.table-custom tbody tr:nth-child(even) {
+  background: #f4f7ff;
+}
+
+.table-custom tbody tr:hover {
+  background: #e8eefc;
+}
+
+/* ===== Status ===== */
+.status-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  padding: 6px 14px;
+  border-radius: 999px; /* pill shape */
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  padding: 4px 10px;  /* reduce vertical padding */
+  font-size: 0.8rem; /* slightly smaller font */
+}
+
+/* Tepat Waktu / Hadir */
+.status-present {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #e6f5ea;
+  color: #047857;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #047857;
+  padding: 4px 10px;  /* reduce vertical padding */
+  font-size: 0.8rem; /* slightly smaller font */
+}
+
+.status-late {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;  /* reduce vertical padding */
+  font-size: 0.8rem; /* slightly smaller font */
+}
+
+.status-absent {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: #fdecea;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid #b91c1c;
+  padding: 4px 10px;  /* reduce vertical padding */
+  font-size: 0.8rem; /* slightly smaller font */
+}
+
+/* ===== Notes ===== */
+.note-preview {
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+.note-preview.clickable {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.note-empty {
+  color: #999;
+}
+
+/* ===== Action Buttons ===== */
+.action-btns-wrapper {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.note-btn {
+  background: #4a71ff;
+  color: white;
+  height: 26px;
+  padding: 2px 8px;  /* compact padding */
+  font-size: 12px;
+}
+
+.note-btn:hover {
+  background: #3b5be0;
+}
+
+/* ===== Empty State ===== */
+.empty-row {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  background: #fafafa;
+  font-style: italic;
+}
+
+/* ===== Modal Overlay ===== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== Modal Box ===== */
+.modal-box {
+  background: white;
+  width: 420px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.modal-box textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cdd3e1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+/* ===== Modal Buttons ===== */
+.modal-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.modal-save {
+  background: #4a71ff;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.modal-cancel {
+  background: #ccc;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.action-btn.compact {
+  height: 26px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1;   /* ensures the button doesn’t add extra height */
+}
