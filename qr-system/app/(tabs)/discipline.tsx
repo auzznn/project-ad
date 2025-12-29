@@ -51,22 +51,37 @@ export default function Discipline() {
     loadStudentData();
   }, []);
   
-
   useFocusEffect(
     React.useCallback(() => {
       loadStudentData();
     }, [])
   );
   
+  // Reload data when grade or section filter changes
+  useEffect(() => {
+    loadStudentData();
+  }, [selectedGrade, selectedSection]);
+  
   const loadStudentData = async () => {
     try {
       setLoading(true);
       
-      // Fetch discipline leaderboard data from API
-      const leaderboardData: LeaderboardResponse[] = await studentApi.getDisciplineLeaderboard();
+      let leaderboardData: LeaderboardResponse[];
+      
+      // Fetch discipline leaderboard data from API based on filters
+      if (selectedGrade !== 'All Grades' && selectedSection !== 'All Sections') {
+        // Filter by both grade and section
+        leaderboardData = await studentApi.getDisciplineLeaderboardByGradeAndSection(selectedGrade, selectedSection);
+      } else if (selectedGrade !== 'All Grades') {
+        // Filter by grade only
+        leaderboardData = await studentApi.getDisciplineLeaderboardByGrade(selectedGrade);
+      } else {
+        // No filter, get all leaderboard data
+        leaderboardData = await studentApi.getDisciplineLeaderboard();
+      }
       
       // Transform API data to match our StudentData interface
-      // and fetch additional student details for class information
+      // Use the ranking attribute from API for position
       const studentsArray: StudentData[] = await Promise.all(
         leaderboardData.map(async (student: LeaderboardResponse) => {
           try {
@@ -96,21 +111,20 @@ export default function Discipline() {
         })
       );
       
-      // Sort by ranking (which should already be sorted by points)
-      studentsArray.sort((a, b) => a.id - b.id);
-      
       console.log(`Loaded ${studentsArray.length} students from API discipline leaderboard`);
       setStudents(studentsArray);
       
-      // Extract unique grades from the data
-      const uniqueGrades = Array.from(new Set(studentsArray.map(s => s.grade).filter(g => g && g !== 'Unknown')));
-      
-      // Update filter options with actual data
-      setAvailableGrades(['All Grades', ...uniqueGrades.sort()]);
-      
-      // Reset grade filter if current selection no longer exists
-      if (selectedGrade !== 'All Grades' && !uniqueGrades.includes(selectedGrade)) {
-        setSelectedGrade('All Grades');
+      // Extract unique grades from the data (only when no filter is applied)
+      if (selectedGrade === 'All Grades') {
+        const uniqueGrades = Array.from(new Set(studentsArray.map(s => s.grade).filter(g => g && g !== 'Unknown')));
+        
+        // Update filter options with actual data
+        setAvailableGrades(['All Grades', ...uniqueGrades.sort()]);
+        
+        // Reset grade filter if current selection no longer exists
+        if (selectedGrade !== 'All Grades' && !uniqueGrades.includes(selectedGrade)) {
+          setSelectedGrade('All Grades');
+        }
       }
       
     } catch (error) {
@@ -122,25 +136,23 @@ export default function Discipline() {
     }
   };
   
-  // Filter and sort students
+  // Students are already filtered and sorted by the API based on ranking
+  // No client-side filtering or sorting needed
   const filteredStudents = useMemo(() => {
-    return students
-      .filter(student =>
-        (selectedGrade === 'All Grades' || student.grade === selectedGrade) &&
-        (selectedSection === 'All Sections' || student.section === selectedSection)
-      )
-      .sort((a, b) => b.points - a.points);
-  }, [students, selectedGrade, selectedSection]);
+    return students;
+  }, [students]);
   
   // Get available sections based on selected grade
+  // When a grade is selected, sections are fetched from the API
+  // When no grade is selected, show 'All Sections' only
   const availableSectionsForGrade = useMemo(() => {
     if (selectedGrade === 'All Grades') {
       return ['All Sections'];
     }
+    // Extract sections from the API response (already filtered by grade)
     const sections = Array.from(
       new Set(
         students
-          .filter(s => s.grade === selectedGrade)
           .map(s => s.section)
           .filter(c => c && c !== 'Unknown')
       )
@@ -151,6 +163,7 @@ export default function Discipline() {
   // Handle grade selection change
   const handleGradeChange = (grade: string) => {
     setSelectedGrade(grade);
+    // Reset section when grade changes
     setSelectedSection('All Sections');
   };
   
