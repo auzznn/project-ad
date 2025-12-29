@@ -267,7 +267,19 @@ export default function PapanPendahulu({
                       </button>
                     </td>
                     <td>{item.class_room}</td>
-                    <td>{item.point}</td>
+                    <td>
+                      <span
+                        className={
+                          item.point > 0
+                            ? "marks-positive"
+                            : item.point < 0
+                            ? "marks-negative"
+                            : "marks-zero"
+                        }
+                      >
+                        {item.point}
+                      </span>
+                    </td>
                   </tr>
                 ))
               )}
