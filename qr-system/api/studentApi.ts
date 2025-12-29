@@ -145,6 +145,12 @@ export const studentApi = {
     }
   },
   
+  // Get attendance statistics for all students
+  getAttendanceStatistics: async (year: string): Promise<any> => {
+    const response = await apiRequest.get(`/student_attendance/statistic/${year}/student_attendance_records/`);
+    return response.entry;
+  },
+  
   // Check if student already has attendance for today
   checkAttendanceStatus: async (studentId: string): Promise<any> => {
     // Get all attendance for today and filter by student_id on the client side
@@ -212,9 +218,21 @@ export const studentApi = {
     return apiRequest.post('/sahsiah/record/', data);
   },
   
+  // Get sahsiah records for a specific student
+  getStudentSahsiahRecords: async (studentId: string): Promise<any> => {
+    const response = await apiRequest.get(`/sahsiah/record/student/${studentId}`);
+    return response.entry || response;
+  },
+  
   // Record RMT for a student
   recordRMT: async (data: { student_id: string; timestamp: string }): Promise<any> => {
     return apiRequest.patch('/rmt/record/', data);
+  },
+  
+  // Get RMT statistics for all students
+  getRMTStatistics: async (): Promise<any> => {
+    const response = await apiRequest.get('/rmt/statistic/rmt-student');
+    return response;
   },
   
   // Check if student already has RMT for today
@@ -278,6 +296,12 @@ export const studentApi = {
   // Record discipline for a student
   recordDiscipline: async (data: DisciplineRecord): Promise<any> => {
     return apiRequest.post('/discipline/record/', data);
+  },
+  
+  // Get discipline records for a specific student
+  getStudentDisciplineRecords: async (): Promise<any> => {
+    const response = await apiRequest.get(`/discipline/record/`);
+    return response.entry || response;
   },
   
   // Get discipline types from API
