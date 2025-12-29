@@ -23,7 +23,7 @@ import { Platform } from 'react-native';
 //   }
 // };
 
-export const baseURL = 'http://10.160.42.172:8080/api/';
+export const baseURL = 'http://10.217.96.207:8080/api/';
 
 export const API_CONFIG = {
   BASE_URL: baseURL,

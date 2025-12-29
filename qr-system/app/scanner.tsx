@@ -9,6 +9,8 @@ import ModalManager from "../components/ModalManager";
 import DebugPanel from "../components/DebugPanel";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
+import { ProtectedRoute } from "../components/ProtectedRoute";
+import { CanScan } from "../components/RoleBasedUI";
 
 
 export default function scanner() {
@@ -36,7 +38,7 @@ export default function scanner() {
 
   // Handle successful QR scan
   const handleScanSuccess = useCallback((scannedStudent: Student) => {
-    setQrData(scannedStudent.student_id);
+    setQrData(scannedStudent.id);
     setStudent(scannedStudent);
     setShowStudentModal(true);
     setShowSahsiahForm(false);
@@ -111,7 +113,7 @@ export default function scanner() {
   }
 
   const studentActions = student
-    ? getStudentActions(student.student_id)
+    ? getStudentActions(student.id)
     : {
         attendance: false,
         rmt: false,
@@ -129,55 +131,62 @@ export default function scanner() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <CameraViewComponent
-        facing={facing}
-        isActive={isScanning}
-        onBarcodeScanned={(result) => handleBarcodeScanned(result, handleScanSuccess)}
-        onToggleCamera={toggleCameraFacing}
-      />
+    <ProtectedRoute
+      allowedRoles={['admin', 'teacher']}
+      showAccessDeniedMessage={true}
+    >
+      <SafeAreaView style={styles.container}>
+        <CameraViewComponent
+          facing={facing}
+          isActive={isScanning}
+          onBarcodeScanned={(result) => handleBarcodeScanned(result, handleScanSuccess)}
+          onToggleCamera={toggleCameraFacing}
+        />
 
-      {/* Debug button - positioned in top-right corner */}
-      <TouchableOpacity
-        style={styles.debugButton}
-        onPress={() => setShowDebugPanel(true)}
-      >
-        <Ionicons name="bug" size={24} color="white" />
-      </TouchableOpacity>
+        {/* Debug button - positioned in top-right corner */}
+        <CanScan>
+          <TouchableOpacity
+            style={styles.debugButton}
+            onPress={() => setShowDebugPanel(true)}
+          >
+            <Ionicons name="bug" size={24} color="white" />
+          </TouchableOpacity>
+        </CanScan>
 
-      <ModalManager
-        student={student}
-        actions={studentActions}
-        loading={loading}
-        allActionsCompleted={allActionsCompleted}
-        sahsiahCount={sahsiahCount}
-        disciplineCount={disciplineCount}
-        showStudentModal={showStudentModal}
-        showSahsiahForm={showSahsiahForm}
-        showDisciplineForm={showDisciplineForm}
-        onClose={closeModal}
-        onAttendance={handleAttendance}
-        onRMT={handleRMT}
-        onSahsiah={async (student, sahsiahType, notes) => {
-          const success = await handleSahsiah(student, sahsiahType, notes);
-          return success || false;
-        }}
-        onDiscipline={async (student, violationType, notes, points) => {
-          const success = await handleDiscipline(student, violationType, notes, points);
-          return success || false;
-        }}
-        onOpenSahsiahForm={handleOpenSahsiahForm}
-        onOpenDisciplineForm={handleOpenDisciplineForm}
-        onBackFromSahsiah={handleBackFromSahsiah}
-        onBackFromDiscipline={handleBackFromDiscipline}
-        onFormSubmit={closeAllAndReturnToScanner}
-      />
+        <ModalManager
+          student={student}
+          actions={studentActions}
+          loading={loading}
+          allActionsCompleted={allActionsCompleted}
+          sahsiahCount={sahsiahCount}
+          disciplineCount={disciplineCount}
+          showStudentModal={showStudentModal}
+          showSahsiahForm={showSahsiahForm}
+          showDisciplineForm={showDisciplineForm}
+          onClose={closeModal}
+          onAttendance={handleAttendance}
+          onRMT={handleRMT}
+          onSahsiah={async (student, sahsiahType, notes) => {
+            const success = await handleSahsiah(student, sahsiahType, notes);
+            return success || false;
+          }}
+          onDiscipline={async (student, disciplineType, notes) => {
+            const success = await handleDiscipline(student, disciplineType, notes);
+            return success || false;
+          }}
+          onOpenSahsiahForm={handleOpenSahsiahForm}
+          onOpenDisciplineForm={handleOpenDisciplineForm}
+          onBackFromSahsiah={handleBackFromSahsiah}
+          onBackFromDiscipline={handleBackFromDiscipline}
+          onFormSubmit={closeAllAndReturnToScanner}
+        />
 
-      <DebugPanel
-        visible={showDebugPanel}
-        onClose={() => setShowDebugPanel(false)}
-      />
-    </SafeAreaView>
+        <DebugPanel
+          visible={showDebugPanel}
+          onClose={() => setShowDebugPanel(false)}
+        />
+      </SafeAreaView>
+    </ProtectedRoute>
   );
 }
 

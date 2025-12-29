@@ -2,9 +2,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi } from '@/api/studentApi';
 import { useFocusEffect } from 'expo-router';
+import { RoleBasedUI, AdminOrTeacher } from '@/components/RoleBasedUI';
 
 // Dynamic student data structure
 interface StudentData {
@@ -25,7 +27,7 @@ interface LeaderboardResponse {
   ranking: number;
 }
 
-export default function Leaderboard() {
+export default function Discipline() {
   const [selectedGrade, setSelectedGrade] = useState('All Grades');
   const [selectedSection, setSelectedSection] = useState('All Sections');
   const [gradeDropdownOpen, setGradeDropdownOpen] = useState(false);
@@ -47,6 +49,9 @@ export default function Leaderboard() {
   const accentColor = useThemeColor('accent');
   const successColor = useThemeColor('success');
   
+  // Role-based permissions
+  const { hasPermission } = usePermissions();
+  
   // Load student data from API on component mount
   useEffect(() => {
     loadStudentData();
@@ -63,8 +68,8 @@ export default function Leaderboard() {
     try {
       setLoading(true);
       
-      // Fetch leaderboard data from API
-      const leaderboardData: LeaderboardResponse[] = await studentApi.getLeaderboard();
+      // Fetch discipline leaderboard data from API
+      const leaderboardData: LeaderboardResponse[] = await studentApi.getDisciplineLeaderboard();
       
       // Transform API data to match our StudentData interface
       // and fetch additional student details for class information
@@ -100,7 +105,7 @@ export default function Leaderboard() {
       // Sort by ranking (which should already be sorted by points)
       studentsArray.sort((a, b) => a.id - b.id);
       
-      console.log(`Loaded ${studentsArray.length} students from API leaderboard`);
+      console.log(`Loaded ${studentsArray.length} students from API discipline leaderboard`);
       setStudents(studentsArray);
       
       // Extract unique grades and sections from the data
@@ -120,7 +125,7 @@ export default function Leaderboard() {
       }
       
     } catch (error) {
-      console.error('Error loading leaderboard data from API:', error);
+      console.error('Error loading discipline leaderboard data from API:', error);
       // Set empty array on error to prevent infinite loading
       setStudents([]);
     } finally {
@@ -174,10 +179,10 @@ export default function Leaderboard() {
           <View className="flex-row justify-between items-center">
             <View>
               <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
-                Leaderboard
+                Discipline Leaderboard
               </Text>
               <Text className="text-base" style={{ color: mutedColor }}>
-                Top performing students this year.
+                Top disciplined students this year.
               </Text>
             </View>
             <TouchableOpacity
@@ -238,7 +243,7 @@ export default function Leaderboard() {
             >
               <Ionicons name="refresh" size={40} color={mutedColor} />
               <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
-                Loading leaderboard data...
+                Loading discipline leaderboard data...
               </Text>
             </View>
           ) : filteredStudents.length > 0 ? (
@@ -293,8 +298,9 @@ export default function Leaderboard() {
                         {student.points}
                       </Text>
                       <Text className="text-xs" style={{ color: mutedColor }}>
-                        points
+                        discipline points
                       </Text>
+                      
                     </View>
                   </View>
                 </View>
@@ -307,7 +313,7 @@ export default function Leaderboard() {
             >
               <Ionicons name="alert-circle" size={40} color={mutedColor} />
               <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
-                No leaderboard data available
+                No discipline leaderboard data available
               </Text>
               <Text className="text-sm mt-2 text-center" style={{ color: mutedColor }}>
                 Try refreshing or check your connection
