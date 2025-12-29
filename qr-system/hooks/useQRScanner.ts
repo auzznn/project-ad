@@ -29,9 +29,7 @@ export const useQRScanner = () => {
         let correctedUrl = qrData.replace("localhost", API_CONFIG.BASE_URL);
 
         const urlParts = correctedUrl.split("/");
-        console.log(urlParts)
         const studentId = urlParts[urlParts.length - 2];
-        console.log(studentId)
         
         // Use the studentApi to fetch student data
         const data = await studentApi.getStudent(studentId);

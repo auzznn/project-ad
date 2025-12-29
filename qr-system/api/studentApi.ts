@@ -201,10 +201,40 @@ export const studentApi = {
     return apiRequest.post('/sahsiah/record/', data);
   },
   
-  // Check RMT eligibility (though this will be determined from QR data)
-  checkRMTEligibility: async (studentId: string): Promise<any> => {
-    return apiRequest.get(`/rmt/check/${studentId}`);
+  // Record RMT for a student
+  recordRMT: async (data: { student_id: string; timestamp: string }): Promise<any> => {
+    return apiRequest.patch('/rmt/record/', data);
   },
+  
+  // Check if student already has RMT for today
+  checkRMTStatus: async (studentId: string): Promise<any> => {
+    const response = await apiRequest.get('rmt/daily/');
+    console.log("ini responsenya loh", response.entry)
+    
+    // Create a hash map for O(1) lookups
+    const rmtMap: { [key: string]: any } = {};
+    
+    // Check if response.entry exists and is an array
+    if (response && Array.isArray(response)) {
+      response.forEach((record: any) => {
+        if (record.student && record.student.id) {
+          rmtMap[record.student.id.toString()] = record;
+        }
+      });
+    }
+    
+    // Direct lookup for the specific student - O(1) complexity
+    const studentRecord = rmtMap[studentId] || null;
+
+    console.log(studentRecord);
+    
+    return studentRecord;
+  },
+  
+  // Check RMT eligibility (though this will be determined from QR data)
+  // checkRMTEligibility: async (studentId: string): Promise<any> => {
+  //   return apiRequest.get(`/rmt/check/${studentId}`);
+  // },
   
   // Get sahsiah types from API
   getSahsiahTypes: async (): Promise<SahsiahType[]> => {

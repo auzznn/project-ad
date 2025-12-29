@@ -100,17 +100,53 @@ export const useStudentData = () => {
     }
   };
 
-  const handleRMT = (student: Student) => {
+  const handleRMT = async (student: Student) => {
     if (!student) return;
 
     setLoading((prev) => ({ ...prev, rmt: true }));
 
-    // This function is only called when student is eligible (button is only shown for eligible students)
-    showAlert("Eligible for RMT", "success");
+    try {
+      // Fetch today's RMT record (created daily at 00:00 by celery worker)
+      const record = await studentApi.checkRMTStatus(student.id);
 
-    // Update state immediately after showing alert
-    updateStudentAction(student.id, "rmt", true);
-    setLoading((prev) => ({ ...prev, rmt: false }));
+      // Check if student already has RMT recorded for today (is_present is true)
+      if (record && record.is_present) {
+        showAlert("RMT already recorded today", "info");
+        return;
+      }
+
+      // Record RMT
+      const rmtPayload = {
+        student_id: student.id,
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await studentApi.recordRMT(rmtPayload);
+
+      // Extract timestamp from response
+      const timestamp = response.timestamp || new Date().toISOString();
+      
+      // Format timestamp for display
+      const formattedTime = new Date(timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      showAlert(`RMT recorded at ${formattedTime}`, "success");
+      
+      // Update state after successful recording
+      updateStudentAction(student.id, "rmt", true);
+    } catch (error: any) {
+      showAlert(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to record RMT",
+        "error"
+      );
+    } finally {
+      setLoading((prev) => ({ ...prev, rmt: false }));
+    }
   };
 
   /**
