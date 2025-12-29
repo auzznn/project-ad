@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import "./PapanPendahulu.css";
-import SearchBar from "../components/SearchBar";
-import Pagination from "../components/pagination";
-import FilterDropdown from "../components/FilterDropdown";
+import Pagination from "./pagination";
+import SearchBar from "./SearchBar";
+import FilterDropdown from "./FilterDropdown";
 
+/* ================= Interfaces ================= */
 
-interface LeaderboardEntry {
+export interface LeaderboardEntry {
   student_id: number;
   student_name: string;
   point: number;
@@ -13,20 +13,20 @@ interface LeaderboardEntry {
   ranking: number;
 }
 
-interface Classroom {
+export interface Classroom {
   id: number;
   grade: number;
   class_section: string;
 }
 
-interface SahsiahRecord {
+export interface StudentRecord {
   id: number;
   timestamp: string;
   migrate_student_id: number;
-  sahsiah_type: number;
+  type_id: number;
 }
 
-interface SahsiahType {
+export interface RecordType {
   id: number;
   name: string;
   description: string;
@@ -34,31 +34,58 @@ interface SahsiahType {
   tag: string;
 }
 
-export default function LeaderboardPage() {
-  // ---------------- State ----------------
+/* ================= Props ================= */
+
+interface LeaderboardBaseProps {
+  title: string;
+
+  leaderboardBaseUrl: string;
+  leaderboardByGradeUrl: (grade: number) => string;
+  leaderboardByGradeClassUrl: (grade: number, cls: string) => string;
+
+  studentRecordUrl: (studentId: number) => string;
+  typeListUrl: string;
+
+  recordTypeKey: "sahsiah_type" | "discipline_type";
+}
+
+/* ================= Component ================= */
+
+export default function PapanPendahulu({
+  title,
+  leaderboardBaseUrl,
+  leaderboardByGradeUrl,
+  leaderboardByGradeClassUrl,
+  studentRecordUrl,
+  typeListUrl,
+  recordTypeKey,
+}: LeaderboardBaseProps) {
+  /* ---------- State ---------- */
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [types, setTypes] = useState<RecordType[]>([]);
+
   const [gradeFilter, setGradeFilter] = useState<number | "">("");
   const [classFilter, setClassFilter] = useState("");
-  const [sahsiahTypes, setSahsiahTypes] = useState<SahsiahType[]>([]);
-
-  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Modal
-  const [selectedStudent, setSelectedStudent] = useState<LeaderboardEntry | null>(null);
-  const [studentRecords, setStudentRecords] = useState<SahsiahRecord[]>([]);
+  const [selectedStudent, setSelectedStudent] =
+    useState<LeaderboardEntry | null>(null);
+  const [studentRecords, setStudentRecords] = useState<StudentRecord[]>([]);
   const [recordLoading, setRecordLoading] = useState(false);
 
-  // ---------------- Fetch classrooms ----------------
+  /* ---------- Fetch classrooms ---------- */
   const fetchClassrooms = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/authentication/classroom/");
+      const res = await fetch(
+        "http://localhost:8080/api/authentication/classroom/"
+      );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);
     } catch {
@@ -66,40 +93,32 @@ export default function LeaderboardPage() {
     }
   };
 
-  // ---------------- Fetch leaderboard ----------------
+  /* ---------- Fetch leaderboard ---------- */
   const fetchLeaderboard = async () => {
     setLoading(true);
 
     try {
-      // Build the URL depending on filters
-      let url = `http://localhost:8080/api/sahsiah/leaderboard/?page=${page}`;
+      let url = `${leaderboardBaseUrl}?page=${page}`;
 
       if (gradeFilter && classFilter) {
-        url = `http://localhost:8080/api/sahsiah/leaderboard/${gradeFilter}/${classFilter}/?page=${page}`;
+        url = `${leaderboardByGradeClassUrl(
+          gradeFilter,
+          classFilter
+        )}?page=${page}`;
       } else if (gradeFilter) {
-        url = `http://localhost:8080/api/sahsiah/leaderboard/${gradeFilter}/?page=${page}`;
+        url = `${leaderboardByGradeUrl(gradeFilter)}?page=${page}`;
       }
 
       const res = await fetch(url);
-      const data: {
-        links: { next: string | null; previous: string | null };
-        total_items: number;
-        page_number: number;
-        entry: LeaderboardEntry[];
-      } = await res.json();
+      const data = await res.json();
 
-      // Set the leaderboard entries
       setLeaderboard(Array.isArray(data.entry) ? data.entry : []);
-
-      // Set pagination info
-      setPage(data.page_number ?? 1);
       setTotalPages(
         data.total_items && data.entry?.length
           ? Math.ceil(data.total_items / data.entry.length)
           : 1
       );
-    } catch (err) {
-      console.error("Failed to fetch leaderboard:", err);
+    } catch {
       setLeaderboard([]);
       setTotalPages(1);
     } finally {
@@ -107,70 +126,49 @@ export default function LeaderboardPage() {
     }
   };
 
-
-  // search filter
-  const filteredLeaderboard = leaderboard.filter((item) => {
-  const term = searchTerm.toLowerCase().trim();
-
-  if (!term) return true;
-
-  return (
-    item.student_name.toLowerCase().includes(term) ||
-    item.class_room.toLowerCase().includes(term)
-  );
-});
-
-
-  // fetch sahsiah type
-  const fetchSahsiahTypes = async () => {
-  try {
-    const res = await fetch("http://localhost:8080/api/sahsiah/type/");
-    const data = await res.json();
-
-    if (Array.isArray(data.entry)) {
-      setSahsiahTypes(data.entry);
-    } else {
-      setSahsiahTypes([]);
+  /* ---------- Fetch types ---------- */
+  const fetchTypes = async () => {
+    try {
+      const res = await fetch(typeListUrl);
+      const data = await res.json();
+      setTypes(Array.isArray(data.entry) ? data.entry : []);
+    } catch {
+      setTypes([]);
     }
-  } catch (err) {
-    console.error("Failed to fetch sahsiah types:", err);
-    setSahsiahTypes([]);
-  }
-};
+  };
 
+  /* ---------- Fetch student records ---------- */
+  const fetchStudentRecords = async (studentId: number) => {
+    setRecordLoading(true);
 
-  // ---------------- Fetch student records ----------------
-const fetchStudentRecords = async (studentId: number) => {
-  setRecordLoading(true);
+    try {
+      const res = await fetch(studentRecordUrl(studentId));
+      const data = await res.json();
+      setStudentRecords(Array.isArray(data.entry) ? data.entry : []);
+    } catch {
+      setStudentRecords([]);
+    } finally {
+      setRecordLoading(false);
+    }
+  };
 
-  try {
-    const res = await fetch(
-      `http://localhost:8080/api/sahsiah/record/student/${studentId}`
+  const getType = (id: number) => types.find((t) => t.id === id);
+
+  /* ---------- Filters ---------- */
+  const filteredLeaderboard = leaderboard.filter((item) => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+
+    return (
+      item.student_name.toLowerCase().includes(term) ||
+      item.class_room.toLowerCase().includes(term)
     );
+  });
 
-    const data: {
-      links?: { next: string | null; previous: string | null };
-      total_items?: number;
-      page_number?: number;
-      entry: SahsiahRecord[];
-    } = await res.json();
-
-    setStudentRecords(Array.isArray(data.entry) ? data.entry : []);
-  } catch (err) {
-    console.error("Failed to fetch student records:", err);
-    setStudentRecords([]);
-  } finally {
-    setRecordLoading(false);
-  }
-};
-  // helper to set sahsiah type
-  const getSahsiahType = (typeId: number) =>
-  sahsiahTypes.find((t) => t.id === typeId);
-
-
-  // ---------------- Effects ----------------
+  /* ---------- Effects ---------- */
   useEffect(() => {
     fetchClassrooms();
+    fetchTypes();
   }, []);
 
   useEffect(() => {
@@ -178,22 +176,15 @@ const fetchStudentRecords = async (studentId: number) => {
   }, [gradeFilter, classFilter, page]);
 
   useEffect(() => {
-  setPage(1);
-}, [gradeFilter, classFilter]);
+    setPage(1);
+  }, [gradeFilter, classFilter]);
 
-  useEffect(() => {
-  fetchClassrooms();
-  fetchSahsiahTypes();
-}, []);
-
-  // ---------------- Render ----------------
+  /* ---------- Render ---------- */
   return (
     <div className="page-container">
-      <h1 className="page-title">Papan Pendahulu Sahsiah</h1>
+      <h1 className="page-title">{title}</h1>
 
       <div className="section-box">
-        {/* -------- Filters -------- */}
-
         <div className="controls-row">
           <SearchBar
             value={searchTerm}
@@ -206,8 +197,8 @@ const fetchStudentRecords = async (studentId: number) => {
           <FilterDropdown
             label="Tingkat"
             value={gradeFilter}
-            onChange={(value) => {
-              setGradeFilter(value === "" ? "" : Number(value));
+            onChange={(v) => {
+              setGradeFilter(v === "" ? "" : Number(v));
               setClassFilter("");
             }}
             options={[
@@ -222,8 +213,8 @@ const fetchStudentRecords = async (studentId: number) => {
           <FilterDropdown
             label="Kelas"
             value={classFilter}
-            onChange={(value) => setClassFilter(String(value))}
             disabled={gradeFilter === ""}
+            onChange={(v) => setClassFilter(String(v))}
             options={[
               { value: "", label: "Semua Kelas" },
               ...classrooms
@@ -236,7 +227,6 @@ const fetchStudentRecords = async (studentId: number) => {
           />
         </div>
 
-        {/* -------- Table -------- */}
         <div className="table-wrapper">
           <table className="custom-table">
             <thead>
@@ -255,7 +245,7 @@ const fetchStudentRecords = async (studentId: number) => {
                     Memuatkan leaderboard...
                   </td>
                 </tr>
-              ) : leaderboard.length === 0 ? (
+              ) : filteredLeaderboard.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="empty-row">
                     Tiada rekod
@@ -284,46 +274,48 @@ const fetchStudentRecords = async (studentId: number) => {
             </tbody>
           </table>
 
-          {/* -------- Pagination -------- */}
           <Pagination
             page={page}
             totalPages={totalPages}
             onPageChange={setPage}
           />
-          
         </div>
       </div>
 
-      {/* -------- Student Modal -------- */}
+      {/* ---------- Modal ---------- */}
       {selectedStudent && (
         <div className="modal-backdrop">
           <div className="modal-box large-modal">
             <h2 className="modal-title">
-              Rekod Sahsiah — {selectedStudent.student_name}
+              Rekod — {selectedStudent.student_name}
             </h2>
 
             {recordLoading ? (
               <p>Memuatkan rekod...</p>
             ) : studentRecords.length === 0 ? (
-              <p>Tiada rekod sahsiah</p>
+              <p>Tiada rekod</p>
             ) : (
               <table className="custom-table">
                 <thead>
                   <tr>
                     <th>Tarikh</th>
-                    <th>Jenis Sahsiah</th>
+                    <th>Jenis</th>
                     <th>Penerangan</th>
                     <th>Mata</th>
                   </tr>
                 </thead>
                 <tbody>
                   {studentRecords.map((r) => {
-                    const type = getSahsiahType(r.sahsiah_type);
+                    const type = getType(
+                      (r as any)[recordTypeKey]
+                    );
 
                     return (
                       <tr key={r.id}>
-                        <td>{new Date(r.timestamp).toLocaleDateString()}</td>
-                        <td>{type?.name || "Tidak diketahui"}</td>
+                        <td>
+                          {new Date(r.timestamp).toLocaleDateString()}
+                        </td>
+                        <td>{type?.name || "-"}</td>
                         <td>{type?.description || "-"}</td>
                         <td>{type?.points ?? "-"}</td>
                       </tr>
