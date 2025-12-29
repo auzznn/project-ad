@@ -20,5 +20,10 @@ class RMTRecord(models.Model):
         on_delete=models.CASCADE,
         null=True,
     )
+    is_present = models.BooleanField(default=False, null=False, blank=False)
     date = models.DateField(default=default_datetime)
     timestamp = models.DateTimeField(default=default_datetime)
+    
+    def save(self, *args, **kwargs):
+        self.is_present = self.timestamp != _default_datetime()
+        return super().save(*args, **kwargs)
