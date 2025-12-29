@@ -1,14 +1,16 @@
 from rest_framework import viewsets
 from authentication.models import MigrateStudent
-from .models import DisciplineRecord, DisciplineType
 from django.db.models import Sum, Case, When, F, IntegerField
 from django.conf import settings
+
+from base.pagination import StandardResultsSetPagination
+from base.views import GeneralLeaderboardView, GeneralMeritAnalyticView 
+
+from .models import DisciplineRecord, DisciplineType
 from .serializer import (
     DisciplineRecordSerializer,
     DisciplineTypeSerializer,
 )
-from base.pagination import StandardResultsSetPagination
-from base.views import GeneralLeaderboardView
 
 # Create your views here.
 class DisciplineTypeView(viewsets.ModelViewSet):
@@ -45,3 +47,8 @@ class DisciplineLeaderboardView(GeneralLeaderboardView):
         .select_related("class_room")
     )
     point_field = "total_discipline_point"
+
+class DisciplineAnalyticViewSet(GeneralMeritAnalyticView):
+    queryset = DisciplineRecord.objects.all()
+    record_type = "discipline_type"
+    student_id = "student_id"
