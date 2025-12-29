@@ -97,20 +97,20 @@ export default function StudentModal({
             <Text style={[styles.modalTitle, { color: theme.text }]}>Student Information</Text>
             {allActionsCompleted && (
               <View style={styles.completedBadge}>
-                <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-                <Text style={styles.completedText}>All actions completed</Text>
+                <Ionicons name="checkmark-circle" size={20} color={theme.success} />
+                <Text style={[styles.completedText, { color: theme.success }]}>All actions completed</Text>
               </View>
             )}
             {sahsiahCount > 0 && (
               <View style={styles.sahsiahBadge}>
-                <Ionicons name="star" size={16} color="#9C27B0" />
-                <Text style={styles.sahsiahText}>{sahsiahCount} deed{sahsiahCount > 1 ? 's' : ''} recorded</Text>
+                <Ionicons name="star" size={16} color={theme.primary} />
+                <Text style={[styles.sahsiahText, { color: theme.primary }]}>{sahsiahCount} deed{sahsiahCount > 1 ? 's' : ''} recorded</Text>
               </View>
             )}
             {disciplineCount > 0 && (
               <View style={styles.disciplineBadge}>
-                <Ionicons name="warning" size={16} color="#F44336" />
-                <Text style={styles.disciplineText}>{disciplineCount} issue{disciplineCount > 1 ? 's' : ''} recorded</Text>
+                <Ionicons name="warning" size={16} color={theme.error} />
+                <Text style={[styles.disciplineText, { color: theme.error }]}>{disciplineCount} issue{disciplineCount > 1 ? 's' : ''} recorded</Text>
               </View>
             )}
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -138,7 +138,7 @@ export default function StudentModal({
               <Text style={[styles.infoLabel, { color: theme.muted }]}>RMT Eligible</Text>
               <Text style={[
                 styles.infoValue,
-                { color: student.rmt_elligible ? '#4CAF50' : '#F44336' }
+                { color: student.rmt_elligible ? theme.success : theme.error }
               ]}>
                 {student.rmt_elligible ? 'Yes' : 'No'}
               </Text>
@@ -149,7 +149,7 @@ export default function StudentModal({
             <ActionButton
               title="Take Attendance"
               icon="checkmark-circle"
-              color={!canMarkAttendance ? "#cccccc" : "#4CAF50"}
+              color={!canMarkAttendance ? theme.muted : theme.success}
               onPress={async () => {
                 await onAttendance();
                 // After successful attendance, set canMarkAttendance to false
@@ -164,7 +164,7 @@ export default function StudentModal({
               <ActionButton
                 title="Record RMT"
                 icon="restaurant"
-                color="#FF9800"
+                color={theme.accent}
                 onPress={onRMT}
                 disabled={loading.rmt}
                 loading={loading.rmt}
@@ -175,7 +175,7 @@ export default function StudentModal({
             <ActionButton
               title="Record Good Deed"
               icon="star"
-              color="#9C27B0"
+              color={theme.primary}
               onPress={onOpenSahsiahForm}
               disabled={loading.sahsiah}
               loading={loading.sahsiah}
@@ -185,7 +185,7 @@ export default function StudentModal({
             <ActionButton
               title="Record Discipline Issue"
               icon="warning"
-              color="#F44336"
+              color={theme.error}
               onPress={onOpenDisciplineForm}
               disabled={loading.discipline}
               loading={loading.discipline}
@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
   completedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e8f5e9',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 15,
@@ -252,14 +251,12 @@ const styles = StyleSheet.create({
   },
   completedText: {
     fontSize: 12,
-    color: '#4CAF50',
     fontWeight: '600',
     marginLeft: 5,
   },
   sahsiahBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3e5f5',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 15,
@@ -267,14 +264,12 @@ const styles = StyleSheet.create({
   },
   sahsiahText: {
     fontSize: 12,
-    color: '#9C27B0',
     fontWeight: '600',
     marginLeft: 5,
   },
   disciplineBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffebee',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 15,
@@ -282,7 +277,6 @@ const styles = StyleSheet.create({
   },
   disciplineText: {
     fontSize: 12,
-    color: '#F44336',
     fontWeight: '600',
     marginLeft: 5,
   },

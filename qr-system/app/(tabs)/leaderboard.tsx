@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { useAuth } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi } from '@/api/studentApi';
 import { useFocusEffect } from 'expo-router';
@@ -26,6 +28,8 @@ interface LeaderboardResponse {
 }
 
 export default function Leaderboard() {
+  const router = useRouter();
+  const { user } = useAuth();
   const [selectedGrade, setSelectedGrade] = useState('All Grades');
   const [selectedSection, setSelectedSection] = useState('All Sections');
   const [gradeDropdownOpen, setGradeDropdownOpen] = useState(false);
@@ -196,7 +200,7 @@ export default function Leaderboard() {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor }} className="flex-1" edges={['top']}>
+    <SafeAreaView style={{ backgroundColor }} className="flex-1 pt-6" edges={['top']}>
       {/* Header - Fixed */}
       <View className="px-5 pt-5 pb-4">
         <View className="flex-row justify-between items-center">
@@ -278,7 +282,69 @@ export default function Leaderboard() {
             filteredStudents.map((student) => {
               // Use the ranking from the API response (stored in student.id)
               const rank = student.id;
-              return (
+              const canClickStudent = user?.role === 'teacher' || user?.role === 'admin';
+              
+              const cardContent = (
+                <View className="flex-row items-center">
+                  {/* Rank Badge */}
+                  <View
+                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                    style={{ backgroundColor: getRankBadgeColor(rank) }}
+                  >
+                    <Ionicons
+                      name={getRankIcon(rank) as any}
+                      size={18}
+                      color="white"
+                    />
+                  </View>
+                  
+                  {/* Student Info */}
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold" style={{ color: textColor }}>
+                      {student.name}
+                    </Text>
+                    <View className="flex-row mt-1">
+                      <Text className="text-sm" style={{ color: mutedColor }}>
+                        {student.grade} • {student.section}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  {/* Points */}
+                  <View className="items-end">
+                    <Text className="text-lg font-bold" style={{ color: primaryColor }}>
+                      {student.points}
+                    </Text>
+                    <Text className="text-xs" style={{ color: mutedColor }}>
+                      points
+                    </Text>
+                  </View>
+                </View>
+              );
+              
+              return canClickStudent ? (
+                <TouchableOpacity
+                  key={`${student.student_id}-${rank}`}
+                  className="rounded-2xl p-4 mb-3 border shadow-sm"
+                  style={{
+                    backgroundColor: cardColor,
+                    borderColor,
+                    shadowColor: '#000',
+                    shadowOffset: {
+                      width: 0,
+                      height: 1,
+                    },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 2,
+                    elevation: 1,
+                  }}
+                  onPress={() => {
+                    router.push(`/student-details?studentId=${student.student_id}`);
+                  }}
+                >
+                  {cardContent}
+                </TouchableOpacity>
+              ) : (
                 <View
                   key={`${student.student_id}-${rank}`}
                   className="rounded-2xl p-4 mb-3 border shadow-sm"
@@ -295,41 +361,7 @@ export default function Leaderboard() {
                     elevation: 1,
                   }}
                 >
-                  <View className="flex-row items-center">
-                    {/* Rank Badge */}
-                    <View
-                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                      style={{ backgroundColor: getRankBadgeColor(rank) }}
-                    >
-                      <Ionicons
-                        name={getRankIcon(rank) as any}
-                        size={18}
-                        color="white"
-                      />
-                    </View>
-                    
-                    {/* Student Info */}
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold" style={{ color: textColor }}>
-                        {student.name}
-                      </Text>
-                      <View className="flex-row mt-1">
-                        <Text className="text-sm" style={{ color: mutedColor }}>
-                          {student.grade} • {student.section}
-                        </Text>
-                      </View>
-                    </View>
-                    
-                    {/* Points */}
-                    <View className="items-end">
-                      <Text className="text-lg font-bold" style={{ color: primaryColor }}>
-                        {student.points}
-                      </Text>
-                      <Text className="text-xs" style={{ color: mutedColor }}>
-                        points
-                      </Text>
-                    </View>
-                  </View>
+                  {cardContent}
                 </View>
               );
             })

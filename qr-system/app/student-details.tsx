@@ -110,11 +110,13 @@ export default function StudentDetailsScreen() {
             recentActivity = sahsiahRecords.map((record: any) => {
               const typeId = record.sahsiah_type;
               const typeInfo = sahsiahTypeMap.get(typeId);
+              const timestamp = record.timestamp ? new Date(record.timestamp).getTime() : 0;
               
               return {
                 type: 'sahsiah' as const,
                 description: typeInfo?.name || 'Sahsiah Record',
                 date: record.timestamp ? new Date(record.timestamp).toLocaleString() : 'Unknown',
+                timestamp: timestamp,
                 points: typeInfo?.points || 0
               };
             });
@@ -138,28 +140,30 @@ export default function StudentDetailsScreen() {
           // Fetch discipline records for the student
           const disciplineRecords = await studentApi.getStudentDisciplineRecords();
           
-          const studentDiscipiline = Array.isArray(disciplineRecords) ? disciplineRecords.filter((record: any) => {
-                        record.student_id?.toString() === studentId;
+          const studentDiscipline = Array.isArray(disciplineRecords) ? disciplineRecords.filter((record: any) => {
+                        return record.student_id?.toString() === studentId;
 
           }) : [];
           
           // Transform discipline records to recent activity format
-          if (Array.isArray(studentDiscipiline)) {
-            const disciplineActivities = disciplineRecords.map((record: any) => {
+          if (Array.isArray(studentDiscipline)) {
+            const disciplineActivities = studentDiscipline.map((record: any) => {
               const typeId = record.discipline_type;
               const typeInfo = disciplineTypeMap.get(typeId);
+              const timestamp = record.timestamp ? new Date(record.timestamp).getTime() : 0;
               
               return {
                 type: 'discipline' as const,
                 description: typeInfo?.name || 'Discipline Record',
                 date: record.timestamp ? new Date(record.timestamp).toLocaleString() : 'Unknown',
+                timestamp: timestamp,
                 points: typeInfo?.points || 0
               };
             });
             
-            // Combine sahsiah and discipline activities, sorted by date
+            // Combine sahsiah and discipline activities, sorted by timestamp
             recentActivity = [...recentActivity, ...disciplineActivities].sort((a, b) => {
-              return new Date(b.date).getTime() - new Date(a.date).getTime();
+              return (b.timestamp || 0) - (a.timestamp || 0);
             });
           }
         } catch (disciplineRecordsError) {
