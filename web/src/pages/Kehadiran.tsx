@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "./Kehadiran.css";
+import "./AttendanceTable.css";
 import Pagination from "../components/pagination";
 import SearchBar from "../components/SearchBar";
 import FilterDropdown from "../components/FilterDropdown";
@@ -45,73 +45,72 @@ interface Classroom {
 export default function KehadiranPage() {
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize, setPageSize] = useState(20); // backend default
-
-  /* ===== Edit Modal ===== */
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState<AttendanceRecord | null>(null);
-  const [editTime, setEditTime] = useState("");
+  const [pageSize, setPageSize] = useState(20);
 
   /* ===== Notes Modal ===== */
   const [noteModalOpen, setNoteModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
+  const [selectedRecord, setSelectedRecord] =
+    useState<AttendanceRecord | null>(null);
   const [noteText, setNoteText] = useState("");
 
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
-
   const [gradeFilter, setGradeFilter] = useState<number | "">("");
   const [classFilter, setClassFilter] = useState<string>("");
 
-  /* ================= Fetch ================= */
-    const fetchAttendance = async (pageNumber: number = 1) => {
-      setLoading(true);
-      try {
-        let url = `http://127.0.0.1:8080/api/student_attendance/daily/?page=${pageNumber}`;
+  /* ================= Fetch Attendance ================= */
 
-        // Only filter on backend if both grade and class are selected
-        if (gradeFilter !== "" && classFilter !== "") {
-          url = `http://127.0.0.1:8080/api/student_attendance/daily/${gradeFilter}/${classFilter}/?page=${pageNumber}`;
-        }
+  const fetchAttendance = async (pageNumber: number = 1) => {
+    setLoading(true);
+    try {
+      let url = `http://127.0.0.1:8080/api/student_attendance/daily/?page=${pageNumber}`;
 
-        const res = await fetch(url);
-        const data: AttendanceResponse = await res.json();
-
-        let entries = Array.isArray(data.entry) ? data.entry : [];
-
-        // Frontend filter by grade if only grade is selected
-        if (gradeFilter !== "" && classFilter === "") {
-          entries = entries.filter((rec) => rec.student?.grade === gradeFilter);
-        }
-
-        setAttendanceList(entries);
-        setPage(data.page_number ?? 1);
-        setPageSize(entries.length || 20);
-        setTotalPages(Math.ceil(data.total_items / pageSize));
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setAttendanceList([]);
-        setTotalPages(1);
-      } finally {
-        setLoading(false);
+      if (gradeFilter !== "" && classFilter !== "") {
+        url = `http://127.0.0.1:8080/api/student_attendance/daily/${gradeFilter}/${classFilter}/?page=${pageNumber}`;
       }
-    };
 
-  // Fetch whenever page changes or filters change
-    useEffect(() => {
-      setPage(1); // reset page whenever filters change
-    }, [gradeFilter, classFilter]);
+      const res = await fetch(url);
+      const data: AttendanceResponse = await res.json();
 
-    useEffect(() => {
-      fetchAttendance(page);
-    }, [page, gradeFilter, classFilter]);
+      let entries = Array.isArray(data.entry) ? data.entry : [];
 
-  // get classroom list
+      if (gradeFilter !== "" && classFilter === "") {
+        entries = entries.filter(
+          (rec) => rec.student?.grade === gradeFilter
+        );
+      }
+
+      setAttendanceList(entries);
+      setPage(data.page_number ?? 1);
+      setPageSize(entries.length || 20);
+      setTotalPages(Math.ceil(data.total_items / pageSize));
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setAttendanceList([]);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setPage(1);
+  }, [gradeFilter, classFilter]);
+
+  useEffect(() => {
+    fetchAttendance(page);
+  }, [page, gradeFilter, classFilter]);
+
+  /* ================= Classroom List ================= */
+
   const fetchClassrooms = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8080/api/authentication/classroom/");
+      const res = await fetch(
+        "http://127.0.0.1:8080/api/authentication/classroom/"
+      );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);
     } catch {
@@ -133,11 +132,11 @@ export default function KehadiranPage() {
         .includes(searchTerm.toLowerCase())
     );
 
-    const getStatusLabel = (status: AttendanceRecord["status"]) => {
-      if (status === "on-time") return "Tepat Waktu";
-      if (status === "late") return "Lambat";
-      return "Tidak Hadir";
-    };
+  const getStatusLabel = (status: AttendanceRecord["status"]) => {
+    if (status === "on-time") return "Tepat Waktu";
+    if (status === "late") return "Lambat";
+    return "Tidak Hadir";
+  };
 
   const getStatusClass = (label: string) => {
     if (label === "Tepat Waktu") return "status-present";
@@ -149,46 +148,6 @@ export default function KehadiranPage() {
     if (!ts) return "--";
     const time = ts.substring(11, 16);
     return time === "00:00" ? "--" : time;
-  };
-
-  /* ================= Edit Attendance ================= */
-
-  const openEditModal = (rec: AttendanceRecord) => {
-    setEditRecord(rec);
-    setEditTime(rec.timestamp && !rec.timestamp.startsWith("00:00")
-      ? rec.timestamp.substring(11, 16)
-      : ""
-    );
-    setEditModalOpen(true);
-  };
-
-  const submitEditAttendance = async () => {
-    if (!editRecord?.student?.student_id || !editTime) return;
-
-    const date = editRecord.date; // YYYY-MM-DD
-    const timestamp = `${date}T${editTime}:00+08:00`;
-
-    try {
-      const res = await fetch(
-        "http://127.0.0.1:8080/api/student_attendance/record/",
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            student_id: editRecord.student.student_id,
-            timestamp,
-          }),
-        }
-      );
-      if (!res.ok) console.error("Attendance update failed:", await res.text());
-      await fetchAttendance(page);
-    } catch (err) {
-      console.error("Edit attendance error:", err);
-    } finally {
-      setEditModalOpen(false);
-      setEditRecord(null);
-      setEditTime("");
-    }
   };
 
   /* ================= Notes ================= */
@@ -203,14 +162,19 @@ export default function KehadiranPage() {
     if (!selectedRecord?.id) return;
 
     try {
-      await fetch(
-        `http://127.0.0.1:8080/api/student_attendance/${selectedRecord.id}/`,
+      const res = await fetch(
+        `http://localhost:8080/api/student_attendance/${selectedRecord.id}/note/`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ note: noteText }),
         }
       );
+
+      if (!res.ok) {
+        console.error("Save note failed:", await res.text());
+      }
+
       fetchAttendance(page);
     } catch (err) {
       console.error("Save note error:", err);
@@ -256,8 +220,8 @@ export default function KehadiranPage() {
           <FilterDropdown
             label="Kelas"
             value={classFilter}
-            onChange={(value) => setClassFilter(String(value))}
             disabled={gradeFilter === ""}
+            onChange={(value) => setClassFilter(String(value))}
             options={[
               { value: "", label: "Semua Kelas" },
               ...classrooms
@@ -271,7 +235,7 @@ export default function KehadiranPage() {
         </div>
 
         <div className="table-wrapper">
-          <table className="table-custom">
+          <table className="custom-table">
             <thead>
               <tr>
                 <th>No.</th>
@@ -280,18 +244,21 @@ export default function KehadiranPage() {
                 <th>Waktu</th>
                 <th>Status</th>
                 <th>Catatan</th>
-                <th>Tindakan</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="empty-row">Loading...</td>
+                  <td colSpan={6} className="empty-row">
+                    Memuat...
+                  </td>
                 </tr>
               ) : filteredAttendance.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="empty-row">No attendance records</td>
+                  <td colSpan={7} className="empty-row">
+                    Tiada rekod keharidan
+                  </td>
                 </tr>
               ) : (
                 filteredAttendance.map((rec, idx) => {
@@ -300,15 +267,38 @@ export default function KehadiranPage() {
                     <tr key={rec.id ?? idx}>
                       <td>{(page - 1) * pageSize + idx + 1}</td>
                       <td>{rec.student?.name}</td>
-                      <td>{rec.student?.grade}-{rec.student?.section}</td>
-                      <td>{formatTime(rec.timestamp)}</td>
-                      <td><span className={`status-box ${getStatusClass(statusLabel)}`}>{statusLabel}</span></td>
-                      <td>{rec.note ? <span className="note-preview">{rec.note}</span> : <span className="note-empty">—</span>}</td>
                       <td>
-                        <div className="action-btns-wrapper">
-                          <button className="action-btn note-btn" onClick={() => openNoteModal(rec)}>Catatan</button>
-                          <button className="action-btn edit-btn" onClick={() => openEditModal(rec)}>Ubah</button>
-                        </div>
+                        {rec.student?.grade}-{rec.student?.section}
+                      </td>
+                      <td>{formatTime(rec.timestamp)}</td>
+                      <td>
+                        <span
+                          className={`status-box ${getStatusClass(
+                            statusLabel
+                          )}`}
+                        >
+                          {statusLabel}
+                        </span>
+                      </td>
+                      <td>
+                        <td>
+                          {rec.note ? (
+                            <span
+                              className="note-preview clickable"
+                              onClick={() => openNoteModal(rec)}
+                              title="Edit catatan"
+                            >
+                              {rec.note}
+                            </span>
+                          ) : (
+                          <button
+                            className="action-btn note-btn compact"
+                            onClick={() => openNoteModal(rec)}
+                          >
+                            +
+                          </button>
+                          )}
+                        </td>
                       </td>
                     </tr>
                   );
@@ -318,36 +308,37 @@ export default function KehadiranPage() {
           </table>
         </div>
 
-        {/* ================= Pagination ================= */}
-        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
-
-      {/* ================= Edit Modal ================= */}
-      {editModalOpen && editRecord && (
-        <div className="modal-backdrop">
-          <div className="modal-box">
-            <h2 className="modal-title">Edit Attendance</h2>
-            <p className="modal-subtitle">{editRecord.student?.name}</p>
-            <label>Attendance Time</label>
-            <input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
-            <div className="modal-btn-row">
-              <button className="modal-cancel" onClick={() => setEditModalOpen(false)}>Cancel</button>
-              <button className="modal-save" onClick={submitEditAttendance}>Update</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ================= Notes Modal ================= */}
       {noteModalOpen && selectedRecord && (
         <div className="modal-backdrop">
           <div className="modal-box">
-            <h2 className="modal-title">Attendance Notes</h2>
-            <p className="modal-subtitle">{selectedRecord.student?.name}</p>
-            <textarea className="note-textarea" placeholder="Enter notes..." value={noteText} onChange={(e) => setNoteText(e.target.value)} />
+            <h2 className="modal-title">Catatan Kehadiran</h2>
+            <p className="modal-subtitle">
+              {selectedRecord.student?.name}
+            </p>
+            <textarea
+              className="note-textarea"
+              placeholder="Tambah catatan..."
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+            />
             <div className="modal-btn-row">
-              <button className="modal-cancel" onClick={() => setNoteModalOpen(false)}>Cancel</button>
-              <button className="modal-save" onClick={saveNote}>Save</button>
+              <button
+                className="modal-cancel"
+                onClick={() => setNoteModalOpen(false)}
+              >
+                Batal
+              </button>
+              <button className="modal-save" onClick={saveNote}>
+                Simpan
+              </button>
             </div>
           </div>
         </div>

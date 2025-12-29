@@ -197,11 +197,13 @@ export default function ManagementType({
                     <td>{item.name}</td>
                     <td>
                       <span
-                        className={`points-badge ${
-                          item.points >= 0
-                            ? "points-positive"
-                            : "points-negative"
-                        }`}
+                        className={
+                          item.points > 0
+                            ? "marks-positive"
+                            : item.points < 0
+                            ? "marks-negative"
+                            : "marks-zero"
+                        }
                       >
                         {item.points}
                       </span>
