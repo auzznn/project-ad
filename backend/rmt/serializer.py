@@ -1,7 +1,12 @@
 from rest_framework.serializers import (
     ModelSerializer,
     IntegerField,
-    ValidationError
+    ValidationError,
+    Serializer,
+    FloatField,
+    BooleanField,
+    SerializerMethodField,
+    DateField
 )
 from django.utils import timezone
 from authentication.serializer import StudentSerializer
@@ -13,7 +18,7 @@ class RMTRecordSerializer(ModelSerializer):
   
   class Meta:
     model = RMTRecord
-    fields = ['student', 'date', 'timestamp']
+    fields = ['student', 'date', 'timestamp', 'is_present']
 
 class RecordRMTRecordSerializer(ModelSerializer):
     student_id = IntegerField(write_only=True)
@@ -64,3 +69,19 @@ class RecordRMTRecordSerializer(ModelSerializer):
                 f"RMT Record for {self.instance.migrate_student_id.fullname} has already been recorded"
             )
         return data
+
+class StudentRMTAnalyticsSerializer(Serializer):
+    # This comes from .values("migrate_student_id")
+    student_id = IntegerField(source="migrate_student_id")
+    fullname = SerializerMethodField()
+    
+    # These are the annotated fields
+    average_rmt_percentage = FloatField()
+    today_is_present = BooleanField()
+    latest_present = DateField()
+    
+    def get_fullname(self, obj):
+        first_name_field = "migrate_student_id__first_name"
+        last_name_field = "migrate_student_id__last_name"
+        
+        return f"{obj[first_name_field]} {obj[last_name_field]}"
