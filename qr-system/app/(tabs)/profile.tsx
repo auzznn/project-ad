@@ -133,7 +133,7 @@ export default function ProfileScreen() {
             Actions
           </Text>
 
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={[styles.actionButton, { borderColor }]}
             onPress={() =>
               Alert.alert("Settings", "Settings page coming soon!")
@@ -144,7 +144,7 @@ export default function ProfileScreen() {
               Settings
             </Text>
             <Ionicons name="chevron-forward" size={20} color={textColor} />
-          </TouchableOpacity> */}
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, { borderColor }]}

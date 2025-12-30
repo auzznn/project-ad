@@ -72,9 +72,8 @@ export default function Discipline() {
     if (user?.role === 'parent') {
       loadChildrenData();
     }
-  }, [user?.role]);
+  }, []);
   
-  // Reload data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       loadStudentData();
@@ -82,7 +81,7 @@ export default function Discipline() {
       if (user?.role === 'parent') {
         loadChildrenData();
       }
-    }, [user?.role])
+    }, [])
   );
   
   // Reload data when grade or section filter changes
