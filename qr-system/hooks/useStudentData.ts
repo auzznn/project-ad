@@ -4,6 +4,37 @@ import { Student, AttendancePayload } from "../api/studentApi";
 import { useStudentActions, StudentActions } from "./useStudentActions";
 import { studentApi } from "../api/studentApi";
 
+/**
+ * Helper function to get current timestamp in Kuala Lumpur timezone (UTC+8)
+ * @returns ISO 8601 string with explicit +08:00 offset (e.g., 2025-12-30T08:15:00+08:00)
+ */
+const getKualaLumpurTimestamp = (): string => {
+  const now = new Date();
+  
+  // Get the current date and time in Kuala Lumpur timezone
+  const kualaLumpurTimeStr = now.toLocaleString("en-US", {
+    timeZone: "Asia/Kuala_Lumpur",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+  
+  // Parse the Kuala Lumpur time
+  const [datePart, timePart] = kualaLumpurTimeStr.split(", ");
+  const [month, day, year] = datePart.split("/");
+  const [hours, minutes, seconds] = timePart.split(":");
+  
+  // Format as ISO 8601 with explicit +08:00 offset
+  const formattedDate = `${year}-${month}-${day}`;
+  const formattedTime = `${hours}:${minutes}:${seconds}`;
+  
+  return `${formattedDate}T${formattedTime}+08:00`;
+};
+
 export interface LoadingStates {
   attendance: boolean;
   rmt: boolean;
@@ -51,7 +82,7 @@ export const useStudentData = () => {
       // Mark attendance
       const attendancePayload: AttendancePayload = {
         id: student.id,
-        timestamp: new Date().toISOString(),
+        timestamp: getKualaLumpurTimestamp(),
       };
 
       const response = await studentApi.markAttendance(attendancePayload);
@@ -118,7 +149,7 @@ export const useStudentData = () => {
       // Record RMT
       const rmtPayload = {
         student_id: student.id,
-        timestamp: new Date().toISOString(),
+        timestamp: getKualaLumpurTimestamp(),
       };
 
       const response = await studentApi.recordRMT(rmtPayload);
@@ -166,7 +197,7 @@ export const useStudentData = () => {
 
     setLoading((prev) => ({ ...prev, sahsiah: true }));
     try {
-      const timestamp = new Date().toISOString();
+      const timestamp = getKualaLumpurTimestamp();
 
       // Create sahsiah record for API
       const sahsiahRecord = {
@@ -216,7 +247,7 @@ export const useStudentData = () => {
 
     setLoading((prev) => ({ ...prev, discipline: true }));
     try {
-      const timestamp = new Date().toISOString();
+      const timestamp = getKualaLumpurTimestamp();
 
       // Create discipline record for API with exact payload structure
       const disciplineRecord = {
