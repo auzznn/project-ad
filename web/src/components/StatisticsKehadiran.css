@@ -71,12 +71,25 @@
 }
 
 .progress-bar-container {
+  display: flex;
   width: 100%;
-  height: 12px;
-  background-color: #e5e7eb; /* light gray */
-  border-radius: 6px;
-  margin: 10px 0 5px;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
   overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-bar-segment {
+  height: 100%;
+}
+
+.progress-bar-segment.on-time {
+  background-color: #10b981;
+}
+
+.progress-bar-segment.late {
+  background-color: #f59e0b;
 }
 
 .progress-bar-fill {
