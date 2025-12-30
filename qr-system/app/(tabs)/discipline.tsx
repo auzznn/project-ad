@@ -27,6 +27,17 @@ interface LeaderboardResponse {
   ranking: number;
 }
 
+// Child data structure returned from API
+interface ChildData {
+  id: number;
+  name: string;
+  grade: number;
+  section: string;
+  academic_year: string;
+  rmt_elligible: boolean;
+  qr_code: string;
+}
+
 export default function Discipline() {
   const router = useRouter();
   const { user } = useAuth();
@@ -39,6 +50,10 @@ export default function Discipline() {
   
   // Dynamic filter options extracted from data
   const [availableGrades, setAvailableGrades] = useState<string[]>(['All Grades']);
+  
+  // Children data for parent view highlighting
+  const [children, setChildren] = useState<ChildData[]>([]);
+  const [childrenLoading, setChildrenLoading] = useState(false);
   
   // Theme colors
   const backgroundColor = useThemeColor('background');
@@ -53,11 +68,19 @@ export default function Discipline() {
   // Load student data from API on component mount
   useEffect(() => {
     loadStudentData();
+    // Load children data if user is a parent
+    if (user?.role === 'parent') {
+      loadChildrenData();
+    }
   }, []);
   
   useFocusEffect(
     React.useCallback(() => {
       loadStudentData();
+      // Reload children data when screen is focused
+      if (user?.role === 'parent') {
+        loadChildrenData();
+      }
     }, [])
   );
   
@@ -140,6 +163,25 @@ export default function Discipline() {
     }
   };
   
+  // Load children data for parent view
+  const loadChildrenData = async () => {
+    if (!user?.user_id || user.role !== 'parent') {
+      return;
+    }
+    
+    try {
+      setChildrenLoading(true);
+      const childrenData = await studentApi.getChildren(user.user_id);
+      setChildren(childrenData);
+      console.log(`Loaded ${childrenData.length} children for parent ${user.user_id}`);
+    } catch (error) {
+      console.error('Error loading children data:', error);
+      setChildren([]);
+    } finally {
+      setChildrenLoading(false);
+    }
+  };
+  
   // Students are already filtered and sorted by the API based on ranking
   // No client-side filtering or sorting needed
   const filteredStudents = useMemo(() => {
@@ -169,6 +211,27 @@ export default function Discipline() {
     setSelectedGrade(grade);
     // Reset section when grade changes
     setSelectedSection('All Sections');
+  };
+  
+  // Check if a student is a child of the current parent user
+  const isChildOfParent = (studentId: string): boolean => {
+    if (user?.role !== 'parent') {
+      return false;
+    }
+    return children.some(child => child.id?.toString() === studentId);
+  };
+  
+  // Get highlight style for child entries
+  const getChildHighlightStyle = (studentId: string) => {
+    if (!isChildOfParent(studentId)) {
+      return {};
+    }
+    
+    return {
+      backgroundColor: `${primaryColor}15`,
+      borderColor: primaryColor,
+      borderWidth: 2,
+    };
   };
   
   // Get rank badge color based on position
@@ -283,6 +346,7 @@ export default function Discipline() {
               // Use the ranking from the API response (stored in student.id)
               const rank = student.id;
               const canClickStudent = user?.role === 'teacher' || user?.role === 'admin';
+              const isChild = isChildOfParent(student.student_id);
               
               const cardContent = (
                 <View className="flex-row items-center">
@@ -300,9 +364,22 @@ export default function Discipline() {
                   
                   {/* Student Info */}
                   <View className="flex-1">
-                    <Text className="text-base font-semibold" style={{ color: textColor }}>
-                      {student.name}
-                    </Text>
+                    <View className="flex-row items-center">
+                      <Text className="text-base font-semibold" style={{ color: textColor }}>
+                        {student.name}
+                      </Text>
+                      {/* Child badge for parent view */}
+                      {isChild && (
+                        <View
+                          className="ml-2 px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: `${primaryColor}30` }}
+                        >
+                          <Text className="text-xs font-medium" style={{ color: primaryColor }}>
+                            My Child
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     <View className="flex-row mt-1">
                       <Text className="text-sm" style={{ color: mutedColor }}>
                         {student.grade} • {student.section}
@@ -338,6 +415,7 @@ export default function Discipline() {
                     shadowOpacity: 0.05,
                     shadowRadius: 2,
                     elevation: 1,
+                    ...getChildHighlightStyle(student.student_id),
                   }}
                   onPress={() => {
                     router.push(`/student-details?studentId=${student.student_id}`);
@@ -360,6 +438,7 @@ export default function Discipline() {
                     shadowOpacity: 0.05,
                     shadowRadius: 2,
                     elevation: 1,
+                    ...getChildHighlightStyle(student.student_id),
                   }}
                 >
                   {cardContent}

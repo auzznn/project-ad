@@ -103,7 +103,7 @@ export interface StudentDetails {
 
 export const studentApi = {
 
-  getChildren: async (userId: string): Promise<User[]> => {
+  getChildren: async (userId: string): Promise<any[]> => {
     try {
       const response = await apiRequest.get(`/authentication/user/${userId}/`);
       return response.children || [];
