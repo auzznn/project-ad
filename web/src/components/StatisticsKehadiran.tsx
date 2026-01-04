@@ -156,8 +156,6 @@ function StatisticsKehadiran() {
                   <span style={{ color: "#ef4444" }}>Tiada Kehadiran:</span> {absent}
                 </p>
 
-                <p><strong>Jumlah Pelajar: {total}</strong></p>
-
                 {/* ✅ Progress Bar: ON-TIME + LATE */}
                 <div className="progress-bar-container">
                   <div
