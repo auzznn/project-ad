@@ -1,4 +1,5 @@
 from django.db import models
+from django.core import validators
 from django.utils import timezone
 from authentication.models import MigrateStudent
 
@@ -7,11 +8,20 @@ from authentication.models import MigrateStudent
 class DisciplineType(models.Model):
     name = models.CharField(max_length=100, blank=False)
     description = models.CharField(max_length=256, blank=False)
-    points = models.IntegerField(default=0)
+    points = models.IntegerField(
+        default=-1, validators=[validators.MaxValueValidator(-1)]
+    )
     tag = models.CharField(max_length=50, blank=False)
 
     def __str__(self) -> str:
         return self.name
+
+    def clean(self):
+        # Optional: ensure internal logic also respects the rule
+        if self.points >= 0:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError({"points": "Points must be a negative integer."})
 
 
 class DisciplineRecord(models.Model):
