@@ -43,7 +43,7 @@ class DisciplineLeaderboardView(GeneralLeaderboardView):
                 )
             )
         )
-        .order_by("-total_discipline_point")
+        .order_by("total_discipline_point")
         .select_related("class_room")
     )
     point_field = "total_discipline_point"
