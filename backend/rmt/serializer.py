@@ -79,9 +79,16 @@ class StudentRMTAnalyticsSerializer(Serializer):
     average_rmt_percentage = FloatField()
     today_is_present = BooleanField()
     latest_present = DateField()
+    class_room = SerializerMethodField()
     
     def get_fullname(self, obj):
         first_name_field = "migrate_student_id__first_name"
         last_name_field = "migrate_student_id__last_name"
         
         return f"{obj[first_name_field]} {obj[last_name_field]}"
+    
+    def get_class_room(self, obj):
+        class_section_field = 'migrate_student_id__class_room__class_section'
+        class_grade_field = 'migrate_student_id__class_room__grade'
+        
+        return f"{obj[class_grade_field]} {obj[class_section_field]}"

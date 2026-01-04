@@ -83,3 +83,11 @@ class ClassroomSerializer(ModelSerializer):
     class Meta:
         model = Classroom
         fields = '__all__'
+
+class StudentBulkUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def validate_file(self, value):
+        if not value.name.endswith(('.xlsx', '.xls')):
+            raise serializers.ValidationError("Invalid file format. Please upload an Excel file.")
+        return value

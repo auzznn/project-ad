@@ -42,7 +42,7 @@ class StudentAttendance(models.Model):
         null=True,
     )
     status = models.CharField(
-        choices=const.STUDENT_ATTENDANCE_STATUS, default=DEFAULT_STATUS, max_length=15
+        choices=const.ATTENDANCE_STATUS_LOOKUP.items(), default=DEFAULT_STATUS, max_length=15
     )
     date = models.DateField(default=timezone.now)
     timestamp = models.DateTimeField(default=default_datetime)

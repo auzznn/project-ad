@@ -180,7 +180,8 @@ class RMTStatisticView(viewsets.GenericViewSet):
                 "migrate_student_id",
                 "migrate_student_id__first_name",
                 "migrate_student_id__last_name",
-                "migrate_student_id__class_room",
+                "migrate_student_id__class_room__class_section",
+                "migrate_student_id__class_room__grade"
             )
             .annotate(
                 average_rmt_percentage=ExpressionWrapper(

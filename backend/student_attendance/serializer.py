@@ -19,14 +19,19 @@ from .utils import (
 )
 from base.utils import set_timezone
 from sahsiah.models import SahsiahType, SahsiahRecord
+from .const import ATTENDANCE_STATUS_LOOKUP
 
 
 class StudentAttendanceSerializer(ModelSerializer):
     student = StudentSerializer(source="migrate_student_id", many=False)
+    status = SerializerMethodField()
 
     class Meta:
         model = StudentAttendance
-        fields = ["id", "student", "status", "date", "timestamp", "note"]
+        fields = ["id", "student", "date", "status", "timestamp", "note"]
+    
+    def get_status(self, instance: Meta.model) -> str:
+        return ATTENDANCE_STATUS_LOOKUP.get(instance.status)
 
 
 class RecordStudentAttendanceSerializer(ModelSerializer):

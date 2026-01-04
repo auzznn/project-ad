@@ -101,7 +101,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=["get"], url_path=r"(?P<attend_status>[^/.]+)")
+    @action(detail=False, methods=["get"], url_path=rf"(?P<attend_status>{const.STATUS_REGEX})")
     def by_status(self, request, attend_status: str, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = queryset.filter(status=attend_status)
@@ -113,7 +113,18 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
+    @action(detail=False, methods=["get"], url_path=r"(?P<class_grade>[0-6]{1})")
+    def by_grade(self, requst, class_grade: int, *args, **kwargs):
+        queryset = self.get_queryset().filter(migrate_student_id__class_room__grade=class_grade)
+        
+        page = self.paginate_queryset(queryset=queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DailyStudentAttendanceViewSet(GeneralStudentAttendanceViewSet):
     queryset = StudentAttendance.objects.today()
