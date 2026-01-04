@@ -1,197 +1,248 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import Pagination from "../components/pagination";
 import "./Pengguna.css";
 
-interface User {
+interface UserItem {
   id: number;
-  name: string;
+  fullname: string;
   role: string;
-  email: string;
+  children: any;
 }
 
-async function getUsers(): Promise<User[]> {
-  const stored = localStorage.getItem("users");
-  if (stored) return JSON.parse(stored);
+const PAGE_SIZE = 8;
 
-  const res = await fetch("/data/users.json");
-  const data = await res.json();
-  localStorage.setItem("users", JSON.stringify(data));
-  return data;
-}
+export default function UserManagement() {
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
-async function saveUsers(users: User[]) {
-  localStorage.setItem("users", JSON.stringify(users));
-}
+  const [searchTerm, setSearchTerm] = useState("");
 
-async function addUser(newUser: Omit<User, "id">): Promise<User[]> {
-  const users = await getUsers();
-  const newEntry = { id: Date.now(), ...newUser };
-  const updated = [...users, newEntry];
-  await saveUsers(updated);
-  return updated;
-}
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-async function deleteUser(id: number): Promise<User[]> {
-  const users = await getUsers();
-  const updated = users.filter((u) => u.id !== id);
-  await saveUsers(updated);
-  return updated;
-}
+  const [form, setForm] = useState<{ fullname: string; role: string }>({
+    fullname: "",
+    role: "teacher",
+  });
 
-async function updateUser(updatedUser: User): Promise<User[]> {
-  const users = await getUsers();
-  const updated = users.map((u) => (u.id === updatedUser.id ? updatedUser : u));
-  await saveUsers(updated);
-  return updated;
-}
-
-export default function Pengguna() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("teacher");
-  const [editId, setEditId] = useState<number | null>(null);
+  /* ---------- Fetch Users ---------- */
+  const fetchUsers = async (pageNumber = 1) => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/authentication/user/?page=${pageNumber}&page_size=${PAGE_SIZE}`
+      );
+      const data = await res.json();
+      setUsers(Array.isArray(data.entry) ? data.entry : []);
+      setTotalItems(data.total_items ?? 0);
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      setUsers([]);
+      setTotalItems(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    getUsers().then(setUsers);
-  }, []);
+    fetchUsers(page);
+  }, [page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
+
+  /* ---------- Handlers ---------- */
+  const handleCreate = () => {
+    setForm({ fullname: "", role: "teacher" });
+    setEditingUser(null);
+    setModalOpen(true);
+  };
+
+  const handleEdit = (user: UserItem) => {
+    setForm({ fullname: user.fullname, role: user.role });
+    setEditingUser(user);
+    setModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+
+    await fetch(
+      `http://localhost:8080/api/authentication/user/${confirmDeleteId}/`,
+      { method: "DELETE" }
+    );
+
+    setConfirmDeleteId(null);
+    fetchUsers(page);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editId) {
-      const updated = await updateUser({ id: editId, name, email, role });
-      setUsers(updated);
-      setEditId(null);
-    } else {
-      const updated = await addUser({ name, email, role });
-      setUsers(updated);
-    }
-    setName("");
-    setEmail("");
-    setRole("teacher");
+
+    const url = editingUser
+      ? `http://localhost:8080/api/authentication/user/${editingUser.id}/`
+      : `http://localhost:8080/api/authentication/user/`;
+
+    const method = editingUser ? "PUT" : "POST";
+
+    await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    setModalOpen(false);
+    fetchUsers(page);
   };
 
-  const handleDelete = async (id: number) => {
-    const updated = await deleteUser(id);
-    setUsers(updated);
-  };
+  /* ---------- Filtered List ---------- */
+  const filtered = users.filter((u) => {
+    if (!searchTerm) return true;
+    const t = searchTerm.toLowerCase();
+    return u.fullname.toLowerCase().includes(t) || u.role.toLowerCase().includes(t);
+  });
 
-  const handleEdit = (user: User) => {
-    setEditId(user.id);
-    setName(user.name);
-    setEmail(user.email);
-    setRole(user.role);
-  };
-
-  const handleCancel = () => {
-    setEditId(null);
-    setName("");
-    setEmail("");
-    setRole("teacher");
-  };
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
 
   return (
-    <div className="pengguna-container">
-      <div className="pengguna-header">
-        <h1>Pengurusan Pengguna</h1>
-        <p>Urus pengguna sistem dan peranan mereka</p>
-      </div>
+    <div className="page-container">
+      <h1 className="page-title">Pengurusan Pengguna</h1>
 
-      {/* Form Section */}
-      <div className="form-section">
-        <h2>{editId ? "Kemaskini Pengguna" : "Tambah Pengguna Baru"}</h2>
-        <form onSubmit={handleSubmit} className="user-form">
-          <div className="form-group">
-            <label htmlFor="name">Nama Pengguna</label>
-            <input
-              id="name"
-              type="text"
-              placeholder="Masukkan nama pengguna"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="form-control"
-            />
-          </div>
+      <div className="section-box">
+        <div className="controls-row">
+          <input
+            className="search-input"
+            placeholder="Cari pengguna..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button className="add-btn" onClick={handleCreate}>
+            + Tambah
+          </button>
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Masukkan email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="form-control"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role">Peranan</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)} className="form-control">
-              <option value="teacher">Guru</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          <div className="form-actions">
-            <button type="submit" className="btn btn-primary">
-              {editId ? "Kemaskini" : "Tambah"}
-            </button>
-            {editId && (
-              <button type="button" className="btn btn-secondary" onClick={handleCancel}>
-                Batal
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {/* Users Table */}
-      <div className="table-section">
-        <h2>Senarai Pengguna</h2>
-        <div className="table-container">
-          <table className="table table-custom">
+        <div className="table-wrapper">
+          <table className="custom-table">
             <thead>
               <tr>
-                <th>Nama Pengguna</th>
-                <th>Email</th>
+                <th>Urutan</th>
+                <th>Nama Penuh</th>
                 <th>Peranan</th>
                 <th>Tindakan</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.name}</td>
-                  <td>{u.email}</td>
-                  <td>
-                    <span className={`role-badge role-${u.role}`}>
-                      {u.role === "admin" ? "Admin" : "Guru"}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={() => handleEdit(u)}
-                      title="Edit"
-                    >
-                      <i className="bi bi-pencil"></i> Edit
-                    </button>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDelete(u.id)}
-                      title="Delete"
-                    >
-                      <i className="bi bi-trash"></i> Padam
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="empty-row">
+                    Memuatkan rekod...
                   </td>
                 </tr>
-              ))}
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="empty-row">
+                    Tiada rekod
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((u, index) => (
+                  <tr key={u.id}>
+                    <td>{(page - 1) * PAGE_SIZE + index + 1}</td>
+                    <td>{u.fullname}</td>
+                    <td>{u.role}</td>
+                    <td>
+                      <div className="action-btns-wrapper">
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() => handleEdit(u)}
+                        >
+                          Ubah
+                        </button>
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => setConfirmDeleteId(u.id)}
+                        >
+                          Padam
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
+
+      {/* ---------- Modal ---------- */}
+      {modalOpen && (
+        <div className="modal-backdrop">
+          <form className="modal-box" onSubmit={handleSubmit}>
+            <h2 className="modal-title">{editingUser ? "Edit Pengguna" : "Tambah Pengguna"}</h2>
+
+            <input
+              name="fullname"
+              placeholder="Nama Penuh"
+              value={form.fullname}
+              onChange={handleChange}
+              required
+            />
+
+            <select name="role" value={form.role} onChange={handleChange} required>
+              <option value="teacher">Teacher</option>
+              <option value="parents">Parents</option>
+            </select>
+
+            <div className="modal-btn-row">
+              <button
+                type="button"
+                className="modal-cancel"
+                onClick={() => setModalOpen(false)}
+              >
+                Batal
+              </button>
+              <button className="modal-save" type="submit">
+                Simpan
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ---------- Confirm Delete ---------- */}
+      {confirmDeleteId !== null && (
+        <div className="modal-backdrop">
+          <div className="modal-box">
+            <h2 className="modal-title">Sahkan</h2>
+            <p>Adakah pasti mahu memadam pengguna ini?</p>
+
+            <div className="modal-btn-row">
+              <button
+                className="modal-cancel"
+                onClick={() => setConfirmDeleteId(null)}
+              >
+                Batal
+              </button>
+              <button className="modal-save" onClick={handleDelete}>
+                Padam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

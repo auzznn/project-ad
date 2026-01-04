@@ -107,11 +107,11 @@
   display: inline-block;
   padding: 6px 12px;
   border-radius: 8px;
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: #fcf7d6;
+  color: #dba30a;
   font-weight: 600;
   font-size: 0.85rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #dba30a;
   padding: 4px 10px;  /* reduce vertical padding */
   font-size: 0.8rem; /* slightly smaller font */
 }

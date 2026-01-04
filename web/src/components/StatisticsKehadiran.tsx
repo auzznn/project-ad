@@ -20,6 +20,40 @@ function StatisticsKehadiran() {
   const [classroomBreakdown, setClassroomBreakdown] = useState<ClassroomBreakdown[]>([]);
   const pieChartRef = useRef<HTMLCanvasElement>(null);
   const pieChartInstance = useRef<any>(null);
+  const distributionChartRef = useRef<HTMLCanvasElement>(null);
+  const distributionChartInstance = useRef<any>(null);
+
+  // ===== STATUS PIE (Kehadiran) =====
+const STATUS_ORDER = ["on_time", "late", "absent"];
+
+const STATUS_LABEL_MAP: Record<string, string> = {
+  on_time: "Tepat Masa",
+  late: "Lewat",
+  absent: "Tiada Kehadiran",
+};
+
+const STATUS_COLOR_MAP: Record<string, string> = {
+  on_time: "#10b981",
+  late: "#f59e0b",
+  absent: "#ef4444",
+};
+
+// ===== DISTRIBUTION PIE (Kadar Kehadiran) =====
+const DISTRIBUTION_ORDER = ["Excellent", "Good", "Average", "Poor"];
+
+const DISTRIBUTION_LABEL_MAP: Record<string, string> = {
+  Excellent: "Cemerlang",
+  Good: "Baik",
+  Average: "Sederhana",
+  Poor: "Lemah",
+};
+
+const DISTRIBUTION_COLOR_MAP: Record<string, string> = {
+  Excellent: "#3b82f6",
+  Good: "#10b981",
+  Average: "#f59e0b",
+  Poor: "#ef4444",
+};
 
   useEffect(() => {
     fetch("http://localhost:8080/api/student_attendance/statistic/daily/dashboard/")
@@ -34,34 +68,90 @@ function StatisticsKehadiran() {
   }, []);
 
   // Pie chart
-  useEffect(() => {
-    if (!attendanceStats || !pieChartRef.current) return;
+ useEffect(() => {
+  if (!attendanceStats || !pieChartRef.current) return;
 
-    const labels = Object.keys(attendanceStats.attendance_rate_distirbution);
-    const data = Object.values(attendanceStats.attendance_rate_distirbution);
+  const statusDataMap: Record<string, number> = {
+    on_time: attendanceStats.on_time_count,
+    late: attendanceStats.late_count,
+    absent: attendanceStats.absent_count,
+  };
 
-    if (pieChartInstance.current) pieChartInstance.current.destroy();
+  const labels = STATUS_ORDER.map(k => STATUS_LABEL_MAP[k]);
+  const data = STATUS_ORDER.map(k => statusDataMap[k]);
+  const backgroundColor = STATUS_ORDER.map(k => STATUS_COLOR_MAP[k]);
 
-    pieChartInstance.current = new (window as any).Chart(pieChartRef.current, {
+  if (pieChartInstance.current) pieChartInstance.current.destroy();
+
+  pieChartInstance.current = new (window as any).Chart(pieChartRef.current, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor,
+          borderColor: "#ffffff",
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom" },
+      },
+    },
+  });
+}, [attendanceStats]);
+
+useEffect(() => {
+  if (!attendanceStats || !distributionChartRef.current) return;
+
+  const rawDistribution = attendanceStats.attendance_rate_distirbution;
+
+  const labels = DISTRIBUTION_ORDER.map(
+    k => DISTRIBUTION_LABEL_MAP[k]
+  );
+
+  const data = DISTRIBUTION_ORDER.map(
+    k => rawDistribution[k] ?? 0
+  );
+
+  const backgroundColor = DISTRIBUTION_ORDER.map(
+    k => DISTRIBUTION_COLOR_MAP[k]
+  );
+
+  if (distributionChartInstance.current) {
+    distributionChartInstance.current.destroy();
+  }
+
+  distributionChartInstance.current = new (window as any).Chart(
+    distributionChartRef.current,
+    {
       type: "pie",
       data: {
         labels,
         datasets: [
           {
             data,
-            backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
-            borderColor: "#fff",
-            borderWidth: 1,
+            backgroundColor,
+            borderColor: "#ffffff",
+            borderWidth: 2,
           },
         ],
       },
       options: {
         responsive: false,
         maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } },
+        plugins: {
+          legend: { position: "bottom" },
+        },
       },
-    });
-  }, [attendanceStats]);
+    }
+  );
+}, [attendanceStats]);
 
   return (
     <div className="statistics-module">
@@ -97,15 +187,24 @@ function StatisticsKehadiran() {
         </div>
       </div>
 
-      {/* Pie Chart */}
+      {/* Pie Charts */}
       <div className="chart-section">
-        <h2>Taburan Kadar Kehadiran</h2>
         {attendanceStats ? (
-          <div className="chart-wrapper">
-            <canvas ref={pieChartRef}></canvas>
+          <div className="charts-row">
+            {/* Status Pie */}
+            <div className="chart-wrapper">
+              <h4>Status Kehadiran</h4>
+              <canvas ref={pieChartRef} width={300} height={300}></canvas>
+            </div>
+
+            {/* Distribution Pie */}
+            <div className="chart-wrapper">
+              <h4>Taburan Kadar Kehadiran</h4>
+              <canvas ref={distributionChartRef} width={300} height={300}></canvas>
+            </div>
           </div>
         ) : (
-          <p>Memuatkan data taburan...</p>
+          <p>Memuatkan carta...</p>
         )}
       </div>
 

@@ -99,24 +99,29 @@
 }
 
 .module-selector {
-  display: flex;              /* horizontal layout */
+  display: flex;
   flex-direction: row;
-  gap: 10px;                  /* spacing between buttons */
+  gap: 10px;
   margin-bottom: 20px;
-  flex-wrap: wrap;            /* wrap only if needed */
-  width: 100%;
+
+  align-items: center;
+  justify-content: flex-start; /* or center if you prefer */
+
+  flex-wrap: wrap;
 }
 
 .module-btn {
   padding: 6px 14px;
   font-size: 14px;
   border: 1px solid #3b82f6;
-  border-radius: 6px;
+  border-radius: 999px;
   background-color: #fff;
   color: #3b82f6;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;        /* prevent text wrap */
+  flex: 0 0 auto;   /* 🚨 key line: prevents stretching */
+  width: auto;
 }
 
 .module-btn:hover {
