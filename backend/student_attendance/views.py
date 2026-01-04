@@ -229,7 +229,7 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
         )
 
         count = queryset.count()
-        average_attendance = 0 if count == 0 else (stats["on_time"] / queryset.count())
+        average_attendance = 0 if count == 0 else (( stats["on_time"] + stats["late"] ) / queryset.count())
         attendance_rate_distribution = self.get_attendance_rate_status_distribution()
 
         data = {
