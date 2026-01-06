@@ -15,11 +15,17 @@ from .utils import (
     ATTENDANCE_RATE_STATUS_EXCELLENT,
     ATTENDANCE_RATE_STATUS_GOOD,
     ATTENDANCE_RATE_STATUS_AVERAGE,
-    ATTENDANCE_RATE_STATUS_POOR
+    ATTENDANCE_RATE_STATUS_POOR,
 )
 from base.utils import set_timezone
+
+from sahsiah.const import PUNCTUALITY_NAME
 from sahsiah.models import SahsiahType, SahsiahRecord
-from .const import ATTENDANCE_STATUS_LOOKUP
+
+from record_discipline.models import DisciplineRecord, DisciplineType
+from record_discipline.const import LATE_NAME
+
+from . import const
 
 
 class StudentAttendanceSerializer(ModelSerializer):
@@ -29,9 +35,9 @@ class StudentAttendanceSerializer(ModelSerializer):
     class Meta:
         model = StudentAttendance
         fields = ["id", "student", "date", "status", "timestamp", "note"]
-    
+
     def get_status(self, instance: Meta.model) -> str:
-        return ATTENDANCE_STATUS_LOOKUP.get(instance.status)
+        return const.ATTENDANCE_STATUS_LOOKUP.get(instance.status)
 
 
 class RecordStudentAttendanceSerializer(ModelSerializer):
@@ -49,7 +55,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
         self, student: Student, timestamp: timezone.datetime
     ):
         try:
-            punctuality_sahsiah = SahsiahType.objects.get(name="Punctuality")
+            punctuality_sahsiah = SahsiahType.objects.get(name=PUNCTUALITY_NAME)
         except SahsiahType.DoesNotExist:
             raise ValidationError(f"unable to find sahsiah punctuality")
 
@@ -59,12 +65,28 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
             timestamp=timestamp,
         )
 
+    def create_late_discipline(self, student: Student, timestamp: timezone.datetime):
+        try:
+            late_discipline_type = DisciplineType.objects.get(name=LATE_NAME)
+        except DisciplineType.DoesNotExist:
+            raise ValidationError(f"unable to find record discipline {LATE_NAME}")
+
+        DisciplineRecord.objects.create(
+            student_id=student,
+            discipline_type=late_discipline_type,
+            timestamp=timestamp,
+        )
+
     def update(self, instance: StudentAttendance, validated_data):
         instance.timestamp = validated_data.get("timestamp", instance.timestamp)
         instance.save()
 
-        if instance.status == StudentAttendance.ON_TIME_CODE:
+        if instance.status == const.ON_TIME_STATUS_KEY:
             self.create_punctuality_sahsiah(
+                student=instance.migrate_student_id, timestamp=instance.timestamp
+            )
+        elif instance.status == const.LATE_STATUS_KEY:
+            self.create_late_discipline(
                 student=instance.migrate_student_id, timestamp=instance.timestamp
             )
 
@@ -149,4 +171,3 @@ class AttendanceStudentRecordStatsSerializer(Serializer):
             return ATTENDANCE_RATE_STATUS_AVERAGE
         else:
             return ATTENDANCE_RATE_STATUS_POOR
-        
