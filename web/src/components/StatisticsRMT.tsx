@@ -75,8 +75,8 @@ function StatisticsRMT() {
       data: {
         labels,
         datasets: [
-          { label: "Present", data: presentData, backgroundColor: "#10b981" },
-          { label: "Not Present", data: notPresentData, backgroundColor: "#ef4444" },
+          { label: "Mengambil RMT", data: presentData, backgroundColor: "#10b981" },
+          { label: "Belum Mengambil RMT", data: notPresentData, backgroundColor: "#ef4444" },
         ],
       },
       options: {
@@ -92,19 +92,19 @@ function StatisticsRMT() {
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-content">
-            <h3>Present RMT</h3>
+            <h3>Mengambil RMT</h3>
             <p className="stat-value">{summary?.present_rmt ?? "-"}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-content">
-            <h3>Not Present RMT</h3>
+            <h3>Belum Mengambil RMT</h3>
             <p className="stat-value">{summary?.not_present_rmt ?? "-"}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-content">
-            <h3>RMT %</h3>
+            <h3>Kadar Menerima RMT</h3>
             <p className="stat-value">{summary?.rmt_percentage ?? "-"}%</p>
           </div>
         </div>
@@ -112,9 +112,9 @@ function StatisticsRMT() {
 
       {/* Period Selector */}
       <div style={{ margin: "20px 0" }}>
-        <button onClick={() => setPeriod("weekly")}>Weekly</button>
-        <button onClick={() => setPeriod("monthly")}>Monthly</button>
-        <button onClick={() => setPeriod("yearly")}>Yearly</button>
+        <button onClick={() => setPeriod("weekly")}>Mingguan</button>
+        <button onClick={() => setPeriod("monthly")}>Bulanan</button>
+        <button onClick={() => setPeriod("yearly")}>Tahunan</button>
       </div>
 
       {/* Trends Chart */}
@@ -122,13 +122,13 @@ function StatisticsRMT() {
 
       {/* Student List */}
       <div style={{ marginTop: "30px" }}>
-        <h3>Students</h3>
+        <h3>Pelajar</h3>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: "8px" }}>Name</th>
-              <th style={{ padding: "8px" }}>Avg %</th>
-              <th style={{ padding: "8px" }}>Today Present</th>
+              <th style={{ textAlign: "left", padding: "8px" }}>Nama</th>
+              <th style={{ padding: "8px" }}>Purata</th>
+              <th style={{ padding: "8px" }}>Mengambil</th>
             </tr>
           </thead>
           <tbody>

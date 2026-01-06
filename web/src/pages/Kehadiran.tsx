@@ -238,7 +238,7 @@ export default function KehadiranPage() {
           <table className="custom-table">
             <thead>
               <tr>
-                <th>No.</th>
+                <th>Urutan</th>
                 <th>Nama</th>
                 <th>Kelas</th>
                 <th>Waktu</th>
@@ -281,7 +281,7 @@ export default function KehadiranPage() {
                         </span>
                       </td>
                       <td>
-                        <td>
+                        <div className="note-button">
                           {rec.note ? (
                             <span
                               className="note-preview clickable"
@@ -298,7 +298,7 @@ export default function KehadiranPage() {
                             +
                           </button>
                           )}
-                        </td>
+                        </div>
                       </td>
                     </tr>
                   );

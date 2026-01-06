@@ -1,5 +1,17 @@
 .statistics-module {
   padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.statistics-module canvas {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.module-content {
+  overflow-x: hidden;
 }
 
 .stats-grid {
@@ -37,12 +49,6 @@
 
 .chart-section {
   margin-bottom: 40px;
-}
-
-.chart-wrapper {
-  width: 400px;   /* fixed width */
-  height: 400px;  /* fixed height */
-  margin: 0 auto; /* center chart */
 }
 
 .classroom-table {
@@ -118,18 +124,21 @@
 }
 
 .charts-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 40px;
-  justify-content: center;
-  flex-wrap: wrap;
+  width: 100%;
+  place-items: center;  
+}
+
+.charts-row > * {
+  min-width: 0;   /* 🔑 THIS IS THE FIX */
 }
 
 .chart-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-.chart-wrapper h4 {
-  text-align: center;
+  align-items: center;   
+  justify-content: center;
+  text-align: center;   
 }

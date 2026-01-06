@@ -180,7 +180,7 @@ export default function RMTPage() {
           <table className="custom-table">
             <thead>
               <tr>
-                <th>No.</th>
+                <th>Urutan</th>
                 <th>Nama</th>
                 <th>Kelas</th>
                 <th>Waktu</th>

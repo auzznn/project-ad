@@ -1,3 +1,13 @@
+/* ===== Global Page Layout ===== */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px;
+  padding-left: 60px;
+  background: #f3f6fc;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
 .dashboard-container {
   padding: 20px 30px;
   background-color: #f4f7f9;

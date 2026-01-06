@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Pagination from "../components/pagination";
+import { authFetch } from "../services/authFetch";
 import "./Pengguna.css";
 
 interface UserItem {
   id: number;
   fullname: string;
   role: string;
-  children: any;
+  children?: any;
 }
 
 const PAGE_SIZE = 8;
@@ -16,8 +17,9 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
@@ -32,14 +34,22 @@ export default function UserManagement() {
   const fetchUsers = async (pageNumber = 1) => {
     setLoading(true);
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `http://localhost:8080/api/authentication/user/?page=${pageNumber}&page_size=${PAGE_SIZE}`
       );
+
+      if (!res.ok) {
+        console.warn("Failed to fetch users", res.status);
+        setUsers([]);
+        setTotalItems(0);
+        return;
+      }
+
       const data = await res.json();
-      setUsers(Array.isArray(data.entry) ? data.entry : []);
+      setUsers(data.entry ?? []);
       setTotalItems(data.total_items ?? 0);
     } catch (err) {
-      console.error("Fetch failed:", err);
+      console.error("Fetch users error:", err);
       setUsers([]);
       setTotalItems(0);
     } finally {
@@ -71,7 +81,7 @@ export default function UserManagement() {
   const handleDelete = async () => {
     if (!confirmDeleteId) return;
 
-    await fetch(
+    await authFetch(
       `http://localhost:8080/api/authentication/user/${confirmDeleteId}/`,
       { method: "DELETE" }
     );
@@ -96,7 +106,7 @@ export default function UserManagement() {
 
     const method = editingUser ? "PUT" : "POST";
 
-    await fetch(url, {
+    await authFetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -106,11 +116,54 @@ export default function UserManagement() {
     fetchUsers(page);
   };
 
+  /* ---------- Bulk Upload Handlers ---------- */
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+const handleFileUpload = async () => {
+  if (!selectedFile) {
+    alert("Sila pilih fail Excel terlebih dahulu");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", selectedFile);
+
+  try {
+    const res = await authFetch(
+      "http://localhost:8080/api/authentication/student/bulk_upload/",
+      {
+        method: "POST",
+        body: formData, // Do NOT set Content-Type manually
+      }
+    );
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      console.error("Upload failed:", errData);
+      alert("Gagal memuat naik fail. Sila semak log konsol.");
+      return;
+    }
+
+    alert("Berjaya memuat naik fail!");
+    setSelectedFile(null);
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Ralat semasa memuat naik fail. Sila cuba lagi.");
+  }
+};
+
+
   /* ---------- Filtered List ---------- */
   const filtered = users.filter((u) => {
     if (!searchTerm) return true;
     const t = searchTerm.toLowerCase();
-    return u.fullname.toLowerCase().includes(t) || u.role.toLowerCase().includes(t);
+    return (
+      u.fullname.toLowerCase().includes(t) || u.role.toLowerCase().includes(t)
+    );
   });
 
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
@@ -193,6 +246,7 @@ export default function UserManagement() {
           <form className="modal-box" onSubmit={handleSubmit}>
             <h2 className="modal-title">{editingUser ? "Edit Pengguna" : "Tambah Pengguna"}</h2>
 
+            {/* Individual User Fields */}
             <input
               name="fullname"
               placeholder="Nama Penuh"
@@ -200,13 +254,25 @@ export default function UserManagement() {
               onChange={handleChange}
               required
             />
-
             <select name="role" value={form.role} onChange={handleChange} required>
               <option value="teacher">Teacher</option>
               <option value="parents">Parents</option>
             </select>
 
-            <div className="modal-btn-row">
+            {/* Bulk Upload Section */}
+            <div className="file-upload-section">
+              <input type="file" accept=".xlsx" onChange={handleFileChange} />
+              <button
+                type="button"
+                onClick={handleFileUpload}
+                disabled={!selectedFile}
+              >
+                Muat Naik Excel
+              </button>
+            </div>
+
+            {/* Modal Buttons */}
+            <div className="modal-btn-row" style={{ marginTop: "1rem" }}>
               <button
                 type="button"
                 className="modal-cancel"

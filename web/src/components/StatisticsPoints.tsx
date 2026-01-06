@@ -108,6 +108,8 @@ function StatisticsPointsModule({ moduleType }: Props) {
     if (tagDistribution && window.Chart) {
       const ctx = (document.getElementById(`${moduleType}-tagChart`) as HTMLCanvasElement)?.getContext("2d");
       if (!ctx) return;
+
+      // Destroy previous chart if exists
       if ((window as any)[`${moduleType}TagChart`]) {
         (window as any)[`${moduleType}TagChart`].destroy();
       }
@@ -126,8 +128,13 @@ function StatisticsPointsModule({ moduleType }: Props) {
             },
           ],
         },
-        options: { responsive: true },
-      });
+        options: { 
+          responsive: true,
+          plugins: { 
+            legend: { position: "bottom" }, // ✅ this now works
+          },
+        }, // ✅ properly close options
+      }); // ✅ properly close Chart constructor
     }
   }, [trendPoints, tagDistribution, moduleType]);
 
@@ -136,33 +143,33 @@ function StatisticsPointsModule({ moduleType }: Props) {
       {/* Summary Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <h3>Records this month</h3>
+          <h3>Rekod Bulan Ini</h3>
           <p className="stat-value">{dashboardCards?.monthly_record_count ?? "-"}</p>
         </div>
         <div className="stat-card">
-          <h3>Total Points</h3>
+          <h3>Mata Total</h3>
           <p className="stat-value">{dashboardCards?.monthly_total_point ?? "-"}</p>
         </div>
         <div className="stat-card">
-          <h3>Avg Points per Student</h3>
+          <h3>Rerata Mata Siswa</h3>
           <p className="stat-value">{dashboardCards?.monthly_average_point_per_student ?? "-"}</p>
         </div>
       </div>
 
       {/* Charts */}
       <div style={{ marginTop: "20px" }}>
-        <h3>Monthly Points Trend</h3>
+        <h3>Mata Bulanan</h3>
         <canvas id={`${moduleType}-trendChart`} style={{ width: "100%", maxHeight: "300px" }} />
       </div>
 
       <div style={{ marginTop: "20px" }}>
-        <h3>Tag Distribution</h3>
+        <h3>Penyebaran Kategori</h3>
         <canvas id={`${moduleType}-tagChart`} style={{ width: "100%", maxHeight: "300px" }} />
       </div>
 
       {/* Points by Tag */}
       <div style={{ marginTop: "20px" }}>
-        <h3>Points by Tag</h3>
+        <h3>Mata Tiap Kategori</h3>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>

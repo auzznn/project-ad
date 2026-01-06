@@ -231,7 +231,7 @@ export default function PapanPendahulu({
           <table className="custom-table">
             <thead>
               <tr>
-                <th>Urutan</th>
+                <th>Kedudukan</th>
                 <th>Nama Pelajar</th>
                 <th>Kelas</th>
                 <th>Jumlah Mata</th>
