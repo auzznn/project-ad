@@ -13,6 +13,6 @@ def default_datetime():
     return today.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-def create_or_update_constant_merit_type(records, merit_model):
+def create_constant_merit_type(records, merit_model):
     for merit_id, merit_data in records.items():
-        merit_model.objects.update_or_create(id=merit_id, defaults=merit_data)
+        merit_model.objects.get_or_create(id=merit_id, defaults=merit_data)
