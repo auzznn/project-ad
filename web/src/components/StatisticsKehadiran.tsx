@@ -163,7 +163,7 @@ useEffect(() => {
         </div>
 
         <div className="stat-card">
-          <h3>Kehadiran Lewat</h3>
+          <h3>Kehadiran Lambat</h3>
           <p className="stat-value" style={{ color: "#f59e0b" }}>
             {attendanceStats?.late_count ?? "-"}
           </p>
@@ -249,7 +249,7 @@ useEffect(() => {
                   <span style={{ color: "#10b981" }}>Tepat Masa:</span> {onTime}
                 </p>
                 <p>
-                  <span style={{ color: "#f59e0b" }}>Lewat:</span> {late}
+                  <span style={{ color: "#f59e0b" }}>Lambat:</span> {late}
                 </p>
                 <p>
                   <span style={{ color: "#ef4444" }}>Tiada Kehadiran:</span> {absent}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import Pagination from "../components/pagination";
+import SearchBar from "../components/SearchBar";
 
-// Using CDN Chart.js
 declare global {
   interface Window {
     Chart: any;
@@ -23,6 +24,7 @@ interface Student {
   average_rmt_percentage: number;
   today_is_present: boolean;
   latest_present: string | null;
+  class_room: string;
 }
 
 function StatisticsRMT() {
@@ -31,37 +33,44 @@ function StatisticsRMT() {
   const [students, setStudents] = useState<Student[]>([]);
   const [period, setPeriod] = useState<"weekly" | "monthly" | "yearly">("yearly");
 
-  // Fetch Summary Cards
+  // Table filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [classFilter, setClassFilter] = useState<string | "">("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const studentsPerPage = 10;
+
+  // Fetch summary cards
   useEffect(() => {
     fetch("http://localhost:8080/api/rmt/statistic/summary-cards/")
       .then(res => res.json())
       .then(setSummary)
-      .catch(err => console.error(err));
+      .catch(console.error);
   }, []);
 
-  // Fetch Trends
+  // Fetch trends
   useEffect(() => {
     fetch(`http://localhost:8080/api/rmt/statistic/rmt_trends/${period}/`)
       .then(res => res.json())
       .then(setTrends)
-      .catch(err => console.error(err));
+      .catch(console.error);
   }, [period]);
 
-  // Fetch Students
+  // Fetch students
   useEffect(() => {
     fetch("http://localhost:8080/api/rmt/statistic/rmt-student/")
       .then(res => res.json())
-      .then(setStudents)
-      .catch(err => console.error(err));
+      .then((data: Student[]) => setStudents(data))
+      .catch(console.error);
   }, []);
 
-  // Draw chart after trends loaded
+  // Chart rendering
   useEffect(() => {
     if (!window.Chart || !trends) return;
     const ctx = (document.getElementById("rmtChart") as HTMLCanvasElement)?.getContext("2d");
     if (!ctx) return;
 
-    // Destroy existing chart if exists
     if ((window as any).rmtChartInstance) {
       (window as any).rmtChartInstance.destroy();
     }
@@ -86,63 +95,126 @@ function StatisticsRMT() {
     });
   }, [trends]);
 
+  // Filtering & Pagination
+  const filteredStudents = students
+    .filter(s => !classFilter || s.class_room === classFilter)
+    .filter(s => s.fullname.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const paginatedStudents = filteredStudents.slice(
+    (page - 1) * studentsPerPage,
+    page * studentsPerPage
+  );
+
+  useEffect(() => {
+    setTotalPages(Math.ceil(filteredStudents.length / studentsPerPage) || 1);
+    setPage(1);
+  }, [searchTerm, classFilter, students]);
+
+  const uniqueClasses = Array.from(new Set(students.map(s => s.class_room))).sort();
+
   return (
-    <div className="rmt-container">
+    <div className="sahsiah-container">
+
       {/* Summary Cards */}
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-content">
-            <h3>Mengambil RMT</h3>
-            <p className="stat-value">{summary?.present_rmt ?? "-"}</p>
-          </div>
+          <h3>Mengambil RMT</h3>
+          <p className="stat-value">{summary?.present_rmt ?? "-"}</p>
         </div>
         <div className="stat-card">
-          <div className="stat-content">
-            <h3>Belum Mengambil RMT</h3>
-            <p className="stat-value">{summary?.not_present_rmt ?? "-"}</p>
-          </div>
+          <h3>Belum Mengambil RMT</h3>
+          <p className="stat-value">{summary?.not_present_rmt ?? "-"}</p>
         </div>
         <div className="stat-card">
-          <div className="stat-content">
-            <h3>Kadar Menerima RMT</h3>
-            <p className="stat-value">{summary?.rmt_percentage ?? "-"}%</p>
-          </div>
+          <h3>Kadar Menerima RMT</h3>
+          <p className="stat-value">{summary?.rmt_percentage ?? "-"}%</p>
         </div>
       </div>
 
-      {/* Period Selector */}
-      <div style={{ margin: "20px 0" }}>
-        <button onClick={() => setPeriod("weekly")}>Mingguan</button>
-        <button onClick={() => setPeriod("monthly")}>Bulanan</button>
-        <button onClick={() => setPeriod("yearly")}>Tahunan</button>
+      {/* Period Buttons */}
+      <div className="action-buttons">
+        {(["weekly", "monthly", "yearly"] as const).map(p => (
+          <button
+            key={p}
+            className={`module-btn ${period === p ? "active" : ""}`}
+            onClick={() => setPeriod(p)}
+          >
+            {p === "weekly" ? "Mingguan" : p === "monthly" ? "Bulanan" : "Tahunan"}
+          </button>
+        ))}
       </div>
 
       {/* Trends Chart */}
-      <canvas id="rmtChart" style={{ maxHeight: "400px" }} />
+      <canvas id="rmtChart" style={{ maxHeight: "400px", marginTop: "20px" }} />
 
-      {/* Student List */}
-      <div style={{ marginTop: "30px" }}>
-        <h3>Pelajar</h3>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      {/* Table Filters */}
+      <div className="controls-row">
+        <SearchBar
+          value={searchTerm}
+          placeholder="Cari pelajar..."
+          onChange={setSearchTerm}
+        />
+        <select
+          className="form-control"
+          value={classFilter}
+          onChange={e => setClassFilter(e.target.value)}
+        >
+          <option value="">Semua Kelas</option>
+          {uniqueClasses.map(cls => (
+            <option key={cls} value={cls}>
+              {cls}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="section-box table-wrapper">
+        <table className="table-custom">
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: "8px" }}>Nama</th>
-              <th style={{ padding: "8px" }}>Purata</th>
-              <th style={{ padding: "8px" }}>Mengambil</th>
+              <th>Nama</th>
+              <th>Kelas</th>
+              <th style={{ textAlign: "center" }}>Purata</th>
+              <th style={{ textAlign: "center" }}>Mengambil</th>
+              <th style={{ textAlign: "center" }}>Tarikh Terakhir Hadir</th>
             </tr>
           </thead>
           <tbody>
-            {students.map(s => (
-              <tr key={s.student_id} style={{ borderTop: "1px solid #ddd" }}>
-                <td style={{ padding: "8px" }}>{s.fullname}</td>
-                <td style={{ padding: "8px", textAlign: "center" }}>{s.average_rmt_percentage}%</td>
-                <td style={{ padding: "8px", textAlign: "center" }}>
-                  {s.today_is_present ? "✅" : "❌"}
-                </td>
+            {paginatedStudents.length === 0 ? (
+              <tr className="empty-row">
+                <td colSpan={5}>Tiada rekod</td>
               </tr>
-            ))}
+            ) : (
+              paginatedStudents.map(s => (
+                <tr key={s.student_id}>
+                  <td>{s.fullname}</td>
+                  <td>{s.class_room}</td>
+                  <td style={{ textAlign: "center" }}>
+                    {s.average_rmt_percentage}%
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <span
+                      className={
+                        s.today_is_present ? "status-present" : "status-absent"
+                      }
+                    >
+                      {s.today_is_present ? "Telah Mengambil RMT" : "Belum Mengambil RMT"}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    {s.latest_present
+                      ? new Date(s.latest_present).toLocaleDateString()
+                      : "Tiada"}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

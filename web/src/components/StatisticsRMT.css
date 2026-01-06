@@ -1,0 +1,148 @@
+.module-btn {
+  padding: 6px 14px;
+  font-size: 14px;
+  border: 1px solid #3b82f6;
+  border-radius: 999px;
+  background-color: #fff;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;        
+  flex: 0 0 auto;   
+  width: auto;
+}
+
+.module-btn:hover {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.module-btn.active {
+  background-color: #3b82f6;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* ===== Table Wrapper ===== */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* ===== Table ===== */
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  margin: 0px;
+}
+
+.table-custom thead {
+  background: #4a71ff;
+  color: white;
+}
+
+.table-custom th {
+  padding: 12px 10px;
+  text-align: left;
+  font-size: 15px;
+}
+
+.table-custom td {
+  padding: 6px 10px;
+  vertical-align: middle;
+}
+
+.table-custom tbody tr:nth-child(even) {
+  background: #f4f7ff;
+}
+
+.table-custom tbody tr:hover {
+  background: #e8eefc;
+}
+
+/* ===== Status Badges ===== */
+.status-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.status-present {
+  background-color: #e6f5ea;
+  color: #047857;
+  border: 1px solid #047857;
+}
+
+.status-late {
+  background-color: #fcf7d6;
+  color: #dba30a;
+  border: 1px solid #dba30a;
+}
+
+.status-absent {
+  background-color: #fdecea;
+  color: #b91c1c;
+  border: 1px solid #b91c1c;
+}
+
+/* ===== Empty State ===== */
+.empty-row {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  background: #fafafa;
+  font-style: italic;
+}
+
+/* ===== Action / Filter Controls ===== */
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-control {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background-color: #fff;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #4a71ff;
+  box-shadow: 0 0 0 3px rgba(74, 113, 255, 0.15);
+}
+
+/* ===== Module Buttons ===== */
+.module-btn {
+  padding: 6px 14px;
+  font-size: 14px;
+  border: 1px solid #3b82f6;
+  border-radius: 999px;
+  background-color: #fff;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.module-btn.active {
+  background-color: #3b82f6;
+  color: #fff;
+}

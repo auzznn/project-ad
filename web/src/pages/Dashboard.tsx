@@ -13,7 +13,7 @@ function Dashboard() {
     <div className="dashboard-container">
       {/* Header */}
       <div className="dashboard-header">
-        <h1>Papan Pemuka</h1>
+        <h1 className="page-title">Papan Pemuka</h1>
         <p>Ringkasan statistik harian</p>
       </div>
 
@@ -35,7 +35,7 @@ function Dashboard() {
         {activeModule === "kehadiran" && <StatisticsKehadiran />}
         {activeModule === "rmt" && <StatisticsRMT />}
         {activeModule === "sahsiah" && <StatisticsPointsModule moduleType="sahsiah" />}
-        {activeModule === "disiplin" && <StatisticsPointsModule moduleType="disiplin" />}
+        {activeModule === "disiplin" && <StatisticsPointsModule moduleType="discipline" />}
       </div>
     </div>
   );
