@@ -7,6 +7,10 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('authentication', '0011_alter_myuser_role'),
+        ('rmt', '0010_rename_migrate_student_id_rmtrecord_student_id'),
+        ('student_attendance', '0010_rename_migrate_student_id_studentattendance_student_id'),
+        ('sahsiah', '0007_rename_migrate_student_id_sahsiahrecord_student_id'),
+        ('record_discipline', '0007_rename_migrate_student_id_disciplinerecord_student_id'),
     ]
 
     operations = [
