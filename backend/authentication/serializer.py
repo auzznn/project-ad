@@ -49,7 +49,7 @@ class MyUserRetrieveSerializer(ModelSerializer):
     
     class Meta:
         model = MyUser
-        fields = ["id", "fullname", "role", "children"]
+        fields = ["id", "first_name", "last_name", "role", "children"]
     
     def get_children(self, instance: Meta.model):
         if not instance.role == 'parent':
