@@ -5,9 +5,10 @@ from datetime import time
 
 from . import const
 from base.utils import default_datetime as _default_datetime, set_timezone
+from base.models import GeneralQuerySet
 
 
-class StudentAttendanceQuerySet(models.QuerySet):
+class StudentAttendanceQuerySet(GeneralQuerySet):
     def today(self):
         # Centralized timezone-aware 'today' logic
         today_date = _default_datetime().date()
@@ -17,7 +18,7 @@ class StudentAttendanceQuerySet(models.QuerySet):
         return self.filter(date__year=year)
     
     def by_student(self, student):
-        return self.filter(migrate_student_id=student)
+        return self.filter(student_id=student)
     
     def by_month(self, month):
         return self.filter(date__month=month)
@@ -25,9 +26,6 @@ class StudentAttendanceQuerySet(models.QuerySet):
 
 # Create your models here.
 class StudentAttendance(models.Model):
-    ON_TIME_CODE = "on-time"
-    ABSENT_CODE = "absent"
-
     def default_datetime():
         return _default_datetime()
 
@@ -35,7 +33,7 @@ class StudentAttendance(models.Model):
     ON_TIME = time(hour=7, minute=40)
     ABSENT_TIME = default_datetime().time()
 
-    migrate_student_id = models.ForeignKey(
+    student_id = models.ForeignKey(
         MigrateStudent,
         related_name="attendance",
         on_delete=models.CASCADE,
@@ -50,7 +48,7 @@ class StudentAttendance(models.Model):
     objects = StudentAttendanceQuerySet.as_manager()
 
     def __str__(self) -> str:
-        return self.migrate_student_id.fullname
+        return self.student_id.fullname
 
     def save(self, *args, **kwargs):
         if set_timezone(self.timestamp).time() == self.ABSENT_TIME:

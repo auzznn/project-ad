@@ -14,7 +14,7 @@ from base.utils import set_timezone
 from .models import RMTRecord
 
 class RMTRecordSerializer(ModelSerializer):
-  student = StudentSerializer(source='migrate_student_id')
+  student = StudentSerializer(source='student_id')
   
   class Meta:
     model = RMTRecord
@@ -37,19 +37,19 @@ class RecordRMTRecordSerializer(ModelSerializer):
 
         return instance
 
-    def _get_instance(self, migrate_student_id: int) -> Meta.model:
+    def _get_instance(self, student_id: int) -> Meta.model:
         if self.rmt_record_instance:
             return self.rmt_record_instance
 
         today = set_timezone(timezone.now()).date()
         self.rmt_record_instance = self.Meta.model.objects.get(
-            migrate_student_id=migrate_student_id, date=today
+            student_id=student_id, date=today
         )
         return self.rmt_record_instance
 
     def validate_student_id(self, student_id: int):
         try:
-            self._get_instance(migrate_student_id=student_id)
+            self._get_instance(student_id=student_id)
         except self.Meta.model.DoesNotExist:
             raise ValidationError(
                 f"unable to find record of rmt with id {student_id} or the student is not elligible"
@@ -59,23 +59,20 @@ class RecordRMTRecordSerializer(ModelSerializer):
 
     def validate(self, data):
         student_id = data.get("student_id")
-        self.instance = self._get_instance(migrate_student_id=student_id)
-        assert self.instance.migrate_student_id.rmt_elligible
+        self.instance = self._get_instance(student_id=student_id)
+        assert self.instance.student_id.rmt_elligible
         
         # Check if already clocked in (Logic moved from update)
         no_changes = RMTRecord.default_datetime()
         if set_timezone(self.instance.timestamp) != no_changes:
             raise ValidationError(
-                f"RMT Record for {self.instance.migrate_student_id.fullname} has already been recorded"
+                f"RMT Record for {self.instance.student_id.fullname} has already been recorded"
             )
         return data
 
 class StudentRMTAnalyticsSerializer(Serializer):
-    # This comes from .values("migrate_student_id")
-    student_id = IntegerField(source="migrate_student_id")
+    student_id = IntegerField()
     fullname = SerializerMethodField()
-    
-    # These are the annotated fields
     average_rmt_percentage = FloatField()
     today_is_present = BooleanField()
     latest_present = DateField()

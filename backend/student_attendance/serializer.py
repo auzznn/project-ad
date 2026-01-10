@@ -9,7 +9,7 @@ from rest_framework.serializers import (
 from django.utils import timezone
 
 from authentication.serializer import StudentSerializer
-from authentication.models import Student
+from authentication.models import MigrateStudent
 from .models import StudentAttendance
 from .utils import (
     ATTENDANCE_RATE_STATUS_EXCELLENT,
@@ -29,7 +29,7 @@ from . import const
 
 
 class StudentAttendanceSerializer(ModelSerializer):
-    student = StudentSerializer(source="migrate_student_id", many=False)
+    student = StudentSerializer(source="student_id", many=False)
     status = SerializerMethodField()
 
     class Meta:
@@ -52,7 +52,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
         self.attendance_instance = None
 
     def create_punctuality_sahsiah(
-        self, student: Student, timestamp: timezone.datetime
+        self, student: MigrateStudent, timestamp: timezone.datetime
     ):
         try:
             punctuality_sahsiah = SahsiahType.objects.get(name=PUNCTUALITY_NAME)
@@ -60,12 +60,12 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
             raise ValidationError(f"unable to find sahsiah punctuality")
 
         SahsiahRecord.objects.create(
-            migrate_student_id=student,
+            student_id=student,
             sahsiah_type=punctuality_sahsiah,
             timestamp=timestamp,
         )
 
-    def create_late_discipline(self, student: Student, timestamp: timezone.datetime):
+    def create_late_discipline(self, student: MigrateStudent, timestamp: timezone.datetime):
         try:
             late_discipline_type = DisciplineType.objects.get(name=LATE_NAME)
         except DisciplineType.DoesNotExist:
@@ -83,29 +83,29 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
 
         if instance.status == const.ON_TIME_STATUS_KEY:
             self.create_punctuality_sahsiah(
-                student=instance.migrate_student_id, timestamp=instance.timestamp
+                student=instance.student_id, timestamp=instance.timestamp
             )
         elif instance.status == const.LATE_STATUS_KEY:
             self.create_late_discipline(
-                student=instance.migrate_student_id, timestamp=instance.timestamp
+                student=instance.student_id, timestamp=instance.timestamp
             )
 
         return instance
 
-    def _get_instance(self, migrate_student_id: int) -> Meta.model:
+    def _get_instance(self, student_id: int) -> Meta.model:
         if self.attendance_instance:
             return self.attendance_instance
 
         today = set_timezone(timezone.now()).date()
         print(f"today: {today}")
         self.attendance_instance = self.Meta.model.objects.get(
-            migrate_student_id=migrate_student_id, date=today
+            student_id=student_id, date=today
         )
         return self.attendance_instance
 
     def validate_student_id(self, student_id: int):
         try:
-            self._get_instance(migrate_student_id=student_id)
+            self._get_instance(student_id=student_id)
         except self.Meta.model.DoesNotExist:
             raise ValidationError(
                 f"unable to find record of student attendance with id {student_id}"
@@ -115,13 +115,13 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
 
     def validate(self, data):
         student_id = data.get("student_id")
-        self.instance = self._get_instance(migrate_student_id=student_id)
+        self.instance = self._get_instance(student_id=student_id)
 
         # Check if already clocked in (Logic moved from update)
         absent_time = StudentAttendance.default_datetime()
         if set_timezone(self.instance.timestamp) != absent_time:
             raise ValidationError(
-                f"student attendance for {self.instance.migrate_student_id.fullname} has already been recorded"
+                f"student attendance for {self.instance.student_id.fullname} has already been recorded"
             )
 
         return data

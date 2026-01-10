@@ -1,15 +1,6 @@
-from django.shortcuts import render
 from django.utils import timezone
 from django.db.models.functions import ExtractWeekDay, ExtractMonth, ExtractDay
-from django.db.models import (
-    Count,
-    Q,
-    ExpressionWrapper,
-    F,
-    IntegerField,
-    FloatField,
-    Max,
-)
+from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max
 from django.conf import settings
 
 from rest_framework.decorators import action
@@ -81,7 +72,7 @@ class RMTStatisticView(viewsets.GenericViewSet):
         # We subtract present from total eligible to find the absentees
         not_present_count = max(0, total_eligible - present_count)
 
-        attendance_percentage = present_count / total_eligible
+        attendance_percentage = 0 if total_eligible == 0 else present_count / total_eligible
 
         return Response(
             {
@@ -139,18 +130,16 @@ class RMTStatisticView(viewsets.GenericViewSet):
                 not_present_count=Count("id", filter=Q(is_present=False)),
             )
         )
-        
+
         data = {
-            f'Week {week + 1}' : {
-                "is_present_count": 0,
-                "not_present_count": 0
-            } for week in range(month_helper.get_num_week())
+            f"Week {week + 1}": {"is_present_count": 0, "not_present_count": 0}
+            for week in range(month_helper.get_num_week())
         }
-        
+
         for record in records:
-            week_index = month_helper.get_week_of_date(record['day_of_month'])
+            week_index = month_helper.get_week_of_date(record["day_of_month"])
             week_key = f"Week {week_index}"
-            
+
             data[week_key]["is_present_count"] += record["is_present_count"]
             data[week_key]["not_present_count"] += record["not_present_count"]
 
@@ -191,11 +180,11 @@ class RMTStatisticView(viewsets.GenericViewSet):
                 date__range=[settings.ACADEMIC_YEAR_START, settings.ACADEMIC_YEAR_END]
             )
             .values(
-                "migrate_student_id",
-                "migrate_student_id__first_name",
-                "migrate_student_id__last_name",
-                "migrate_student_id__class_room__class_section",
-                "migrate_student_id__class_room__grade",
+                "student_id",
+                "student_id__first_name",
+                "student_id__last_name",
+                "student_id__class_room__class_section",
+                "student_id__class_room__grade",
             )
             .annotate(
                 average_rmt_percentage=ExpressionWrapper(

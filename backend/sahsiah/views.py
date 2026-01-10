@@ -31,7 +31,7 @@ class SahsiahRecordView(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path=r"student/(?P<student_id>[0-9]+)")
     def retrieve_by_student(self, request: Request, student_id: int, *args, **kwargs):
-        queryset = self.get_queryset().filter(migrate_student_id=student_id)
+        queryset = self.get_queryset().filter(student_id=student_id)
         page = self.paginate_queryset(queryset)
 
         if page is not None:
@@ -69,4 +69,4 @@ class SahsiahLeaderboardView(GeneralLeaderboardView):
 class SahsiahAnalyticsViewSet(GeneralMeritAnalyticView):
     queryset = SahsiahRecord.objects.all()
     record_type = "sahsiah_type"
-    student_id = "migrate_student_id"
+    student_id = "student_id"

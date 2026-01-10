@@ -11,6 +11,10 @@ from rest_framework.reverse import reverse
 import qrcode as qr
 
 from base.const import STUDENT_BASENAME_PATH
+from base.models import GeneralQuerySet
+
+class MigrateStudentQuerySet(GeneralQuerySet):
+    pass
 
 class MyUser(AbstractUser):
     """
@@ -95,6 +99,8 @@ class MigrateStudent(models.Model):
         limit_choices_to={"role": "parent"},
         help_text="Link to a MyUser instance with the 'parent' role."
     )
+    
+    objects = MigrateStudentQuerySet.as_manager()
 
     @property
     def fullname(self) -> str:
