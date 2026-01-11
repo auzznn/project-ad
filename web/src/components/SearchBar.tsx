@@ -1,5 +1,3 @@
-import React from "react";
-
 interface SearchBarProps {
   value: string;
   placeholder?: string;

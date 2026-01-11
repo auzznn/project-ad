@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Pagination from "../components/pagination";
 import SearchBar from "../components/SearchBar";
 
@@ -43,7 +43,7 @@ function StatisticsRMT() {
 
   // Fetch summary cards
   useEffect(() => {
-    fetch("http://localhost:8080/api/rmt/statistic/summary-cards/")
+    fetch("http://72.62.65.202:8080/api/rmt/statistic/summary-cards/")
       .then(res => res.json())
       .then(setSummary)
       .catch(console.error);
@@ -51,7 +51,7 @@ function StatisticsRMT() {
 
   // Fetch trends
   useEffect(() => {
-    fetch(`http://localhost:8080/api/rmt/statistic/rmt_trends/${period}/`)
+    fetch(`http://72.62.65.202:8080/api/rmt/statistic/rmt_trends/${period}/`)
       .then(res => res.json())
       .then(setTrends)
       .catch(console.error);
@@ -59,7 +59,7 @@ function StatisticsRMT() {
 
   // Fetch students
   useEffect(() => {
-    fetch("http://localhost:8080/api/rmt/statistic/rmt-student/")
+    fetch("http://72.62.65.202:8080/api/rmt/statistic/rmt-student/")
       .then(res => res.json())
       .then((data: Student[]) => setStudents(data))
       .catch(console.error);

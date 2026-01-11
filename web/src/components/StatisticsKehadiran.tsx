@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./StatisticsKehadiran.css";
 
 interface AttendanceStats {
@@ -56,12 +56,12 @@ const DISTRIBUTION_COLOR_MAP: Record<string, string> = {
 };
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/student_attendance/statistic/daily/dashboard/")
+    fetch("http://72.62.65.202:8080/api/student_attendance/statistic/daily/dashboard/")
       .then(res => res.json())
       .then((data: AttendanceStats) => setAttendanceStats(data))
       .catch(err => console.error("Error loading attendance stats:", err));
 
-    fetch("http://localhost:8080/api/student_attendance/statistic/daily/classroom_breakdown/")
+    fetch("http://72.62.65.202:8080/api/student_attendance/statistic/daily/classroom_breakdown/")
       .then(res => res.json())
       .then((data: ClassroomBreakdown[]) => setClassroomBreakdown(data))
       .catch(err => console.error("Error loading classroom breakdown:", err));

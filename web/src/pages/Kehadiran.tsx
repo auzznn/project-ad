@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./AttendanceTable.css";
 import Pagination from "../components/pagination";
 import SearchBar from "../components/SearchBar";
@@ -66,10 +66,10 @@ export default function KehadiranPage() {
   const fetchAttendance = async (pageNumber: number = 1) => {
     setLoading(true);
     try {
-      let url = `http://127.0.0.1:8080/api/student_attendance/daily/?page=${pageNumber}`;
+      let url = `http://72.62.65.202:8080/api/student_attendance/daily/?page=${pageNumber}`;
 
       if (gradeFilter !== "" && classFilter !== "") {
-        url = `http://127.0.0.1:8080/api/student_attendance/daily/${gradeFilter}/${classFilter}/?page=${pageNumber}`;
+        url = `http://72.62.65.202:8080/api/student_attendance/daily/${gradeFilter}/${classFilter}/?page=${pageNumber}`;
       }
 
       const res = await fetch(url);
@@ -109,7 +109,7 @@ export default function KehadiranPage() {
   const fetchClassrooms = async () => {
     try {
       const res = await fetch(
-        "http://127.0.0.1:8080/api/authentication/classroom/"
+        "http://72.62.65.202:8080/api/authentication/classroom/"
       );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);
@@ -163,7 +163,7 @@ export default function KehadiranPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/api/student_attendance/${selectedRecord.id}/note/`,
+        `http://72.62.65.202:8080/api/student_attendance/${selectedRecord.id}/note/`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
