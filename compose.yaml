@@ -27,6 +27,7 @@ services:
       - redis
     volumes:
       - backend-media:/var/lib/backend/media
+      - backend-static:/var/lib/backend/static
   
   redis:
     restart: always
@@ -64,4 +65,5 @@ services:
 volumes:
   mysql-db:
   backend-media:
+  backend-static:
   redis:
