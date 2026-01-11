@@ -165,7 +165,7 @@ ACADEMIC_YEAR_END = timezone.now().replace(
     month=12, day=30, hour=0, minute=0, second=0, microsecond=0
 )
 
-DOMAIN_NAME = 'localhost:8080'
+DOMAIN_NAME = os.getenv("DOMAIN_NAME", 'localhost:8080')
 
 # Celery Setting
 
