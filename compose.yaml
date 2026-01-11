@@ -20,6 +20,7 @@ services:
     environment:
       MYSQL_HOST: project-ad-mysql_database-1
       MEDIA_ROOT: /var/lib/backend/media
+      STATIC_ROOT: /var/lib/backend/static
     env_file: 
       - path: backend/.env
     depends_on:
@@ -27,6 +28,7 @@ services:
       - redis
     volumes:
       - backend-media:/var/lib/backend/media
+      - backend-static:/var/lib/backend/static
   
   redis:
     restart: always
@@ -64,4 +66,5 @@ services:
 volumes:
   mysql-db:
   backend-media:
+  backend-static:
   redis:

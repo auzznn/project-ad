@@ -152,7 +152,7 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
     Subclasses must provide a 'queryset'.
     """
 
-    queryset = None
+    queryset = StudentAttendance.objects.all()
     pagination_class = StandardResultsSetPagination
 
     def get_serializer_class(self):
@@ -249,14 +249,14 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
         raw_data = (
             self.get_queryset()
             .values(
-                "migrate_student_id__class_room__grade",
-                "migrate_student_id__class_room__class_section",
+                "student_id__class_room__grade",
+                "student_id__class_room__class_section",
                 "status",
             )
             .annotate(count=Count("id"))
             .order_by(
-                "migrate_student_id__class_room__grade",
-                "migrate_student_id__class_room__class_section",
+                "student_id__class_room__grade",
+                "student_id__class_room__class_section",
             )
         )
 
@@ -317,8 +317,9 @@ class YearlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
 
     # Using the manager method we created earlier for consistency
     def get_queryset(self):
+        queryset = super().get_queryset()
         year = self.kwargs.get("year")
-        return StudentAttendance.objects.by_year(year)
+        return queryset.by_year(year)
 
 
 class MonthlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
@@ -328,6 +329,7 @@ class MonthlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
 
     # Using the manager method we created earlier for consistency
     def get_queryset(self):
+        queryset = super().get_queryset()
         year = self.kwargs.get("year")
         month = self.kwargs.get("month")
-        return StudentAttendance.objects.by_year(year).by_month(month)
+        return queryset.by_year(year).by_month(month)

@@ -3,6 +3,13 @@ from django.core import validators
 from django.utils import timezone
 from authentication.models import MigrateStudent
 
+from base.models import GeneralQuerySet
+
+class DisciplineRecordQuerySet(GeneralQuerySet):
+    pass
+
+class DisciplineTypeQuerySet(GeneralQuerySet):
+    pass
 
 # Create your models here.
 class DisciplineType(models.Model):
@@ -12,6 +19,8 @@ class DisciplineType(models.Model):
         default=-1, validators=[validators.MaxValueValidator(-1)]
     )
     tag = models.CharField(max_length=50, blank=False)
+    
+    objects = DisciplineTypeQuerySet.as_manager()
 
     def __str__(self) -> str:
         return self.name
@@ -35,3 +44,5 @@ class DisciplineRecord(models.Model):
         DisciplineType, on_delete=models.CASCADE, related_name="record"
     )
     timestamp = models.DateTimeField(default=timezone.now, blank=False)
+    
+    objects = DisciplineRecordQuerySet.as_manager()

@@ -40,11 +40,6 @@ class MyUserView(ModelViewSet):
             else MyUserRetrieveSerializer
         )
 
-    def get_queryset(self):
-        if self.action in ["list", "retrieve"]:
-            return self.queryset.select_related("student")
-        return super().get_queryset()
-
 
 class StudentView(ModelViewSet):
     queryset = MigrateStudent.objects.all()

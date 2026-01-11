@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useAuth } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi } from '@/api/studentApi';
 import { useFocusEffect } from 'expo-router';
-import { RoleBasedUI, AdminOrTeacher } from '@/components/RoleBasedUI';
 
 // Dynamic student data structure
 interface StudentData {
@@ -27,7 +27,20 @@ interface LeaderboardResponse {
   ranking: number;
 }
 
+// Child data structure returned from API
+interface ChildData {
+  id: number;
+  name: string;
+  grade: number;
+  section: string;
+  academic_year: string;
+  rmt_elligible: boolean;
+  qr_code: string;
+}
+
 export default function Discipline() {
+  const router = useRouter();
+  const { user } = useAuth();
   const [selectedGrade, setSelectedGrade] = useState('All Grades');
   const [selectedSection, setSelectedSection] = useState('All Sections');
   const [gradeDropdownOpen, setGradeDropdownOpen] = useState(false);
@@ -37,7 +50,10 @@ export default function Discipline() {
   
   // Dynamic filter options extracted from data
   const [availableGrades, setAvailableGrades] = useState<string[]>(['All Grades']);
-  const [availableSections, setAvailableSections] = useState<string[]>(['All Sections']);
+  
+  // Children data for parent view highlighting
+  const [children, setChildren] = useState<ChildData[]>([]);
+  const [childrenLoading, setChildrenLoading] = useState(false);
   
   // Theme colors
   const backgroundColor = useThemeColor('background');
@@ -49,30 +65,50 @@ export default function Discipline() {
   const accentColor = useThemeColor('accent');
   const successColor = useThemeColor('success');
   
-  // Role-based permissions
-  const { hasPermission } = usePermissions();
-  
   // Load student data from API on component mount
   useEffect(() => {
     loadStudentData();
+    // Load children data if user is a parent
+    if (user?.role === 'parent') {
+      loadChildrenData();
+    }
   }, []);
   
-
   useFocusEffect(
     React.useCallback(() => {
       loadStudentData();
+      // Reload children data when screen is focused
+      if (user?.role === 'parent') {
+        loadChildrenData();
+      }
     }, [])
   );
+  
+  // Reload data when grade or section filter changes
+  useEffect(() => {
+    loadStudentData();
+  }, [selectedGrade, selectedSection]);
   
   const loadStudentData = async () => {
     try {
       setLoading(true);
       
-      // Fetch discipline leaderboard data from API
-      const leaderboardData: LeaderboardResponse[] = await studentApi.getDisciplineLeaderboard();
+      let leaderboardData: LeaderboardResponse[];
+      
+      // Fetch discipline leaderboard data from API based on filters
+      if (selectedGrade !== 'All Grades' && selectedSection !== 'All Sections') {
+        // Filter by both grade and section
+        leaderboardData = await studentApi.getDisciplineLeaderboardByGradeAndSection(selectedGrade, selectedSection);
+      } else if (selectedGrade !== 'All Grades') {
+        // Filter by grade only
+        leaderboardData = await studentApi.getDisciplineLeaderboardByGrade(selectedGrade);
+      } else {
+        // No filter, get all leaderboard data
+        leaderboardData = await studentApi.getDisciplineLeaderboard();
+      }
       
       // Transform API data to match our StudentData interface
-      // and fetch additional student details for class information
+      // Use the ranking attribute from API for position
       const studentsArray: StudentData[] = await Promise.all(
         leaderboardData.map(async (student: LeaderboardResponse) => {
           try {
@@ -102,26 +138,20 @@ export default function Discipline() {
         })
       );
       
-      // Sort by ranking (which should already be sorted by points)
-      studentsArray.sort((a, b) => a.id - b.id);
-      
       console.log(`Loaded ${studentsArray.length} students from API discipline leaderboard`);
       setStudents(studentsArray);
       
-      // Extract unique grades and sections from the data
-      const uniqueGrades = Array.from(new Set(studentsArray.map(s => s.grade).filter(g => g && g !== 'Unknown')));
-      const uniqueSections = Array.from(new Set(studentsArray.map(s => s.section).filter(c => c && c !== 'Unknown')));
-      
-      // Update filter options with actual data
-      setAvailableGrades(['All Grades', ...uniqueGrades.sort()]);
-      setAvailableSections(['All Sections', ...uniqueSections.sort()]);
-      
-      // Reset filters if current selection no longer exists
-      if (selectedGrade !== 'All Grades' && !uniqueGrades.includes(selectedGrade)) {
-        setSelectedGrade('All Grades');
-      }
-      if (selectedSection !== 'All Sections' && !uniqueSections.includes(selectedSection)) {
-        setSelectedSection('All Sections');
+      // Extract unique grades from the data (only when no filter is applied)
+      if (selectedGrade === 'All Grades') {
+        const uniqueGrades = Array.from(new Set(studentsArray.map(s => s.grade).filter(g => g && g !== 'Unknown')));
+        
+        // Update filter options with actual data
+        setAvailableGrades(['All Grades', ...uniqueGrades.sort()]);
+        
+        // Reset grade filter if current selection no longer exists
+        if (selectedGrade !== 'All Grades' && !uniqueGrades.includes(selectedGrade)) {
+          setSelectedGrade('All Grades');
+        }
       }
       
     } catch (error) {
@@ -133,15 +163,76 @@ export default function Discipline() {
     }
   };
   
-  // Filter and sort students
+  // Load children data for parent view
+  const loadChildrenData = async () => {
+    if (!user?.user_id || user.role !== 'parent') {
+      return;
+    }
+    
+    try {
+      setChildrenLoading(true);
+      const childrenData = await studentApi.getChildren(user.user_id);
+      setChildren(childrenData);
+      console.log(`Loaded ${childrenData.length} children for parent ${user.user_id}`);
+    } catch (error) {
+      console.error('Error loading children data:', error);
+      setChildren([]);
+    } finally {
+      setChildrenLoading(false);
+    }
+  };
+  
+  // Students are already filtered and sorted by the API based on ranking
+  // No client-side filtering or sorting needed
   const filteredStudents = useMemo(() => {
-    return students
-      .filter(student =>
-        (selectedGrade === 'All Grades' || student.grade === selectedGrade) &&
-        (selectedSection === 'All Sections' || student.section === selectedSection)
+    return students;
+  }, [students]);
+  
+  // Get available sections based on selected grade
+  // When a grade is selected, sections are fetched from the API
+  // When no grade is selected, show 'All Sections' only
+  const availableSectionsForGrade = useMemo(() => {
+    if (selectedGrade === 'All Grades') {
+      return ['All Sections'];
+    }
+    // Extract sections from the API response (already filtered by grade)
+    const sections = Array.from(
+      new Set(
+        students
+          .map(s => s.section)
+          .filter(c => c && c !== 'Unknown')
       )
-      .sort((a, b) => b.points - a.points);
-  }, [students, selectedGrade, selectedSection]);
+    );
+    return ['All Sections', ...sections.sort()];
+  }, [students, selectedGrade]);
+  
+  // Handle grade selection change
+  const handleGradeChange = (grade: string) => {
+    setSelectedGrade(grade);
+    // Reset section when grade changes
+    setSelectedSection('All Sections');
+  };
+  
+  // Check if a student is a child of the current parent user
+  const isChildOfParent = (studentId: string): boolean => {
+    if (user?.role !== 'parent') {
+      return false;
+    }
+    return children.some(child => child.id?.toString() === studentId);
+  };
+  
+  // Get highlight style for child entries
+  const getChildHighlightStyle = (studentId: string) => {
+    if (!isChildOfParent(studentId)) {
+      return {};
+    }
+    
+    return {
+      backgroundColor: `${primaryColor}15`,
+      borderColor: primaryColor,
+      borderWidth: 2,
+    };
+  };
   
   // Get rank badge color based on position
   const getRankBadgeColor = (rank: number) => {
@@ -172,69 +263,73 @@ export default function Discipline() {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor }} className="flex-1 pt-8">
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
-        {/* Header */}
-        <View className="px-5 pt-5 pb-8">
-          <View className="flex-row justify-between items-center">
-            <View>
-              <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
-                Discipline Leaderboard
-              </Text>
-              <Text className="text-base" style={{ color: mutedColor }}>
-                Top disciplined students this year.
-              </Text>
-            </View>
+    <SafeAreaView style={{ backgroundColor }} className="flex-1 pt-6" edges={['top']}>
+      {/* Header - Fixed */}
+      <View className="px-5 pt-5 pb-4">
+        <View className="flex-row justify-between items-center">
+          <View>
+            <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
+              Discipline Leaderboard
+            </Text>
+            <Text className="text-base" style={{ color: mutedColor }}>
+              Top disciplined students this year.
+            </Text>
+          </View>
+          <TouchableOpacity
+            className="p-3 rounded-full"
+            style={{ backgroundColor: primaryColor }}
+            onPress={loadStudentData}
+          >
+            <Ionicons name="refresh" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      {/* Filters - Fixed */}
+      <View className="px-5 mb-4">
+        <View className="flex-row space-x-3">
+          {/* Grade Filter */}
+          <View className="flex-1">
+            <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
+              Grade
+            </Text>
             <TouchableOpacity
-              className="p-3 rounded-full"
-              style={{ backgroundColor: primaryColor }}
-              onPress={loadStudentData}
+              className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
+              style={{ backgroundColor: cardColor, borderColor }}
+              onPress={() => setGradeDropdownOpen(true)}
             >
-              <Ionicons name="refresh" size={20} color="white" />
+              <Text className="text-base" style={{ color: textColor }}>
+                {selectedGrade}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={mutedColor} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Section Filter */}
+          <View className="flex-1">
+            <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
+              Section
+            </Text>
+            <TouchableOpacity
+              className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
+              style={{
+                backgroundColor: selectedGrade === 'All Grades' ? `${mutedColor}20` : cardColor,
+                borderColor: selectedGrade === 'All Grades' ? `${mutedColor}40` : borderColor
+              }}
+              onPress={() => selectedGrade !== 'All Grades' && setSectionDropdownOpen(true)}
+              disabled={selectedGrade === 'All Grades'}
+            >
+              <Text className="text-base" style={{ color: selectedGrade === 'All Grades' ? mutedColor : textColor }}>
+                {selectedGrade === 'All Grades' ? 'Select Grade First' : selectedSection}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color={selectedGrade === 'All Grades' ? mutedColor : mutedColor} />
             </TouchableOpacity>
           </View>
         </View>
-        
-        {/* Filters */}
-        <View className="px-5 mb-6">
-          <View className="flex-row space-x-3">
-            {/* Grade Filter */}
-            <View className="flex-1">
-              <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
-                Grade
-              </Text>
-              <TouchableOpacity
-                className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
-                style={{ backgroundColor: cardColor, borderColor }}
-                onPress={() => setGradeDropdownOpen(true)}
-              >
-                <Text className="text-base" style={{ color: textColor }}>
-                  {selectedGrade}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={mutedColor} />
-              </TouchableOpacity>
-            </View>
-            
-            {/* Section Filter */}
-            <View className="flex-1">
-              <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
-                Section
-              </Text>
-              <TouchableOpacity
-                className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
-                style={{ backgroundColor: cardColor, borderColor }}
-                onPress={() => setSectionDropdownOpen(true)}
-              >
-                <Text className="text-base" style={{ color: textColor }}>
-                  {selectedSection}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={mutedColor} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-        
-        {/* Leaderboard List */}
+      </View>
+      
+      {/* Leaderboard List - Scrollable */}
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
         <View className="px-5">
           {loading ? (
             <View
@@ -250,7 +345,85 @@ export default function Discipline() {
             filteredStudents.map((student) => {
               // Use the ranking from the API response (stored in student.id)
               const rank = student.id;
-              return (
+              const canClickStudent = user?.role === 'teacher' || user?.role === 'admin';
+              const isChild = isChildOfParent(student.student_id);
+              
+              const cardContent = (
+                <View className="flex-row items-center">
+                  {/* Rank Badge */}
+                  <View
+                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                    style={{ backgroundColor: getRankBadgeColor(rank) }}
+                  >
+                    <Ionicons
+                      name={getRankIcon(rank) as any}
+                      size={18}
+                      color="white"
+                    />
+                  </View>
+                  
+                  {/* Student Info */}
+                  <View className="flex-1">
+                    <View className="flex-row items-center">
+                      <Text className="text-base font-semibold" style={{ color: textColor }}>
+                        {student.name}
+                      </Text>
+                      {/* Child badge for parent view */}
+                      {isChild && (
+                        <View
+                          className="ml-2 px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: `${primaryColor}30` }}
+                        >
+                          <Text className="text-xs font-medium" style={{ color: primaryColor }}>
+                            My Child
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <View className="flex-row mt-1">
+                      <Text className="text-sm" style={{ color: mutedColor }}>
+                        {student.grade} • {student.section}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  {/* Points */}
+                  <View className="items-end">
+                    <Text className="text-lg font-bold" style={{ color: primaryColor }}>
+                      {student.points}
+                    </Text>
+                    <Text className="text-xs" style={{ color: mutedColor }}>
+                      discipline points
+                    </Text>
+                    
+                  </View>
+                </View>
+              );
+              
+              return canClickStudent ? (
+                <TouchableOpacity
+                  key={`${student.student_id}-${rank}`}
+                  className="rounded-2xl p-4 mb-3 border shadow-sm"
+                  style={{
+                    backgroundColor: cardColor,
+                    borderColor,
+                    shadowColor: '#000',
+                    shadowOffset: {
+                      width: 0,
+                      height: 1,
+                    },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 2,
+                    elevation: 1,
+                    ...getChildHighlightStyle(student.student_id),
+                  }}
+                  onPress={() => {
+                    router.push(`/student-details?studentId=${student.student_id}`);
+                  }}
+                >
+                  {cardContent}
+                </TouchableOpacity>
+              ) : (
                 <View
                   key={`${student.student_id}-${rank}`}
                   className="rounded-2xl p-4 mb-3 border shadow-sm"
@@ -265,44 +438,10 @@ export default function Discipline() {
                     shadowOpacity: 0.05,
                     shadowRadius: 2,
                     elevation: 1,
+                    ...getChildHighlightStyle(student.student_id),
                   }}
                 >
-                  <View className="flex-row items-center">
-                    {/* Rank Badge */}
-                    <View
-                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                      style={{ backgroundColor: getRankBadgeColor(rank) }}
-                    >
-                      <Ionicons
-                        name={getRankIcon(rank) as any}
-                        size={18}
-                        color="white"
-                      />
-                    </View>
-                    
-                    {/* Student Info */}
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold" style={{ color: textColor }}>
-                        {student.name}
-                      </Text>
-                      <View className="flex-row mt-1">
-                        <Text className="text-sm" style={{ color: mutedColor }}>
-                          {student.grade} • {student.section}
-                        </Text>
-                      </View>
-                    </View>
-                    
-                    {/* Points */}
-                    <View className="items-end">
-                      <Text className="text-lg font-bold" style={{ color: primaryColor }}>
-                        {student.points}
-                      </Text>
-                      <Text className="text-xs" style={{ color: mutedColor }}>
-                        discipline points
-                      </Text>
-                      
-                    </View>
-                  </View>
+                  {cardContent}
                 </View>
               );
             })
@@ -367,7 +506,7 @@ export default function Discipline() {
                     className="py-3 px-2 border-b"
                     style={{ borderColor }}
                     onPress={() => {
-                      setSelectedGrade(item);
+                      handleGradeChange(item);
                       setGradeDropdownOpen(false);
                     }}
                   >
@@ -414,7 +553,7 @@ export default function Discipline() {
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={availableSections}
+                data={availableSectionsForGrade}
                 keyExtractor={(item) => item}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (

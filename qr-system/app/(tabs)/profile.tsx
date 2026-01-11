@@ -89,7 +89,6 @@ export default function ProfileScreen() {
           <Text style={styles.profileName}>
             {user?.first_name} {user?.last_name}
           </Text>
-          <Text style={styles.profileUsername}>@{user?.username}</Text>
           <View style={[styles.roleBadge, { backgroundColor: cardColor }]}>
             <Text style={[styles.roleText, { color: primaryColor }]}>
               {getRoleDisplayName(user?.role || "user")}
@@ -114,16 +113,6 @@ export default function ProfileScreen() {
             </Text>
             <Text style={[styles.infoValue, { color: textColor }]}>
               {user?.first_name} {user?.last_name}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Ionicons name="at-outline" size={20} color={textColor} />
-            <Text style={[styles.infoLabel, { color: textColor }]}>
-              Username
-            </Text>
-            <Text style={[styles.infoValue, { color: textColor }]}>
-              {user?.username}
             </Text>
           </View>
 
@@ -214,11 +203,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     marginBottom: 4,
-  },
-  profileUsername: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginBottom: 12,
   },
   roleBadge: {
     paddingHorizontal: 16,

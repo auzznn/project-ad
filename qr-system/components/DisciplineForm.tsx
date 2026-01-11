@@ -340,60 +340,42 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
 
   console.log('DisciplineForm - Rendering main form for student:', student.name);
   
-  // Create data array for FlatList that includes header, student info, and categories
-  const formData = [
-    { type: 'header' },
-    { type: 'studentInfo' },
-    { type: 'sectionTitle' },
-    ...disciplineCategories.map(category => ({ type: 'category', data: category }))
-  ];
+  // Create data array for FlatList that only includes categories
+  const formData = disciplineCategories.map(category => ({ type: 'category', data: category }));
 
-  const renderFormItem = ({ item, index }: { item: any; index: number }) => {
-    switch (item.type) {
-      case 'header':
-        return (
-          <View style={styles.header}>
-            <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
-              <Ionicons name="arrow-back" size={20} color={textColor} />
-            </TouchableOpacity>
-            <Text style={[styles.title, { color: textColor }]}>Record Discipline Issue</Text>
-            <View style={styles.placeholder} />
-          </View>
-        );
-      
-      case 'studentInfo':
-        return (
-          <View style={[styles.studentInfo, { backgroundColor: cardColor }]}>
-            <View style={styles.studentInfoContent}>
-              <View style={[styles.avatar, { backgroundColor: dangerColor }]}>
-                <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
-              </View>
-              <View style={styles.studentDetails}>
-                <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
-                <Text style={[styles.studentId, { color: mutedColor }]}>{student.id}</Text>
-                <Text style={[styles.studentProgram, { color: mutedColor }]}>{student.program}</Text>
-              </View>
-            </View>
-          </View>
-        );
-      
-      case 'sectionTitle':
-        return (
-          <View style={styles.categoriesContainer}>
-            <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Discipline Category</Text>
-          </View>
-        );
-      
-      case 'category':
-        return renderCategoryItem({ item: item.data });
-      
-      default:
-        return null;
-    }
+  const renderFormItem = ({ item }: { item: any }) => {
+    return renderCategoryItem({ item: item.data });
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
+          <Ionicons name="arrow-back" size={20} color={textColor} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: textColor }]}>Record Discipline Issue</Text>
+        <View style={styles.placeholder} />
+      </View>
+      
+      {/* Student Info - Static */}
+      <View style={[styles.studentInfo, { backgroundColor: cardColor }]}>
+        <View style={styles.studentInfoContent}>
+          <View style={[styles.avatar, { backgroundColor: dangerColor }]}>
+            <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
+          </View>
+          <View style={styles.studentDetails}>
+            <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
+          </View>
+        </View>
+      </View>
+      
+      {/* Section Title - Static */}
+      <View style={styles.categoriesContainer}>
+        <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Discipline Category</Text>
+      </View>
+      
+      {/* Scrollable List - Categories Only */}
       <FlatList
         data={formData}
         renderItem={renderFormItem}
@@ -415,7 +397,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 40,
+    paddingTop: 12,
     paddingBottom: 12,
   },
   backButton: {
@@ -442,6 +424,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   studentInfo: {
+    marginTop: 16,
     marginHorizontal: 16,
     marginBottom: 20,
     borderRadius: 16,
@@ -489,6 +472,7 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingHorizontal: 16,
+    marginTop: 16,
     marginBottom: 16,
   },
   sectionTitle: {
@@ -499,6 +483,7 @@ const styles = StyleSheet.create({
   },
   formList: {
     paddingHorizontal: 16,
+    paddingBottom: 20,
   },
   categoryContainer: {
     borderRadius: 16,

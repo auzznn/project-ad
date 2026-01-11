@@ -4,7 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.reverse import reverse
 from django.conf import settings
 
-from .models import MyUser, Student, MigrateStudent, Classroom
+from .models import MyUser, MigrateStudent, Classroom
 from .const import TOKEN_REFRESH_PATH_NAME
 
 
@@ -49,7 +49,7 @@ class MyUserRetrieveSerializer(ModelSerializer):
     
     class Meta:
         model = MyUser
-        fields = ["id", "fullname", "role", "children"]
+        fields = ["id", "first_name", "last_name", "role", "children"]
     
     def get_children(self, instance: Meta.model):
         if not instance.role == 'parent':

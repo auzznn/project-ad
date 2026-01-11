@@ -1,5 +1,4 @@
 import { useAuth } from '@/context/AuthContext';
-import { useContext } from 'react';
 
 export type UserRole = 'admin' | 'teacher' | 'parent';
 

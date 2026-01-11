@@ -103,7 +103,7 @@ export interface StudentDetails {
 
 export const studentApi = {
 
-  getChildren: async (userId: string): Promise<User[]> => {
+  getChildren: async (userId: string): Promise<any[]> => {
     try {
       const response = await apiRequest.get(`/authentication/user/${userId}/`);
       return response.children || [];
@@ -124,14 +124,31 @@ export const studentApi = {
   // Mark attendance for a student
   markAttendance: async (payload: AttendancePayload): Promise<any> => {
     try {
-      const response = await apiRequest.patch('/student_attendance/record/', {
-        student_id: payload.id,
-       timestamp: payload.timestamp
-      });
+      console.log('markAttendance - payload:', payload);
+      console.log('markAttendance - student_id (raw):', payload.id);
+      console.log('markAttendance - student_id (parsed):', parseInt(payload.id, 10));
+      console.log('markAttendance - timestamp:', payload.timestamp);
+      
+      const requestData = {
+        student_id: parseInt(payload.id, 10),
+        timestamp: payload.timestamp
+      };
+      console.log('markAttendance - request data:', requestData);
+      
+      const response = await apiRequest.patch('/student_attendance/record/', requestData);
+      console.log('markAttendance - response:', response);
       return response;
     } catch (error) {
+      console.error('markAttendance - error:', error);
+      console.error('markAttendance - error response:', (error as any).response?.data);
       throw error;
     }
+  },
+  
+  // Get attendance statistics for all students
+  getAttendanceStatistics: async (year: string): Promise<any> => {
+    const response = await apiRequest.get(`/student_attendance/statistic/${year}/student_attendance_records/`);
+    return response.entry;
   },
   
   // Check if student already has attendance for today
@@ -201,15 +218,26 @@ export const studentApi = {
     return apiRequest.post('/sahsiah/record/', data);
   },
   
+  // Get sahsiah records for a specific student
+  getStudentSahsiahRecords: async (studentId: string): Promise<any> => {
+    const response = await apiRequest.get(`/sahsiah/record/student/${studentId}`);
+    return response.entry || response;
+  },
+  
   // Record RMT for a student
   recordRMT: async (data: { student_id: string; timestamp: string }): Promise<any> => {
     return apiRequest.patch('/rmt/record/', data);
   },
   
+  // Get RMT statistics for all students
+  getRMTStatistics: async (): Promise<any> => {
+    const response = await apiRequest.get('/rmt/statistic/rmt-student');
+    return response;
+  },
+  
   // Check if student already has RMT for today
   checkRMTStatus: async (studentId: string): Promise<any> => {
     const response = await apiRequest.get('rmt/daily/');
-    console.log("ini responsenya loh", response.entry)
     
     // Create a hash map for O(1) lookups
     const rmtMap: { [key: string]: any } = {};
@@ -253,9 +281,27 @@ export const studentApi = {
     return response.entry;
   },
   
+  // Get leaderboard data filtered by grade from sahsiah/leaderboard/{grade}
+  getLeaderboardByGrade: async (grade: string): Promise<any> => {
+    const response = await apiRequest.get(`/sahsiah/leaderboard/${grade}`);
+    return response.entry;
+  },
+  
+  // Get leaderboard data filtered by grade and section from sahsiah/leaderboard/{grade}/{section}
+  getLeaderboardByGradeAndSection: async (grade: string, section: string): Promise<any> => {
+    const response = await apiRequest.get(`/sahsiah/leaderboard/${grade}/${section}`);
+    return response.entry;
+  },
+  
   // Record discipline for a student
   recordDiscipline: async (data: DisciplineRecord): Promise<any> => {
     return apiRequest.post('/discipline/record/', data);
+  },
+  
+  // Get discipline records for a specific student
+  getStudentDisciplineRecords: async (): Promise<any> => {
+    const response = await apiRequest.get(`/discipline/record/`);
+    return response.entry || response;
   },
   
   // Get discipline types from API
@@ -272,6 +318,18 @@ export const studentApi = {
   // Get discipline leaderboard data from discipline/leaderboard/
   getDisciplineLeaderboard: async (): Promise<any> => {
     const response = await apiRequest.get('/discipline/leaderboard/');
+    return response.entry;
+  },
+  
+  // Get discipline leaderboard data filtered by grade from discipline/leaderboard/{grade}
+  getDisciplineLeaderboardByGrade: async (grade: string): Promise<any> => {
+    const response = await apiRequest.get(`/discipline/leaderboard/${grade}`);
+    return response.entry;
+  },
+  
+  // Get discipline leaderboard data filtered by grade and section from discipline/leaderboard/{grade}/{section}
+  getDisciplineLeaderboardByGradeAndSection: async (grade: string, section: string): Promise<any> => {
+    const response = await apiRequest.get(`/discipline/leaderboard/${grade}/${section}`);
     return response.entry;
   },
   
