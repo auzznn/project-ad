@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi } from '@/api/studentApi';
 import { useFocusEffect } from 'expo-router';
@@ -39,6 +40,7 @@ interface ChildData {
 }
 
 export default function Leaderboard() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [selectedGrade, setSelectedGrade] = useState('All Grades');
@@ -269,10 +271,10 @@ export default function Leaderboard() {
         <View className="flex-row justify-between items-center">
           <View>
             <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
-              Leaderboard
+              {t('leaderboard')}
             </Text>
             <Text className="text-base" style={{ color: mutedColor }}>
-              Top performing students this year.
+              {t('topPerformingStudents')}
             </Text>
           </View>
           <TouchableOpacity
@@ -291,7 +293,7 @@ export default function Leaderboard() {
           {/* Grade Filter */}
           <View className="flex-1">
             <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
-              Grade
+              {t('grade')}
             </Text>
             <TouchableOpacity
               className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
@@ -308,7 +310,7 @@ export default function Leaderboard() {
           {/* Section Filter */}
           <View className="flex-1">
             <Text className="text-sm font-medium mb-2" style={{ color: textColor }}>
-              Section
+              {t('section')}
             </Text>
             <TouchableOpacity
               className="rounded-xl border px-4 py-3 flex-row items-center justify-between"
@@ -320,7 +322,7 @@ export default function Leaderboard() {
               disabled={selectedGrade === 'All Grades'}
             >
               <Text className="text-base" style={{ color: selectedGrade === 'All Grades' ? mutedColor : textColor }}>
-                {selectedGrade === 'All Grades' ? 'Select Grade First' : selectedSection}
+                {selectedGrade === t('allGrades') ? t('selectGradeFirst') : selectedSection}
               </Text>
               <Ionicons name="chevron-down" size={16} color={selectedGrade === 'All Grades' ? mutedColor : mutedColor} />
             </TouchableOpacity>
@@ -338,7 +340,7 @@ export default function Leaderboard() {
             >
               <Ionicons name="refresh" size={40} color={mutedColor} />
               <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
-                Loading leaderboard data...
+                {t('loadingLeaderboardData')}
               </Text>
             </View>
           ) : filteredStudents.length > 0 ? (
@@ -375,7 +377,7 @@ export default function Leaderboard() {
                           style={{ backgroundColor: `${primaryColor}30` }}
                         >
                           <Text className="text-xs font-medium" style={{ color: primaryColor }}>
-                            My Child
+                            {t('myChild')}
                           </Text>
                         </View>
                       )}
@@ -393,7 +395,7 @@ export default function Leaderboard() {
                       {student.points}
                     </Text>
                     <Text className="text-xs" style={{ color: mutedColor }}>
-                      points
+                      {t('points')}
                     </Text>
                   </View>
                 </View>
@@ -451,10 +453,10 @@ export default function Leaderboard() {
             >
               <Ionicons name="alert-circle" size={40} color={mutedColor} />
               <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
-                No leaderboard data available
+                {t('noLeaderboardDataAvailable')}
               </Text>
               <Text className="text-sm mt-2 text-center" style={{ color: mutedColor }}>
-                Try refreshing or check your connection
+                {t('tryRefreshingOrCheckConnection')}
               </Text>
             </View>
           ) : (
@@ -464,7 +466,7 @@ export default function Leaderboard() {
             >
               <Ionicons name="search" size={40} color={mutedColor} />
               <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
-                No students found with the selected filters
+                {t('noStudentsFoundWithFilters')}
               </Text>
             </View>
           )}
@@ -490,7 +492,7 @@ export default function Leaderboard() {
             >
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-lg font-semibold" style={{ color: textColor }}>
-                  Select Grade
+                  {t('selectGrade')}
                 </Text>
                 <TouchableOpacity onPress={() => setGradeDropdownOpen(false)}>
                   <Ionicons name="close" size={24} color={mutedColor} />
@@ -545,7 +547,7 @@ export default function Leaderboard() {
             >
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-lg font-semibold" style={{ color: textColor }}>
-                  Select Section
+                  {t('selectSection')}
                 </Text>
                 <TouchableOpacity onPress={() => setSectionDropdownOpen(false)}>
                   <Ionicons name="close" size={24} color={mutedColor} />

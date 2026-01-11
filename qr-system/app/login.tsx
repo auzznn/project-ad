@@ -9,10 +9,12 @@ import {
 import { router } from "expo-router";
 import { useThemeColor } from "../hooks/useThemeColor";
 import { useAuth } from "../context/AuthContext";
+import { useTranslation } from "../hooks/useTranslation";
 import { ModalWrapper, FormField, LoadingButton } from "../components";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -34,13 +36,13 @@ export default function LoginScreen() {
     const newErrors: { username?: string; password?: string } = {};
 
     if (!username.trim()) {
-      newErrors.username = "Username is required";
+      newErrors.username = t('username') + " " + t('required');
     }
 
     if (!password.trim()) {
-      newErrors.password = "Password is required";
+      newErrors.password = t('password') + " " + t('required');
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = t('password') + " must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -66,10 +68,10 @@ export default function LoginScreen() {
           },
         ]);
       } else {
-        Alert.alert("Login Failed", "Invalid credentials. Please try again.");
+        Alert.alert(t('login') + " " + t('scanError').replace('!', ''), t('loginError'));
       }
     } catch (error) {
-      Alert.alert("Login Failed", "An error occurred. Please try again.");
+      Alert.alert(t('login') + " " + t('scanError').replace('!', ''), t('somethingWentWrong'));
     }
   };
 
@@ -80,13 +82,13 @@ export default function LoginScreen() {
           className="text-2xl font-bold mb-8 text-center"
           style={{ color: textColor }}
         >
-          Welcome Back!
+          {t('welcomeBack')}
         </Text>
         
         {/* Username Input */}
         <FormField
-          label="Username"
-          placeholder="Enter your username"
+          label={t('username')}
+          placeholder={t('username')}
           value={username}
           onChangeText={setUsername}
           autoCapitalize="none"
@@ -101,7 +103,7 @@ export default function LoginScreen() {
             className="text-base font-semibold mb-3"
             style={{ color: textColor }}
           >
-            Password
+            {t('password')}
           </Text>
           <View className="relative">
             <TextInput
@@ -112,7 +114,7 @@ export default function LoginScreen() {
                 color: textColor,
                 borderWidth: password ? 2 : 1,
               }}
-              placeholder="Enter your password"
+              placeholder={t('password')}
               placeholderTextColor={mutedColor}
               value={password}
               onChangeText={setPassword}
@@ -144,7 +146,7 @@ export default function LoginScreen() {
 
         {/* Login Button */}
         <LoadingButton
-          title="Sign In"
+          title={t('loginButton')}
           loading={isLoading}
           onPress={handleLogin}
           style={{ marginBottom: 32 }}

@@ -3,11 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi, StudentDetails } from '@/api/studentApi';
 
 
 export default function StudentDetailsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
   
@@ -250,7 +252,7 @@ export default function StudentDetailsScreen() {
         
       } catch (error) {
         setLoading(false);
-        Alert.alert('Error', 'Failed to load student details');
+        Alert.alert(t('error'), t('somethingWentWrong'));
       }
     };
 
@@ -295,7 +297,7 @@ export default function StudentDetailsScreen() {
         <View className="flex-1 justify-center items-center">
           <Ionicons name="refresh" size={40} color={mutedColor} />
           <Text className="mt-4 text-base" style={{ color: mutedColor }}>
-            Loading student details...
+            {t('loading')}
           </Text>
         </View>
       </SafeAreaView>
@@ -308,14 +310,14 @@ export default function StudentDetailsScreen() {
         <View className="flex-1 justify-center items-center px-5">
           <Ionicons name="alert-circle" size={40} color={mutedColor} />
           <Text className="mt-4 text-lg text-center" style={{ color: mutedColor }}>
-            Student not found
+            {t('noDataAvailable')}
           </Text>
           <TouchableOpacity
             className="mt-4 px-6 py-3 rounded-xl"
             style={{ backgroundColor: primaryColor }}
             onPress={() => router.back()}
           >
-            <Text className="text-white font-semibold">Go Back</Text>
+            <Text className="text-white font-semibold">{t('cancel')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -338,7 +340,7 @@ export default function StudentDetailsScreen() {
                 {student.name}
               </Text>
               <Text className="text-base opacity-80" style={{ color: mutedColor }}>
-                Class {student.grade} • {student.section}
+                {t('class')} {student.grade} • {student.section}
               </Text>
             </View>
             <TouchableOpacity
@@ -360,7 +362,7 @@ export default function StudentDetailsScreen() {
                 {student.attendance.rate}%
               </Text>
               <Text className="text-xs text-center" style={{ color: mutedColor }}>
-                Attendance Rate
+                {t('attendance')} Rate
               </Text>
             </View>
             
@@ -370,7 +372,7 @@ export default function StudentDetailsScreen() {
                 {student.sahsiah.points}
               </Text>
               <Text className="text-xs text-center" style={{ color: mutedColor }}>
-                Sahsiah Points
+                {t('sahsiah')} {t('points')}
               </Text>
             </View>
             
@@ -380,7 +382,7 @@ export default function StudentDetailsScreen() {
                 - {student.discipline.points}
               </Text>
               <Text className="text-xs text-center" style={{ color: mutedColor }}>
-                Discipline Points
+                {t('discipline')} {t('points')}
               </Text>
             </View>
           </View>
@@ -390,24 +392,24 @@ export default function StudentDetailsScreen() {
         <View className="px-5 mb-6">
           <View className="rounded-2xl p-5 border shadow-sm" style={{ backgroundColor: cardColor, borderColor }}>
             <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
-              Detailed Information
+              {t('studentDetails')}
             </Text>
             
             {/* Attendance Details */}
             <View className="mb-4">
               <Text className="text-base font-semibold mb-2" style={{ color: textColor }}>
-                Attendance
+                {t('attendance')}
               </Text>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm" style={{ color: mutedColor }}>Present:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('present')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.attendance.present} days</Text>
               </View>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm" style={{ color: mutedColor }}>Absent:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('absent')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.attendance.absent} days</Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-sm" style={{ color: mutedColor }}>Late:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('late')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.attendance.late} times</Text>
               </View>
             </View>
@@ -415,16 +417,16 @@ export default function StudentDetailsScreen() {
             {/* RMT Information */}
             <View className="mb-4">
               <Text className="text-base font-semibold mb-2" style={{ color: textColor }}>
-                RMT Program
+                {t('rmt')} Program
               </Text>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm" style={{ color: mutedColor }}>Eligible:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('eligible')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>
                   {student.rmt.eligible ? 'Yes' : 'No'}
                 </Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-sm" style={{ color: mutedColor }}>Last Claim:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('lastClaim')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.rmt.lastClaim}</Text>
               </View>
             </View>
@@ -435,7 +437,7 @@ export default function StudentDetailsScreen() {
         <View className="px-5 mb-6">
           <View className="rounded-2xl p-5 border shadow-sm" style={{ backgroundColor: cardColor, borderColor }}>
             <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
-              Recent Activity
+              {t('loading')}
             </Text>
             
             <ScrollView style={{ maxHeight: 300 }}>
@@ -463,7 +465,7 @@ export default function StudentDetailsScreen() {
                       <Text className="text-sm ml-2 font-medium" style={{ 
                         color: activity.type === 'sahsiah' ? successColor : errorColor 
                       }}>
-                        {activity.type === 'sahsiah' ? '+' : '-'}{activity.points} points
+                        {activity.type === 'sahsiah' ? '+' : '-'}{activity.points} {t('points')}
                       </Text>
                     )}
                   </View>

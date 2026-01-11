@@ -25,7 +25,7 @@ export interface AttendancePayload {
 
 export interface SahsiahRecord {
   timestamp: string;
-  migrate_student_id: number;
+  migrate_student_id: string;
   sahsiah_type: number;
 }
 
@@ -48,7 +48,7 @@ export interface SahsiahCategory {
 
 export interface DisciplineRecord {
   timestamp: string | null;
-  student_id: number | null;
+  student_id: string | null;
   discipline_type: number | null;
 }
 
