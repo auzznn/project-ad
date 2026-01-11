@@ -2,25 +2,23 @@
   padding: 20px 30px;
   background-color: #f4f7f9;
   min-height: calc(100vh - 80px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
 }
 
-.dashboard-header {
-  margin-bottom: 30px;
-}
-
 .dashboard-header h1 {
+  margin: 0 0 5px 0;
   font-size: 2rem;
   font-weight: 700;
   color: #1e293b;
-  margin: 0;
-  margin-bottom: 5px;
 }
 
 .dashboard-header p {
-  color: #64748b;
+  margin: 0 0 20px 0;
   font-size: 0.95rem;
-  margin: 0;
+  color: #64748b;
 }
 
 .stats-grid {
@@ -86,96 +84,6 @@
   margin: 0;
 }
 
-.activity-section {
-  background-color: #ffffff;
-  border-radius: 10px;
-  padding: 25px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.activity-section h2 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-  margin-bottom: 20px;
-}
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.activity-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #f8fafc;
-  border-left: 4px solid #e2e8f0;
-  transition: background-color 0.2s;
-}
-
-.activity-item:hover {
-  background-color: #f1f5f9;
-}
-
-.activity-item.status-success {
-  border-left-color: #10b981;
-  background-color: #f0fdf4;
-}
-
-.activity-item.status-error {
-  border-left-color: #ef4444;
-  background-color: #fef2f2;
-}
-
-.activity-item.status-warning {
-  border-left-color: #f59e0b;
-  background-color: #fffbeb;
-}
-
-.activity-icon {
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-}
-
-.activity-item.status-success .activity-icon {
-  color: #10b981;
-}
-
-.activity-item.status-error .activity-icon {
-  color: #ef4444;
-}
-
-.activity-item.status-warning .activity-icon {
-  color: #f59e0b;
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-message {
-  font-size: 0.95rem;
-  color: #1e293b;
-  font-weight: 500;
-  margin: 0;
-  margin-bottom: 5px;
-}
-
-.activity-time {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin: 0;
-}
-
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: 1fr;
@@ -188,4 +96,51 @@
   .dashboard-container {
     padding: 15px 20px;
   }
+}
+
+.module-selector {
+  display: flex;              /* horizontal layout */
+  flex-direction: row;
+  gap: 10px;                  /* spacing between buttons */
+  margin-bottom: 20px;
+  flex-wrap: wrap;            /* wrap only if needed */
+  width: 100%;
+}
+
+.module-btn {
+  padding: 6px 14px;
+  font-size: 14px;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #3b82f6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;        /* prevent text wrap */
+}
+
+.module-btn:hover {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.module-btn.active {
+  background-color: #3b82f6;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Module Content */
+.module-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Stats grid inside modules */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
 }

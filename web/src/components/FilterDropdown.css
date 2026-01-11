@@ -1,0 +1,23 @@
+.filter-dropdown {
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.filter-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.filter-select:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}

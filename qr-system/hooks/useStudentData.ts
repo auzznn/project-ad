@@ -1,14 +1,39 @@
 import { useState } from "react";
 import { Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Student, AttendancePayload } from "../api/studentApi";
 import { useStudentActions, StudentActions } from "./useStudentActions";
-import {
-  updateTodayViolations,
-  updateStudentPoints,
-  updateClassStatistics,
-} from "../utils/storageUtils";
 import { studentApi } from "../api/studentApi";
+
+/**
+ * Helper function to get current timestamp in Kuala Lumpur timezone (UTC+8)
+ * @returns ISO 8601 string with explicit +08:00 offset (e.g., 2025-12-30T08:15:00+08:00)
+ */
+const getKualaLumpurTimestamp = (): string => {
+  const now = new Date();
+  
+  // Get the current date and time in Kuala Lumpur timezone
+  const kualaLumpurTimeStr = now.toLocaleString("en-US", {
+    timeZone: "Asia/Kuala_Lumpur",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  });
+  
+  // Parse the Kuala Lumpur time
+  const [datePart, timePart] = kualaLumpurTimeStr.split(", ");
+  const [month, day, year] = datePart.split("/");
+  const [hours, minutes, seconds] = timePart.split(":");
+  
+  // Format as ISO 8601 with explicit +08:00 offset
+  const formattedDate = `${year}-${month}-${day}`;
+  const formattedTime = `${hours}:${minutes}:${seconds}`;
+  
+  return `${formattedDate}T${formattedTime}+08:00`;
+};
 
 export interface LoadingStates {
   attendance: boolean;
@@ -46,7 +71,7 @@ export const useStudentData = () => {
 
     try {
       // Fetch today's attendance record
-      const record = await studentApi.checkAttendanceStatus(student.student_id);
+      const record = await studentApi.checkAttendanceStatus(student.id);
 
       // Check if student already has attendance and is not absent
       if (record && record.status !== "absent") {
@@ -56,8 +81,8 @@ export const useStudentData = () => {
 
       // Mark attendance
       const attendancePayload: AttendancePayload = {
-        student_id: student.student_id,
-        timestamp: new Date().toISOString(),
+        id: student.id,
+        timestamp: getKualaLumpurTimestamp(),
       };
 
       const response = await studentApi.markAttendance(attendancePayload);
@@ -106,17 +131,53 @@ export const useStudentData = () => {
     }
   };
 
-  const handleRMT = (student: Student) => {
+  const handleRMT = async (student: Student) => {
     if (!student) return;
 
     setLoading((prev) => ({ ...prev, rmt: true }));
 
-    // This function is only called when student is eligible (button is only shown for eligible students)
-    showAlert("Eligible for RMT", "success");
+    try {
+      // Fetch today's RMT record (created daily at 00:00 by celery worker)
+      const record = await studentApi.checkRMTStatus(student.id);
 
-    // Update state immediately after showing alert
-    updateStudentAction(student.student_id, "rmt", true);
-    setLoading((prev) => ({ ...prev, rmt: false }));
+      // Check if student already has RMT recorded for today (is_present is true)
+      if (record && record.is_present) {
+        showAlert("RMT already recorded today", "info");
+        return;
+      }
+
+      // Record RMT
+      const rmtPayload = {
+        student_id: student.id,
+        timestamp: getKualaLumpurTimestamp(),
+      };
+
+      const response = await studentApi.recordRMT(rmtPayload);
+
+      // Extract timestamp from response
+      const timestamp = response.timestamp || new Date().toISOString();
+      
+      // Format timestamp for display
+      const formattedTime = new Date(timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      showAlert(`RMT recorded at ${formattedTime}`, "success");
+      
+      // Update state after successful recording
+      updateStudentAction(student.id, "rmt", true);
+    } catch (error: any) {
+      showAlert(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to record RMT",
+        "error"
+      );
+    } finally {
+      setLoading((prev) => ({ ...prev, rmt: false }));
+    }
   };
 
   /**
@@ -136,12 +197,12 @@ export const useStudentData = () => {
 
     setLoading((prev) => ({ ...prev, sahsiah: true }));
     try {
-      const timestamp = new Date().toISOString();
+      const timestamp = getKualaLumpurTimestamp();
 
       // Create sahsiah record for API
       const sahsiahRecord = {
         timestamp: timestamp,
-        student_id: parseInt(student.student_id),
+        migrate_student_id: parseInt(student.id),
         sahsiah_type: sahsiahType,
       };
 
@@ -150,7 +211,7 @@ export const useStudentData = () => {
 
       showAlert("Good deed recorded successfully", "success");
       return true;
-    } catch (error) {
+    } catch (error) { 
       showAlert("Failed to record good deed", "error");
       console.error("Sahsiah error:", error);
       return false;
@@ -179,60 +240,24 @@ export const useStudentData = () => {
    */
   const handleDiscipline = async (
     student: Student,
-    violationType: string,
-    notes: string,
-    points?: number
+    disciplineType: number,
+    notes: string
   ): Promise<boolean> => {
     if (!student) return false;
 
     setLoading((prev) => ({ ...prev, discipline: true }));
     try {
-      const today = new Date().toISOString().split("T")[0];
-      const timestamp = new Date().toISOString();
+      const timestamp = getKualaLumpurTimestamp();
 
-      // Create comprehensive discipline record with all student data
-      // This ensures we have complete information for reporting and tracking
-      const disciplineKey = `discipline_${student.student_id}_${today}_${timestamp}`;
-      const disciplineData = {
-        student_id: student.student_id,
-        student_name: student.name,
-        program: student.program,
-        eligible_rmt: student.eligible_rmt,
-        violation_type: violationType,
-        notes: notes,
-        points: points || 0, // Points will be determined in DisciplineForm (negative)
+      // Create discipline record for API with exact payload structure
+      const disciplineRecord = {
         timestamp: timestamp,
+        student_id: parseInt(student.id),
+        discipline_type: disciplineType,
       };
 
-      // Store the discipline record for historical tracking
-      await AsyncStorage.setItem(disciplineKey, JSON.stringify(disciplineData));
-
-      // Update student points if points are provided (will be negative)
-      if (points && points !== 0) {
-        // Update the student's total and daily points (deducting)
-        await updateStudentPoints(student.student_id, points);
-
-        // Add to today's violations list for display
-        // This ensures violations are tracked alongside good deeds
-        await updateTodayViolations(
-          student.student_id,
-          student.name,
-          student.program || "Unknown",
-          violationType,
-          points,
-          timestamp
-        );
-
-        // Update class statistics for reporting and analytics (negative points)
-        await updateClassStatistics(student.program || "Unknown", points);
-      }
-
-      // Increment discipline count for this student (for UI display)
-      setDisciplineCount((prev) => prev + 1);
-
-      // Mark discipline action as completed for today
-      // This prevents duplicate recordings and tracks daily progress
-      updateStudentAction(student.student_id, "discipline", true);
+      // Post discipline record to API
+      await studentApi.recordDiscipline(disciplineRecord);
 
       showAlert("Discipline issue recorded successfully", "success");
       return true;

@@ -24,23 +24,23 @@ export const useQRScanner = () => {
   const parseStudentQR = async (qrData: string): Promise<Student | null> => {
     try {
       // Check if QR data is a URL to the user API endpoint
-      if (qrData.includes("/api/authentication/user/")) {
+      if (qrData.includes("/api/authentication/student/")) {
         // Extract student ID from the URL
         let correctedUrl = qrData.replace("localhost", API_CONFIG.BASE_URL);
 
         const urlParts = correctedUrl.split("/");
-        const studentId = urlParts[urlParts.length - 1];
+        const studentId = urlParts[urlParts.length - 2];
         
         // Use the studentApi to fetch student data
         const data = await studentApi.getStudent(studentId);
 
         // Validate that required fields exist
-        if (!data || data.student_id === undefined) return null;
+        if (!data || data.id === undefined) return null;
 
         return {
-          student_id: data.student_id?.toString() || "",
+          id: data.id?.toString() || "",
           name: data.name || "",
-          class: (data.grade || "") + (data.section || "") || "",
+          class: (data.grade || "") + " " + (data.section || "") || "",
           rmt_elligible: data.rmt_elligible ?? false,
           timestamp: new Date().toISOString(),
         };

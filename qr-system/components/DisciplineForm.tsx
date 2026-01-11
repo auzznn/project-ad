@@ -1,69 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList, Alert, TextInput, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Student } from '../api/studentApi';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Student, studentApi, DisciplineType, DisciplineCategory } from '../api/studentApi';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColor } from '../hooks/useThemeColor';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Define discipline categories and violations
-const disciplineCategories = [
-  {
-    id: 'academic',
-    name: 'Academic Misconduct',
-    icon: 'school',
-    color: '#F44336',
-    violations: [
-      { id: 'late_homework', name: 'Late Homework Submission', points: 3 },
-      { id: 'no_homework', name: 'Not Completing Homework', points: 5 },
-      { id: 'disruptive', name: 'Disruptive Behavior in Class', points: 4 },
-      { id: 'cheating', name: 'Cheating Attempt', points: 10 }
-    ]
-  },
-  {
-    id: 'behavior',
-    name: 'Behavioral Issues',
-    icon: 'warning',
-    color: '#FF5722',
-    violations: [
-      { id: 'disrespect', name: 'Disrespect to Teachers', points: 6 },
-      { id: 'bullying', name: 'Bullying Classmates', points: 8 },
-      { id: 'lying', name: 'Lying', points: 5 },
-      { id: 'fighting', name: 'Fighting', points: 10 }
-    ]
-  },
-  {
-    id: 'attendance',
-    name: 'Attendance Problems',
-    icon: 'time',
-    color: '#FF9800',
-    violations: [
-      { id: 'late', name: 'Late to Class', points: 2 },
-      { id: 'unauthorized_absence', name: 'Unauthorized Absence', points: 5 },
-      { id: 'frequent_absence', name: 'Frequent Absences', points: 7 },
-      { id: 'leaving_early', name: 'Leaving Class Early', points: 3 }
-    ]
-  },
-  {
-    id: 'conduct',
-    name: 'School Conduct',
-    icon: 'business',
-    color: '#795548',
-    violations: [
-      { id: 'dress_code', name: 'Dress Code Violation', points: 2 },
-      { id: 'property_damage', name: 'School Property Damage', points: 8 },
-      { id: 'prohibited_items', name: 'Bringing Prohibited Items', points: 6 },
-      { id: 'vandalism', name: 'Vandalism', points: 9 }
-    ]
-  }
-];
+// Default category configurations
+const categoryConfig: { [key: string]: { name: string; icon: string; color: string } } = {
+  'Academic Misconduct': { name: 'Academic Misconduct', icon: 'school', color: '#F44336' },
+  'Behavioral Issues': { name: 'Behavioral Issues', icon: 'warning', color: '#FF5722' },
+  'Attendance Problems': { name: 'Attendance Problems', icon: 'time', color: '#FF9800' },
+  'School Conduct': { name: 'School Conduct', icon: 'business', color: '#795548' },
+  'other': { name: 'Lain-lain', icon: 'ellipsis-horizontal', color: '#607D8B' }
+};
+
+// Helper function to group discipline types by tag
+const groupDisciplineByTag = (disciplineTypes: DisciplineType[]): DisciplineCategory[] => {
+  const grouped: { [key: string]: DisciplineType[] } = {};
+  
+  // Group by tag
+  disciplineTypes.forEach(type => {
+    if (!grouped[type.tag]) {
+      grouped[type.tag] = [];
+    }
+    grouped[type.tag].push(type);
+  });
+  
+  // Convert to category format
+  return Object.keys(grouped).map(tag => {
+    const config = categoryConfig[tag] || categoryConfig['other'];
+    return {
+      tag,
+      name: config.name,
+      icon: config.icon,
+      color: config.color,
+      types: grouped[tag]
+    };
+  });
+};
 
 interface DisciplineFormProps {
   student: Student;
-  onSubmit: (violationType: string, notes: string, points: number) => Promise<void>;
+  onSubmit: (disciplineType: number, notes: string) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -88,6 +69,26 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [notes, setNotes] = useState('');
   const [recording, setRecording] = useState(false);
+  const [disciplineCategories, setDisciplineCategories] = useState<DisciplineCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch discipline types on component mount
+  useEffect(() => {
+    const fetchDisciplineTypes = async () => {
+      try {
+        setLoadingCategories(true);
+        const types = await studentApi.getDisciplineTypes();
+        const categories = groupDisciplineByTag(types);
+        setDisciplineCategories(categories);
+      } catch (error) {
+        // Fallback to empty array if API fails
+        setDisciplineCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchDisciplineTypes();
+  }, []);
 
   const toggleCategory = (categoryId: string) => {
     console.log('DisciplineForm - Toggling category:', categoryId);
@@ -124,7 +125,9 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
       // Record the discipline violation with points deduction - pass points to parent component
       // This ensures the parent component (scanner.tsx) handles all point calculations
       // and storage, maintaining data consistency across the application
-      await onSubmit(selectedViolation.violation.id, notes, -selectedViolation.violation.points);
+      // Convert violation ID string to number for API compatibility
+      const disciplineTypeId = parseInt(selectedViolation.violation.id, 10);
+      await onSubmit(disciplineTypeId, notes);
       
       // Show success message to user
       Alert.alert(
@@ -178,11 +181,11 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
    * - class_stats_{class}_{date}: Class-level statistics
    */
 
-  const renderCategoryItem = ({ item }: { item: any }) => (
+  const renderCategoryItem = ({ item }: { item: DisciplineCategory }) => (
     <View style={[styles.categoryContainer, { backgroundColor: cardColor }]}>
       <TouchableOpacity
         style={styles.categoryHeader}
-        onPress={() => toggleCategory(item.id)}
+        onPress={() => toggleCategory(item.tag)}
         activeOpacity={0.7}
       >
         <View style={styles.categoryLeft}>
@@ -192,26 +195,26 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
           <Text style={[styles.categoryName, { color: textColor }]}>{item.name}</Text>
         </View>
         <View style={styles.categoryRight}>
-          <Ionicons 
-            name={expandedCategory === item.id ? 'chevron-up' : 'chevron-down'} 
-            size={16} 
-            color={mutedColor} 
+          <Ionicons
+            name={expandedCategory === item.tag ? 'chevron-up' : 'chevron-down'}
+            size={16}
+            color={mutedColor}
           />
         </View>
       </TouchableOpacity>
       
-      {expandedCategory === item.id && (
+      {expandedCategory === item.tag && (
         <View style={styles.violationsContainer}>
-          {item.violations.map((violation: any) => (
+          {item.types.map((type: DisciplineType) => (
             <TouchableOpacity
-              key={violation.id}
+              key={type.id}
               style={[styles.violationItem, { backgroundColor: backgroundColor, borderColor }]}
-              onPress={() => selectViolation(item, violation)}
+              onPress={() => selectViolation(item, type)}
               activeOpacity={0.8}
             >
               <View style={styles.violationLeft}>
-                <Text style={[styles.violationName, { color: textColor }]}>{violation.name}</Text>
-                <Text style={[styles.violationPoints, { color: dangerColor }]}>-{violation.points} points</Text>
+                <Text style={[styles.violationName, { color: textColor }]}>{type.name}</Text>
+                <Text style={[styles.violationPoints, { color: dangerColor }]}>-{type.points} points</Text>
               </View>
               <View style={styles.violationRight}>
                 <Ionicons name="chevron-forward" size={14} color={mutedColor} />
@@ -315,71 +318,71 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
       </View>
     );
   }
+  
+  // Show loading state while fetching categories
+  if (loadingCategories) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
+        <View style={styles.header}>
+          <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
+            <Ionicons name="arrow-back" size={20} color={textColor} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: textColor }]}>Record Discipline Issue</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={dangerColor} />
+          <Text style={[styles.loadingText, { color: textColor }]}>Loading discipline categories...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   console.log('DisciplineForm - Rendering main form for student:', student.name);
   
-  // Create data array for FlatList that includes header, student info, and categories
-  const formData = [
-    { type: 'header' },
-    { type: 'studentInfo' },
-    { type: 'sectionTitle' },
-    ...disciplineCategories.map(category => ({ type: 'category', data: category }))
-  ];
+  // Create data array for FlatList that only includes categories
+  const formData = disciplineCategories.map(category => ({ type: 'category', data: category }));
 
-  const renderFormItem = ({ item, index }: { item: any; index: number }) => {
-    switch (item.type) {
-      case 'header':
-        return (
-          <View style={styles.header}>
-            <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
-              <Ionicons name="arrow-back" size={20} color={textColor} />
-            </TouchableOpacity>
-            <Text style={[styles.title, { color: textColor }]}>Record Discipline Issue</Text>
-            <View style={styles.placeholder} />
-          </View>
-        );
-      
-      case 'studentInfo':
-        return (
-          <View style={[styles.studentInfo, { backgroundColor: cardColor }]}>
-            <View style={styles.studentInfoContent}>
-              <View style={[styles.avatar, { backgroundColor: dangerColor }]}>
-                <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
-              </View>
-              <View style={styles.studentDetails}>
-                <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
-                <Text style={[styles.studentId, { color: mutedColor }]}>{student.student_id}</Text>
-                <Text style={[styles.studentProgram, { color: mutedColor }]}>{student.program}</Text>
-              </View>
-            </View>
-          </View>
-        );
-      
-      case 'sectionTitle':
-        return (
-          <View style={styles.categoriesContainer}>
-            <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Discipline Category</Text>
-          </View>
-        );
-      
-      case 'category':
-        return renderCategoryItem({ item: item.data });
-      
-      default:
-        return null;
-    }
+  const renderFormItem = ({ item }: { item: any }) => {
+    return renderCategoryItem({ item: item.data });
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
+          <Ionicons name="arrow-back" size={20} color={textColor} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: textColor }]}>Record Discipline Issue</Text>
+        <View style={styles.placeholder} />
+      </View>
+      
+      {/* Student Info - Static */}
+      <View style={[styles.studentInfo, { backgroundColor: cardColor }]}>
+        <View style={styles.studentInfoContent}>
+          <View style={[styles.avatar, { backgroundColor: dangerColor }]}>
+            <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
+          </View>
+          <View style={styles.studentDetails}>
+            <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
+          </View>
+        </View>
+      </View>
+      
+      {/* Section Title - Static */}
+      <View style={styles.categoriesContainer}>
+        <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Discipline Category</Text>
+      </View>
+      
+      {/* Scrollable List - Categories Only */}
       <FlatList
         data={formData}
         renderItem={renderFormItem}
         keyExtractor={(item, index) => `${item.type}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.formList}
-        ListHeaderComponent={<View style={{ height: 60 }} />}
-        ListFooterComponent={<View style={{ height: 40 }} />}
+        ListFooterComponent={<View style={{ height: 20 }} />}
       />
     </SafeAreaView>
   );
@@ -393,9 +396,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   backButton: {
     width: 40,
@@ -421,8 +424,9 @@ const styles = StyleSheet.create({
     width: 40,
   },
   studentInfo: {
-    marginHorizontal: 20,
-    marginBottom: 24,
+    marginTop: 16,
+    marginHorizontal: 16,
+    marginBottom: 20,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: {
@@ -436,7 +440,7 @@ const styles = StyleSheet.create({
   studentInfoContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
   },
   avatar: {
     width: 60,
@@ -467,8 +471,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   categoriesContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 20,
@@ -477,11 +482,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   formList: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
   },
   categoryContainer: {
     borderRadius: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
@@ -496,7 +502,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
   },
   categoryLeft: {
     flexDirection: 'row',
@@ -519,16 +525,16 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   violationsContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   violationItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
-    marginBottom: 8,
+    marginBottom: 6,
     borderWidth: 1,
   },
   violationLeft: {
@@ -674,5 +680,16 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

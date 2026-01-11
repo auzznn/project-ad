@@ -38,7 +38,7 @@ interface ChildData {
   qr_code: string;
 }
 
-export default function Leaderboard() {
+export default function Discipline() {
   const router = useRouter();
   const { user } = useAuth();
   const [selectedGrade, setSelectedGrade] = useState('All Grades');
@@ -95,16 +95,16 @@ export default function Leaderboard() {
       
       let leaderboardData: LeaderboardResponse[];
       
-      // Fetch leaderboard data from API based on filters
+      // Fetch discipline leaderboard data from API based on filters
       if (selectedGrade !== 'All Grades' && selectedSection !== 'All Sections') {
         // Filter by both grade and section
-        leaderboardData = await studentApi.getLeaderboardByGradeAndSection(selectedGrade, selectedSection);
+        leaderboardData = await studentApi.getDisciplineLeaderboardByGradeAndSection(selectedGrade, selectedSection);
       } else if (selectedGrade !== 'All Grades') {
         // Filter by grade only
-        leaderboardData = await studentApi.getLeaderboardByGrade(selectedGrade);
+        leaderboardData = await studentApi.getDisciplineLeaderboardByGrade(selectedGrade);
       } else {
         // No filter, get all leaderboard data
-        leaderboardData = await studentApi.getLeaderboard();
+        leaderboardData = await studentApi.getDisciplineLeaderboard();
       }
       
       // Transform API data to match our StudentData interface
@@ -138,7 +138,7 @@ export default function Leaderboard() {
         })
       );
       
-      console.log(`Loaded ${studentsArray.length} students from API leaderboard`);
+      console.log(`Loaded ${studentsArray.length} students from API discipline leaderboard`);
       setStudents(studentsArray);
       
       // Extract unique grades from the data (only when no filter is applied)
@@ -155,7 +155,7 @@ export default function Leaderboard() {
       }
       
     } catch (error) {
-      console.error('Error loading leaderboard data from API:', error);
+      console.error('Error loading discipline leaderboard data from API:', error);
       // Set empty array on error to prevent infinite loading
       setStudents([]);
     } finally {
@@ -213,6 +213,27 @@ export default function Leaderboard() {
     setSelectedSection('All Sections');
   };
   
+  // Check if a student is a child of the current parent user
+  const isChildOfParent = (studentId: string): boolean => {
+    if (user?.role !== 'parent') {
+      return false;
+    }
+    return children.some(child => child.id?.toString() === studentId);
+  };
+  
+  // Get highlight style for child entries
+  const getChildHighlightStyle = (studentId: string) => {
+    if (!isChildOfParent(studentId)) {
+      return {};
+    }
+    
+    return {
+      backgroundColor: `${primaryColor}15`,
+      borderColor: primaryColor,
+      borderWidth: 2,
+    };
+  };
+  
   // Get rank badge color based on position
   const getRankBadgeColor = (rank: number) => {
     switch (rank) {
@@ -240,27 +261,6 @@ export default function Leaderboard() {
         return 'star-outline';
     }
   };
-  
-  // Check if a student is a child of the current parent user
-  const isChildOfParent = (studentId: string): boolean => {
-    if (user?.role !== 'parent') {
-      return false;
-    }
-    return children.some(child => child.id?.toString() === studentId);
-  };
-  
-  // Get highlight style for child entries
-  const getChildHighlightStyle = (studentId: string) => {
-    if (!isChildOfParent(studentId)) {
-      return {};
-    }
-    
-    return {
-      backgroundColor: `${primaryColor}15`,
-      borderColor: primaryColor,
-      borderWidth: 2,
-    };
-  };
 
   return (
     <SafeAreaView style={{ backgroundColor }} className="flex-1 pt-6" edges={['top']}>
@@ -269,10 +269,10 @@ export default function Leaderboard() {
         <View className="flex-row justify-between items-center">
           <View>
             <Text className="text-3xl font-bold mb-2" style={{ color: textColor }}>
-              Leaderboard
+              Discipline Leaderboard
             </Text>
             <Text className="text-base" style={{ color: mutedColor }}>
-              Top performing students this year.
+              Top disciplined students this year.
             </Text>
           </View>
           <TouchableOpacity
@@ -329,7 +329,7 @@ export default function Leaderboard() {
       </View>
       
       {/* Leaderboard List - Scrollable */}
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 10 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
         <View className="px-5">
           {loading ? (
             <View
@@ -338,7 +338,7 @@ export default function Leaderboard() {
             >
               <Ionicons name="refresh" size={40} color={mutedColor} />
               <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
-                Loading leaderboard data...
+                Loading discipline leaderboard data...
               </Text>
             </View>
           ) : filteredStudents.length > 0 ? (
@@ -393,8 +393,9 @@ export default function Leaderboard() {
                       {student.points}
                     </Text>
                     <Text className="text-xs" style={{ color: mutedColor }}>
-                      points
+                      discipline points
                     </Text>
+                    
                   </View>
                 </View>
               );
@@ -451,7 +452,7 @@ export default function Leaderboard() {
             >
               <Ionicons name="alert-circle" size={40} color={mutedColor} />
               <Text className="text-base mt-3 text-center" style={{ color: mutedColor }}>
-                No leaderboard data available
+                No discipline leaderboard data available
               </Text>
               <Text className="text-sm mt-2 text-center" style={{ color: mutedColor }}>
                 Try refreshing or check your connection

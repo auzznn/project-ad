@@ -4,11 +4,13 @@ import SideBar from "./components/SideBar";
 import Dashboard from "./pages/Dashboard";
 import Kehadiran from "./pages/Kehadiran";
 import RMT from "./pages/RMT";
-import PapanPendahulu from "./pages/PapanPendahulu";
+import PapanPendahulu from "./pages/PendahuluSahsiah";
 import Sahsiah from "./pages/Sahsiah";
 import Disiplin from "./pages/Disiplin";
 import Pengguna from "./pages/Pengguna";
 import Login from "./pages/Login";
+import PendahuluDisiplin from "./pages/PendahuluDisiplin";
+import PendahuluSahsiah from "./pages/PendahuluSahsiah";
 
 function PrivateRoute({ element, isAuthenticated }: { element: React.ReactElement; isAuthenticated: boolean }) {
   return isAuthenticated ? element : <Navigate to="/login" />;
@@ -59,8 +61,12 @@ function AppContent({
           element={<PrivateRoute isAuthenticated={isAuthenticated} element={<RMT />} />}
         />
         <Route
-          path="/papanpendahulu"
-          element={<PrivateRoute isAuthenticated={isAuthenticated} element={<PapanPendahulu />} />}
+          path="/pendahulusahsiah"
+          element={<PrivateRoute isAuthenticated={isAuthenticated} element={<PendahuluSahsiah />} />}
+        />
+        <Route
+          path="/pendahuludisiplin"
+          element={<PrivateRoute isAuthenticated={isAuthenticated} element={<PendahuluDisiplin />} />}
         />
         <Route
           path="/sahsiah"

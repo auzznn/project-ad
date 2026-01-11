@@ -1,27 +1,23 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { SafeAreaView, Button, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { Vibration } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState, useCallback } from "react";
+import { SafeAreaView, Button, Text, StyleSheet } from "react-native";
+import { useCameraPermissions } from "expo-camera";
 import { Student } from "../api/studentApi";
 import CameraViewComponent from "../components/CameraView";
 import ModalManager from "../components/ModalManager";
-import DebugPanel from "../components/DebugPanel";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
+import { ProtectedRoute } from "../components/ProtectedRoute";
 
 
 export default function scanner() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<"back" | "front">("back");
-  const [qrData, setQrData] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [showSahsiahForm, setShowSahsiahForm] = useState(false);
   const [showDisciplineForm, setShowDisciplineForm] = useState(false);
-  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
-  const { isScanning, cooldown, handleBarcodeScanned, resetScanner } = useQRScanner();
+  const { isScanning, handleBarcodeScanned, resetScanner } = useQRScanner();
   const {
     loading,
     sahsiahCount,
@@ -36,7 +32,6 @@ export default function scanner() {
 
   // Handle successful QR scan
   const handleScanSuccess = useCallback((scannedStudent: Student) => {
-    setQrData(scannedStudent.student_id);
     setStudent(scannedStudent);
     setShowStudentModal(true);
     setShowSahsiahForm(false);
@@ -54,7 +49,6 @@ export default function scanner() {
     setShowSahsiahForm(false);
     setShowDisciplineForm(false);
     setStudent(null);
-    setQrData(null);
     // Resume scanning after modal close
     setTimeout(() => {
       resetScanner();
@@ -66,7 +60,6 @@ export default function scanner() {
     setShowSahsiahForm(false);
     setShowDisciplineForm(false);
     setStudent(null);
-    setQrData(null);
     // Resume scanning immediately
     resetScanner();
   }, [resetScanner]);
@@ -111,7 +104,7 @@ export default function scanner() {
   }
 
   const studentActions = student
-    ? getStudentActions(student.student_id)
+    ? getStudentActions(student.id)
     : {
         attendance: false,
         rmt: false,
@@ -129,55 +122,48 @@ export default function scanner() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <CameraViewComponent
-        facing={facing}
-        isActive={isScanning}
-        onBarcodeScanned={(result) => handleBarcodeScanned(result, handleScanSuccess)}
-        onToggleCamera={toggleCameraFacing}
-      />
+    <ProtectedRoute
+      allowedRoles={['admin', 'teacher']}
+      showAccessDeniedMessage={true}
+    >
+      <SafeAreaView style={styles.container}>
+        <CameraViewComponent
+          facing={facing}
+          isActive={isScanning}
+          onBarcodeScanned={(result) => handleBarcodeScanned(result, handleScanSuccess)}
+          onToggleCamera={toggleCameraFacing}
+        />
 
-      {/* Debug button - positioned in top-right corner */}
-      <TouchableOpacity
-        style={styles.debugButton}
-        onPress={() => setShowDebugPanel(true)}
-      >
-        <Ionicons name="bug" size={24} color="white" />
-      </TouchableOpacity>
+        <ModalManager
+          student={student}
+          actions={studentActions}
+          loading={loading}
+          allActionsCompleted={allActionsCompleted}
+          sahsiahCount={sahsiahCount}
+          disciplineCount={disciplineCount}
+          showStudentModal={showStudentModal}
+          showSahsiahForm={showSahsiahForm}
+          showDisciplineForm={showDisciplineForm}
+          onClose={closeModal}
+          onAttendance={handleAttendance}
+          onRMT={handleRMT}
+          onSahsiah={async (student, sahsiahType, notes) => {
+            const success = await handleSahsiah(student, sahsiahType, notes);
+            return success || false;
+          }}
+          onDiscipline={async (student, disciplineType, notes) => {
+            const success = await handleDiscipline(student, disciplineType, notes);
+            return success || false;
+          }}
+          onOpenSahsiahForm={handleOpenSahsiahForm}
+          onOpenDisciplineForm={handleOpenDisciplineForm}
+          onBackFromSahsiah={handleBackFromSahsiah}
+          onBackFromDiscipline={handleBackFromDiscipline}
+          onFormSubmit={closeAllAndReturnToScanner}
+        />
 
-      <ModalManager
-        student={student}
-        actions={studentActions}
-        loading={loading}
-        allActionsCompleted={allActionsCompleted}
-        sahsiahCount={sahsiahCount}
-        disciplineCount={disciplineCount}
-        showStudentModal={showStudentModal}
-        showSahsiahForm={showSahsiahForm}
-        showDisciplineForm={showDisciplineForm}
-        onClose={closeModal}
-        onAttendance={handleAttendance}
-        onRMT={handleRMT}
-        onSahsiah={async (student, sahsiahType, notes) => {
-          const success = await handleSahsiah(student, sahsiahType, notes);
-          return success || false;
-        }}
-        onDiscipline={async (student, violationType, notes, points) => {
-          const success = await handleDiscipline(student, violationType, notes, points);
-          return success || false;
-        }}
-        onOpenSahsiahForm={handleOpenSahsiahForm}
-        onOpenDisciplineForm={handleOpenDisciplineForm}
-        onBackFromSahsiah={handleBackFromSahsiah}
-        onBackFromDiscipline={handleBackFromDiscipline}
-        onFormSubmit={closeAllAndReturnToScanner}
-      />
-
-      <DebugPanel
-        visible={showDebugPanel}
-        onClose={() => setShowDebugPanel(false)}
-      />
-    </SafeAreaView>
+      </SafeAreaView>
+    </ProtectedRoute>
   );
 }
 
@@ -192,14 +178,5 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     color: "white",
     fontSize: 16,
-  },
-  debugButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 20,
-    zIndex: 100,
   },
 });

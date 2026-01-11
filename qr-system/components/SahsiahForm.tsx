@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, FlatList, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Student, studentApi, SahsiahType, SahsiahCategory } from '../api/studentApi';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { useThemeColor } from '../hooks/useThemeColor';
 
@@ -309,7 +308,7 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
         </View>
       </View>
     );
-  }  
+  }
   // Show loading state while fetching categories
   if (loadingCategories) {
     return (
@@ -329,68 +328,49 @@ export default function SahsiahForm({ student, onSubmit, onCancel, loading = fal
     );
   }
   
-  // Create data array for FlatList that includes header, student info, and categories
-  const formData = [
-    { type: 'header' },
-    { type: 'studentInfo' },
-    { type: 'sectionTitle' },
-    ...sahsiahCategories.map(category => ({ type: 'category', data: category }))
-  ];
+  // Create data array for FlatList that only includes categories
+  const formData = sahsiahCategories.map(category => ({ type: 'category', data: category }));
 
-  const renderFormItem = ({ item, index }: { item: any; index: number }) => {
-    switch (item.type) {
-      case 'header':
-        return (
-          <View style={styles.header}>
-            <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
-              <Ionicons name="arrow-back" size={20} color={textColor} />
-            </TouchableOpacity>
-            <Text style={[styles.title, { color: textColor }]}>Record Good Deed</Text>
-            <View style={styles.placeholder} />
-          </View>
-        );
-      
-      case 'studentInfo':
-        return (
-          <View style={[styles.studentInfo, { backgroundColor: cardColor }]}>
-            <View style={styles.studentInfoContent}>
-              <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
-                <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
-              </View>
-              <View style={styles.studentDetails}>
-                <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
-                <Text style={[styles.studentId, { color: mutedColor }]}>{student.student_id}</Text>
-                <Text style={[styles.studentProgram, { color: mutedColor }]}>{student.program}</Text>
-              </View>
-            </View>
-          </View>
-        );
-      
-      case 'sectionTitle':
-        return (
-          <View style={styles.categoriesContainer}>
-            <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Good Deed Category</Text>
-          </View>
-        );
-      
-      case 'category':
-        return renderCategoryItem({ item: item.data });
-      
-      default:
-        return null;
-    }
+  const renderFormItem = ({ item }: { item: any }) => {
+    return renderCategoryItem({ item: item.data });
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: cardColor }]} onPress={onCancel}>
+          <Ionicons name="arrow-back" size={20} color={textColor} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: textColor }]}>Record Good Deed</Text>
+        <View style={styles.placeholder} />
+      </View>
+      
+      {/* Student Info - Static */}
+      <View style={[styles.studentInfo, { backgroundColor: cardColor }]}>
+        <View style={styles.studentInfoContent}>
+          <View style={[styles.avatar, { backgroundColor: primaryColor }]}>
+            <Text style={styles.avatarText}>{student.name.charAt(0).toUpperCase()}</Text>
+          </View>
+          <View style={styles.studentDetails}>
+            <Text style={[styles.studentName, { color: textColor }]}>{student.name}</Text>
+          </View>
+        </View>
+      </View>
+      
+      {/* Section Title - Static */}
+      <View style={styles.categoriesContainer}>
+        <Text style={[styles.sectionTitle, { color: textColor }]}>Select a Good Deed Category</Text>
+      </View>
+      
+      {/* Scrollable List - Categories Only */}
       <FlatList
         data={formData}
         renderItem={renderFormItem}
         keyExtractor={(item, index) => `${item.type}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.formList}
-        ListHeaderComponent={<View style={{ height: 60 }} />}
-        ListFooterComponent={<View style={{ height: 40 }} />}
+        ListFooterComponent={<View style={{ height: 20 }} />}
       />
     </SafeAreaView>
   );
@@ -404,9 +384,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   backButton: {
     width: 40,
@@ -432,8 +412,9 @@ const styles = StyleSheet.create({
     width: 40,
   },
   studentInfo: {
-    marginHorizontal: 20,
-    marginBottom: 24,
+    marginTop: 16,
+    marginHorizontal: 16,
+    marginBottom: 20,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: {
@@ -447,7 +428,7 @@ const styles = StyleSheet.create({
   studentInfoContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
   },
   avatar: {
     width: 60,
@@ -478,8 +459,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   categoriesContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 20,
@@ -488,11 +470,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   formList: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
   },
   categoryContainer: {
     borderRadius: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
@@ -507,7 +490,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: 16,
   },
   categoryLeft: {
     flexDirection: 'row',
@@ -530,16 +513,16 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   deedsContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
   },
   deedItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
-    marginBottom: 8,
+    marginBottom: 6,
     borderWidth: 1,
   },
   deedLeft: {
