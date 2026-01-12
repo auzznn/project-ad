@@ -93,11 +93,13 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
         return instance
 
     def _get_instance(self, student_id: int) -> Meta.model:
+        if self.instance:
+            return self.instance
+
         if self.attendance_instance:
             return self.attendance_instance
-
+        
         today = set_timezone(timezone.now()).date()
-        print(f"today: {today}")
         self.attendance_instance = self.Meta.model.objects.get(
             student_id=student_id, date=today
         )
@@ -118,7 +120,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
         self.instance = self._get_instance(student_id=student_id)
 
         # Check if already clocked in (Logic moved from update)
-        absent_time = StudentAttendance.default_datetime()
+        absent_time = self.instance.get_absent_timestamp()
         if set_timezone(self.instance.timestamp) != absent_time:
             raise ValidationError(
                 f"student attendance for {self.instance.student_id.fullname} has already been recorded"
@@ -159,7 +161,7 @@ class AttendanceStudentRecordStatsSerializer(Serializer):
         total = obj.present + obj.absent + obj.late
         if total == 0:
             return 0.0
-        return obj.present / total
+        return (obj.present + obj.late) / total
 
     def get_status(self, obj):
         rate = self.get_attendance_rate(obj)
