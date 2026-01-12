@@ -51,7 +51,7 @@ export default function RMTPage() {
   const fetchRMT = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://72.62.65.202:8080/api/rmt/daily/");
+      const res = await fetch("https://backend.eduqr.cloud/api/rmt/daily/");
       const data: RMTRecord[] = await res.json();
 
       let filtered = Array.isArray(data) ? data : [];
@@ -89,7 +89,7 @@ export default function RMTPage() {
   const fetchClassrooms = async () => {
     try {
       const res = await fetch(
-        "http://72.62.65.202:8080/api/authentication/classroom/"
+        "https://backend.eduqr.cloud/api/authentication/classroom/"
       );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);

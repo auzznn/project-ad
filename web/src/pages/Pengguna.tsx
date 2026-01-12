@@ -57,7 +57,7 @@ export default function UserManagement() {
     setLoading(true);
     try {
       const res = await authFetch(
-        `http://72.62.65.202:8080/api/authentication/user/?page=${pageNumber}&page_size=${PAGE_SIZE}`
+        `https://backend.eduqr.cloud/api/authentication/user/?page=${pageNumber}&page_size=${PAGE_SIZE}`
       );
       if (!res.ok) {
         setUsers([]);
@@ -99,7 +99,7 @@ export default function UserManagement() {
     setModalOpen(true);
 
     // Fetch classrooms for student dropdown
-    authFetch("http://72.62.65.202:8080/api/authentication/classroom/")
+    authFetch("https://backend.eduqr.cloud/api/authentication/classroom/")
       .then(res => res.json())
       .then(data => setClassrooms(data.entry ?? []))
       .catch(err => console.error("Failed to fetch classrooms:", err));
@@ -122,7 +122,7 @@ export default function UserManagement() {
   const handleDelete = async () => {
     if (!confirmDeleteId) return;
     await authFetch(
-      `http://72.62.65.202:8080/api/authentication/user/${confirmDeleteId}/`,
+      `https://backend.eduqr.cloud/api/authentication/user/${confirmDeleteId}/`,
       { method: "DELETE" }
     );
     setConfirmDeleteId(null);
@@ -162,8 +162,8 @@ export default function UserManagement() {
       // 1️⃣ Create parent/user
       const userRes = await authFetch(
         editingUser
-          ? `http://72.62.65.202:8080/api/authentication/user/${editingUser.id}/`
-          : "http://72.62.65.202:8080/api/authentication/user/",
+          ? `https://backend.eduqr.cloud/api/authentication/user/${editingUser.id}/`
+          : "https://backend.eduqr.cloud/api/authentication/user/",
         {
           method: editingUser ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -182,7 +182,7 @@ export default function UserManagement() {
       // 2️⃣ Create students linked to parent (only if new parent)
       if (!editingUser && students.length > 0) {
         for (const s of students) {
-          await authFetch("http://72.62.65.202:8080/api/authentication/student/", {
+          await authFetch("https://backend.eduqr.cloud/api/authentication/student/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...s, parent: parentId }),
@@ -213,7 +213,7 @@ export default function UserManagement() {
 
     try {
       const res = await authFetch(
-        "http://72.62.65.202:8080/api/authentication/student/bulk_upload/",
+        "https://backend.eduqr.cloud/api/authentication/student/bulk_upload/",
         { method: "POST", body: formData }
       );
       if (!res.ok) {

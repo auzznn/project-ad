@@ -41,7 +41,7 @@ function StatisticsPointsModule({ moduleType }: Props) {
 
   // Fetch dashboard cards
   useEffect(() => {
-    fetch(`http://72.62.65.202:8080/api/${moduleType}/statistic/dashboard_cards/`)
+    fetch(`https://backend.eduqr.cloud/api/${moduleType}/statistic/dashboard_cards/`)
       .then(res => res.json())
       .then(setDashboardCards)
       .catch(console.error);
@@ -49,7 +49,7 @@ function StatisticsPointsModule({ moduleType }: Props) {
 
   // Fetch trend points
   useEffect(() => {
-    fetch(`http://72.62.65.202:8080/api/${moduleType}/statistic/trend_points/`)
+    fetch(`https://backend.eduqr.cloud/api/${moduleType}/statistic/trend_points/`)
       .then(res => res.json())
       .then(data => setTrendPoints(Array.isArray(data) ? data : []))
       .catch(console.error);
@@ -57,7 +57,7 @@ function StatisticsPointsModule({ moduleType }: Props) {
 
   // Fetch tag distribution
   useEffect(() => {
-    fetch(`http://72.62.65.202:8080/api/${moduleType}/statistic/tag_distribution/`)
+    fetch(`https://backend.eduqr.cloud/api/${moduleType}/statistic/tag_distribution/`)
       .then(res => res.json())
       .then(setTagDistribution)
       .catch(console.error);
@@ -65,7 +65,7 @@ function StatisticsPointsModule({ moduleType }: Props) {
 
   // Fetch points by tag
   useEffect(() => {
-    fetch(`http://72.62.65.202:8080/api/${moduleType}/statistic/points_by_tag/`)
+    fetch(`https://backend.eduqr.cloud/api/${moduleType}/statistic/points_by_tag/`)
       .then(res => res.json())
       .then(data => setPointsByTag(Array.isArray(data) ? data : []))
       .catch(console.error);

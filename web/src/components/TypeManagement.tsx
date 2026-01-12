@@ -107,7 +107,7 @@ export default function ManagementType({
   };
 
   const handleEdit = (item: ManagementItem) => {
-    setForm(item);
+    setForm({ ...item });
     setCreatingTag(false);
     setNewTag("");
     setModalOpen(true);
@@ -134,11 +134,11 @@ export default function ManagementType({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await fetch(saveUrl(editingItem?.id), {
-      method: editingItem?.id ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+  await fetch(saveUrl(form.id), {
+    method: form.id ? "PUT" : "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form),
+  });
 
     setModalOpen(false);
     fetchItems(page);

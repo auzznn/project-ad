@@ -43,7 +43,7 @@ function StatisticsRMT() {
 
   // Fetch summary cards
   useEffect(() => {
-    fetch("http://72.62.65.202:8080/api/rmt/statistic/summary-cards/")
+    fetch("https://backend.eduqr.cloud/api/rmt/statistic/summary-cards/")
       .then(res => res.json())
       .then(setSummary)
       .catch(console.error);
@@ -51,7 +51,7 @@ function StatisticsRMT() {
 
   // Fetch trends
   useEffect(() => {
-    fetch(`http://72.62.65.202:8080/api/rmt/statistic/rmt_trends/${period}/`)
+    fetch(`https://backend.eduqr.cloud/api/rmt/statistic/rmt_trends/${period}/`)
       .then(res => res.json())
       .then(setTrends)
       .catch(console.error);
@@ -59,7 +59,7 @@ function StatisticsRMT() {
 
   // Fetch students
   useEffect(() => {
-    fetch("http://72.62.65.202:8080/api/rmt/statistic/rmt-student/")
+    fetch("https://backend.eduqr.cloud/api/rmt/statistic/rmt-student/")
       .then(res => res.json())
       .then((data: Student[]) => setStudents(data))
       .catch(console.error);

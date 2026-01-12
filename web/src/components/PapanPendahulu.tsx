@@ -84,7 +84,7 @@ export default function PapanPendahulu({
   const fetchClassrooms = async () => {
     try {
       const res = await fetch(
-        "http://72.62.65.202:8080/api/authentication/classroom/"
+        "https://backend.eduqr.cloud/api/authentication/classroom/"
       );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);

@@ -66,10 +66,10 @@ export default function KehadiranPage() {
   const fetchAttendance = async (pageNumber: number = 1) => {
     setLoading(true);
     try {
-      let url = `http://72.62.65.202:8080/api/student_attendance/daily/?page=${pageNumber}`;
+      let url = `https://backend.eduqr.cloud/api/student_attendance/daily/?page=${pageNumber}`;
 
       if (gradeFilter !== "" && classFilter !== "") {
-        url = `http://72.62.65.202:8080/api/student_attendance/daily/${gradeFilter}/${classFilter}/?page=${pageNumber}`;
+        url = `https://backend.eduqr.cloud/api/student_attendance/daily/${gradeFilter}/${classFilter}/?page=${pageNumber}`;
       }
 
       const res = await fetch(url);
@@ -109,7 +109,7 @@ export default function KehadiranPage() {
   const fetchClassrooms = async () => {
     try {
       const res = await fetch(
-        "http://72.62.65.202:8080/api/authentication/classroom/"
+        "https://backend.eduqr.cloud/api/authentication/classroom/"
       );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);
@@ -163,7 +163,7 @@ export default function KehadiranPage() {
 
     try {
       const res = await fetch(
-        `http://72.62.65.202:8080/api/student_attendance/${selectedRecord.id}/note/`,
+        `https://backend.eduqr.cloud/api/student_attendance/${selectedRecord.id}/note/`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
