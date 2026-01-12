@@ -175,35 +175,32 @@ CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_TIMEZONE = "Asia/Kuala_Lumpur"
 CELERY_ENABLE_UTC = False
 
-CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM = {"hour": 0, "day_of_week": "mon-fri"}
+DEBUG_SCHEDULE = 10
 
-CREATE_STUDENT_ATTENDANCE_SCHEDULE_1 = crontab(
-    **CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM
+WEEKDAY_MIDNIGHT_SCHEDULE = crontab(
+    hour=0, day_of_week="mon-fri"
 )
-CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 = 10
 
-CREATE_STUDENT_ATTENDANCE_SCHEDULE = (
-    CREATE_STUDENT_ATTENDANCE_SCHEDULE_2
-    if DEBUG
-    else CREATE_STUDENT_ATTENDANCE_SCHEDULE_1
-)
+def get_schedule(schedule: crontab) -> crontab:
+    return DEBUG_SCHEDULE if DEBUG else schedule
 
 
 CELERY_BEAT_SCHEDULE = {
     "create_student_attendance": {
         "task": "student_attendance.tasks.create_student_attendance",
-        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+        "schedule": get_schedule(WEEKDAY_MIDNIGHT_SCHEDULE),
     },
     "update_student_qr_code": {
         "task": "authentication.tasks.update_qr_code",
-        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+        "schedule": get_schedule(WEEKDAY_MIDNIGHT_SCHEDULE),
     },
     "create_rmt_record": {
         "task": "rmt.tasks.create_rmt_record",
-        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+        "schedule": get_schedule(WEEKDAY_MIDNIGHT_SCHEDULE),
     },
 }
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://edqur.cloud",
 ]
