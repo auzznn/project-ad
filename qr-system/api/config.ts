@@ -23,7 +23,7 @@
 //   }
 // };
 
-export const baseURL = 'http://72.62.65.202:8080//api/';
+export const baseURL = 'http://backend.eduqr.cloud:8080//api/';
 
 export const API_CONFIG = {
   BASE_URL: baseURL,

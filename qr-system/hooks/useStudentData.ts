@@ -203,7 +203,7 @@ export const useStudentData = () => {
       // Create sahsiah record for API
       const sahsiahRecord = {
         timestamp: timestamp,
-        migrate_student_id: student.id,
+        student_id: student.id,
         sahsiah_type: sahsiahType,
       };
 

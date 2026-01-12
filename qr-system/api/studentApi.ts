@@ -25,7 +25,7 @@ export interface AttendancePayload {
 
 export interface SahsiahRecord {
   timestamp: string;
-  migrate_student_id: string;
+  student_id: string;
   sahsiah_type: number;
 }
 
@@ -276,21 +276,24 @@ export const studentApi = {
   },
   
   // Get leaderboard data from sahsiah/leaderboard/
-  getLeaderboard: async (): Promise<any> => {
-    const response = await apiRequest.get('/sahsiah/leaderboard/');
-    return response.entry;
+  getLeaderboard: async (url?: string): Promise<any> => {
+    const requestUrl = url || '/sahsiah/leaderboard/';
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get leaderboard data filtered by grade from sahsiah/leaderboard/{grade}
-  getLeaderboardByGrade: async (grade: string): Promise<any> => {
-    const response = await apiRequest.get(`/sahsiah/leaderboard/${grade}`);
-    return response.entry;
+  getLeaderboardByGrade: async (grade: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/sahsiah/leaderboard/${grade}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get leaderboard data filtered by grade and section from sahsiah/leaderboard/{grade}/{section}
-  getLeaderboardByGradeAndSection: async (grade: string, section: string): Promise<any> => {
-    const response = await apiRequest.get(`/sahsiah/leaderboard/${grade}/${section}`);
-    return response.entry;
+  getLeaderboardByGradeAndSection: async (grade: string, section: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/sahsiah/leaderboard/${grade}/${section}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Record discipline for a student
@@ -316,21 +319,24 @@ export const studentApi = {
   },
   
   // Get discipline leaderboard data from discipline/leaderboard/
-  getDisciplineLeaderboard: async (): Promise<any> => {
-    const response = await apiRequest.get('/discipline/leaderboard/');
-    return response.entry;
+  getDisciplineLeaderboard: async (url?: string): Promise<any> => {
+    const requestUrl = url || '/discipline/leaderboard/';
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get discipline leaderboard data filtered by grade from discipline/leaderboard/{grade}
-  getDisciplineLeaderboardByGrade: async (grade: string): Promise<any> => {
-    const response = await apiRequest.get(`/discipline/leaderboard/${grade}`);
-    return response.entry;
+  getDisciplineLeaderboardByGrade: async (grade: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/discipline/leaderboard/${grade}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get discipline leaderboard data filtered by grade and section from discipline/leaderboard/{grade}/{section}
-  getDisciplineLeaderboardByGradeAndSection: async (grade: string, section: string): Promise<any> => {
-    const response = await apiRequest.get(`/discipline/leaderboard/${grade}/${section}`);
-    return response.entry;
+  getDisciplineLeaderboardByGradeAndSection: async (grade: string, section: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/discipline/leaderboard/${grade}/${section}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
 };

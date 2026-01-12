@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from './config';
-import { authApi } from './authApi';
 
 // Create a custom axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -71,9 +70,12 @@ apiClient.interceptors.response.use(
           const refreshToken = await AsyncStorage.getItem('refresh_token');
           
           if (refreshToken) {
-            // Attempt to refresh the token
-            const response = await authApi.refreshToken(refreshToken);
-            const newAccessToken = response.access;
+            // Attempt to refresh the token directly using axios to avoid circular dependency
+            const response = await axios.post(
+              `${API_CONFIG.BASE_URL}/authentication/token/refresh`,
+              { refresh: refreshToken }
+            );
+            const newAccessToken = response.data.access;
             
             // Store the new access token
             await AsyncStorage.setItem('access_token', newAccessToken);

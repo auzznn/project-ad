@@ -35,7 +35,7 @@ export default {
   loadingChildrenData: 'Memuatkan data anak...',
   noChildrenDataAvailable: 'Tiada data anak tersedia',
   class: 'Kelas',
-  lastSeen: 'Terakhir dilihat',
+  lastSeen: 'Terakhir datang',
   noRecordToday: 'Tiada rekod hari ini',
   onTime: 'tepat masa',
   late: 'lewat',
@@ -52,21 +52,22 @@ export default {
   tryRefreshingOrCheckConnection: 'Cuba muat semula atau semak sambungan anda',
   noStudentsFoundWithFilters: 'Tiada pelajar dijumpai dengan penapis yang dipilih',
   grade: 'Tingkatan',
-  section: 'Seksyen',
+  section: 'Kelas',
   allGrades: 'Semua Tingkatan',
-  allSections: 'Semua Seksyen',
+  allSections: 'Semua Kelas',
   selectGradeFirst: 'Pilih Tingkatan Dahulu',
   selectGrade: 'Pilih Tingkatan',
-  selectSection: 'Pilih Seksyen',
-  points: 'mata',
+  selectSection: 'Pilih Kelas',
+  points: 'points',
   myChild: 'Anak Saya',
+  loadMore: 'Muat Lagi',
   
   // Discipline
   disciplineLeaderboard: 'Papan Kedudukan Disiplin',
   topDisciplinedStudents: 'Pelajar paling berdisiplin tahun ini.',
   loadingDisciplineLeaderboardData: 'Memuatkan data papan kedudukan disiplin...',
   noDisciplineLeaderboardDataAvailable: 'Tiada data papan kedudukan disiplin tersedia',
-  disciplinePoints: 'mata disiplin',
+  disciplinePoints: 'points disiplin',
   
   // Profile
   accountInformation: 'Maklumat Akaun',
@@ -106,6 +107,7 @@ export default {
   discipline: 'Disiplin',
   rmt: 'RMT',
   sahsiah: 'Sahsiah',
+  recentActivity: 'Aktiviti Terkini',
   
   // Forms
   submit: 'Hantar',

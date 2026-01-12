@@ -35,7 +35,7 @@ export default {
   loadingChildrenData: 'Loading children data...',
   noChildrenDataAvailable: 'No children data available',
   class: 'Class',
-  lastSeen: 'Last seen',
+  lastSeen: 'Last attend',
   noRecordToday: 'No record today',
   onTime: 'on-time',
   late: 'late',
@@ -52,14 +52,15 @@ export default {
   tryRefreshingOrCheckConnection: 'Try refreshing or check your connection',
   noStudentsFoundWithFilters: 'No students found with the selected filters',
   grade: 'Grade',
-  section: 'Section',
+  section: 'Class',
   allGrades: 'All Grades',
-  allSections: 'All Sections',
+  allSections: 'All Class',
   selectGradeFirst: 'Select Grade First',
   selectGrade: 'Select Grade',
-  selectSection: 'Select Section',
+  selectSection: 'Select Class',
   points: 'points',
   myChild: 'My Child',
+  loadMore: 'Load More',
   
   // Discipline
   disciplineLeaderboard: 'Discipline Leaderboard',
@@ -106,6 +107,7 @@ export default {
   discipline: 'Discipline',
   rmt: 'RMT',
   sahsiah: 'Sahsiah',
+  recentActivity: 'Recent Activity',
   
   // Forms
   submit: 'Submit',
