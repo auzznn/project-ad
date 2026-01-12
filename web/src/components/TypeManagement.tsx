@@ -16,7 +16,6 @@ interface ManagementTypeProps {
   fetchUrl: string;
   deleteUrl: (id: number) => string;
   saveUrl: (id?: number) => string;
-  categories: string[];
   serverPagination?: boolean;
   pageSize?: number;
 }
@@ -27,7 +26,6 @@ export default function ManagementType({
   fetchUrl,
   deleteUrl,
   saveUrl,
-  categories,
   serverPagination = false,
   pageSize = 8,
 }: ManagementTypeProps) {

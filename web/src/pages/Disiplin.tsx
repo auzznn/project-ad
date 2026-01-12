@@ -1,13 +1,6 @@
 import "./TypeManagement.css";
 import ManagementType from "../components/TypeManagement";
 
-const categories = [
-  "Merosak Alam",
-  "Mengabaikan Pelajaran",
-  "Mengabaikan Tanggungjawab",
-  "Akhlak Buruk",
-];
-
 export default function DisiplinPage() {
   return (
     <ManagementType
@@ -19,7 +12,6 @@ export default function DisiplinPage() {
           : "http://72.62.65.202:8080/api/discipline/type/"
       }
       deleteUrl={(id) => `http://72.62.65.202:8080/api/discipline/type/${id}/`}
-      categories={categories}
       serverPagination
       pageSize={20}
     />
