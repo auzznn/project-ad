@@ -262,8 +262,8 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
 
         structured_data = {}
         for entry in raw_data:
-            grade = entry["migrate_student_id__class_room__grade"]
-            section = entry["migrate_student_id__class_room__class_section"]
+            grade = entry["student_id__class_room__grade"]
+            section = entry["student_id__class_room__class_section"]
 
             if grade is None:
                 continue
