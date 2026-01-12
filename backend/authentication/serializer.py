@@ -43,6 +43,27 @@ class StudentSerializer(ModelSerializer):
         student.generate_qr(request=request)
         student.save()
         return student
+    
+    def update(self, instance, validated_data):
+        # 1. Handle standard fields directly on the MigrateStudent model
+        instance.rmt_elligible = validated_data.get('rmt_elligible', instance.rmt_elligible)
+        if instance.rmt_elligible is None:
+            instance.rmt_elligible = False
+
+        # 2. Handle nested source fields (class_room)
+        # Note: This assumes instance.class_room already exists.
+        if 'class_room' in validated_data:
+            classroom_data = validated_data.pop('class_room')
+            for attr, value in classroom_data.items():
+                setattr(instance.class_room, attr, value)
+            instance.class_room.save()
+
+        # 3. Logic for QR code (matching your create method)
+        request = self.context.get('request')
+        instance.generate_qr(request=request)
+        
+        instance.save()
+        return instance
 
 class MyUserRetrieveSerializer(ModelSerializer):
     children = serializers.SerializerMethodField()
