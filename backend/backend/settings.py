@@ -202,5 +202,5 @@ CELERY_BEAT_SCHEDULE = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://edqur.cloud",
+    "http://eduqr.cloud",
 ]
