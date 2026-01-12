@@ -43,7 +43,7 @@ class MyUserView(ModelViewSet):
 
 class StudentView(ModelViewSet):
     queryset = MigrateStudent.objects.all()
-    parser_classes = [parsers.MultiPartParser]
+    parser_classes = [parsers.MultiPartParser, parsers.JSONParser]
 
     def get_serializer_class(self):
         if self.action == "create":
