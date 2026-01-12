@@ -91,40 +91,37 @@
 
 /* Tepat Waktu / Hadir */
 .status-present {
-  display: inline-block;
   padding: 6px 12px;
   border-radius: 8px;
-  background-color: #e6f5ea;
-  color: #047857;
+  background-color: #e6f5ea !important ; 
+  color: #047857 !important ;
   font-weight: 600;
   font-size: 0.85rem;
-  border: 1px solid #047857;
+  border: 1px solid #047857 !important ;
   padding: 4px 10px;  /* reduce vertical padding */
   font-size: 0.8rem; /* slightly smaller font */
 }
 
 .status-late {
-  display: inline-block;
   padding: 6px 12px;
   border-radius: 8px;
-  background-color: #fcf7d6;
-  color: #dba30a;
+  background-color: #fcf7d6 !important ;
+  color: #dba30a !important ;
   font-weight: 600;
   font-size: 0.85rem;
-  border: 1px solid #dba30a;
+  border: 1px solid #dba30a !important ;
   padding: 4px 10px;  /* reduce vertical padding */
   font-size: 0.8rem; /* slightly smaller font */
 }
 
 .status-absent {
-  display: inline-block;
   padding: 6px 12px;
   border-radius: 8px;
-  background-color: #fdecea;
-  color: #b91c1c;
+  background-color: #fdecea !important ;
+  color: #b91c1c !important ;
   font-weight: 600;
   font-size: 0.85rem;
-  border: 1px solid #b91c1c;
+  border: 1px solid #b91c1c !important ;
   padding: 4px 10px;  /* reduce vertical padding */
   font-size: 0.8rem; /* slightly smaller font */
 }

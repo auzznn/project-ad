@@ -127,6 +127,11 @@
   flex-wrap: wrap;
 }
 
+.module-buttons {
+  display: flex;
+  gap: 10px;
+}
+
 .module-btn {
   padding: 6px 14px;
   font-size: 14px;
@@ -188,4 +193,73 @@
 .export-modal button {
   margin-top: 10px;
   margin-right: 10px;
+}
+
+.export-btn {
+  margin-left: auto; /* pushes to right */
+  background-color: #3367d9;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px; /* pill shape */
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.export-btn:hover {
+  background-color: #2657c0;
+}
+
+.export-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 10px;
+  padding: 25px;
+  width: 300px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 1001;
+}
+
+.export-modal h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.export-modal label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.export-modal input[type="checkbox"] {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+}
+
+.export-modal button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.export-modal button:first-of-type {
+  background-color: #4CAF50;
+  color: white;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.export-modal button:last-of-type {
+  background-color: #ccc;
+  width: 100%;
 }

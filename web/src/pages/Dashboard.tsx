@@ -74,20 +74,24 @@ function Dashboard() {
       <div className="dashboard-header">
         <h1 className="page-title">Papan Pemuka</h1>
         <p>Ringkasan statistik harian</p>
-        <button onClick={() => setExportModalOpen(true)}>Export PDF</button>
       </div>
 
-      {/* Module Selector */}
+      {/* Module Selector with Export Button */}
       <div className="module-selector">
-        {(["kehadiran", "rmt", "sahsiah", "disiplin"] as ModuleType[]).map((mod) => (
-          <button
-            key={mod}
-            className={`module-btn ${activeModule === mod ? "active" : ""}`}
-            onClick={() => setActiveModule(mod)}
-          >
-            {mod.toUpperCase()}
-          </button>
-        ))}
+        <div className="module-buttons">
+          {(["kehadiran", "rmt", "sahsiah", "disiplin"] as ModuleType[]).map((mod) => (
+            <button
+              key={mod}
+              className={`module-btn ${activeModule === mod ? "active" : ""}`}
+              onClick={() => setActiveModule(mod)}
+            >
+              {mod.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        <button className="export-btn" onClick={() => setExportModalOpen(true)}>
+          Export PDF
+        </button>
       </div>
 
       {/* Export Modal */}

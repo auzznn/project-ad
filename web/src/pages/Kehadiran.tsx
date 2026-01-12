@@ -18,7 +18,7 @@ interface Student {
 interface AttendanceRecord {
   id?: number;
   student: Student | null;
-  status: "on-time" | "late" | "absent";
+  status: "on time" | "late" | "absent";
   date: string;
   timestamp: string;
   note?: string | null;
@@ -133,16 +133,34 @@ export default function KehadiranPage() {
     );
 
   const getStatusLabel = (status: AttendanceRecord["status"]) => {
-    if (status === "on-time") return "Tepat Waktu";
+    if (status === "on time") return "Tepat Waktu";
     if (status === "late") return "Lambat";
     return "Tidak Hadir";
   };
 
-  const getStatusClass = (label: string) => {
-    if (label === "Tepat Waktu") return "status-present";
-    if (label === "Lambat") return "status-late";
-    return "status-absent";
+  const getStatusClassFromStatus = (status: AttendanceRecord["status"]) => {
+    switch (status) {
+      case "on time":
+        return "status-present";
+      case "late":
+        return "status-late";
+      case "absent":
+      default:
+        return "status-absent";
+    }
   };
+
+  const getStatusLabelFromStatus = (status: AttendanceRecord["status"]) => {
+  switch (status) {
+    case "on time":
+      return "Tepat Waktu";
+    case "late":
+      return "Lambat";
+    case "absent":
+    default:
+      return "Tidak Hadir";
+  }
+};
 
   const formatTime = (ts: string) => {
     if (!ts) return "--";
@@ -262,7 +280,6 @@ export default function KehadiranPage() {
                 </tr>
               ) : (
                 filteredAttendance.map((rec, idx) => {
-                  const statusLabel = getStatusLabel(rec.status);
                   return (
                     <tr key={rec.id ?? idx}>
                       <td>{(page - 1) * pageSize + idx + 1}</td>
@@ -272,12 +289,8 @@ export default function KehadiranPage() {
                       </td>
                       <td>{formatTime(rec.timestamp)}</td>
                       <td>
-                        <span
-                          className={`status-box ${getStatusClass(
-                            statusLabel
-                          )}`}
-                        >
-                          {statusLabel}
+                        <span className={`status-box ${getStatusClassFromStatus(rec.status)}`}>
+                          {getStatusLabelFromStatus(rec.status)}
                         </span>
                       </td>
                       <td>
