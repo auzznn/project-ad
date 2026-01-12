@@ -46,6 +46,10 @@ export default function ManagementType({
     tag: "",
   });
 
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [creatingTag, setCreatingTag] = useState(false);
+  const [newTag, setNewTag] = useState("");
+
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
@@ -60,8 +64,20 @@ export default function ManagementType({
       const res = await fetch(url);
       const data = await res.json();
 
-      if (Array.isArray(data.entry)) setItems(data.entry);
-      else setItems([]);
+      if (Array.isArray(data.entry)) {
+        const entries = data.entry as ManagementItem[];
+
+        setItems(entries);
+
+        const tags: string[] = Array.from(
+          new Set(entries.map((item) => item.tag).filter(Boolean))
+        );
+
+        setAvailableTags(tags);
+      } else {
+        setItems([]);
+        setAvailableTags([]);
+      }
 
       setTotalItems(
         serverPagination ? data.total_items ?? 0 : data.entry?.length ?? 0
@@ -73,6 +89,8 @@ export default function ManagementType({
     } finally {
       setLoading(false);
     }
+
+    
   };
 
   useEffect(() => {
@@ -92,9 +110,11 @@ export default function ManagementType({
 
   const handleEdit = (item: ManagementItem) => {
     setForm(item);
-    setEditingItem(item);
+    setCreatingTag(false);
+    setNewTag("");
     setModalOpen(true);
   };
+
 
   const handleDelete = async () => {
     if (!confirmDeleteId) return;
@@ -255,14 +275,42 @@ export default function ManagementType({
               required
             />
 
-            <select name="tag" value={form.tag} onChange={handleChange} required>
+            <select
+              value={creatingTag ? "__new__" : form.tag}
+              onChange={(e) => {
+                if (e.target.value === "__new__") {
+                  setCreatingTag(true);
+                  setForm((p) => ({ ...p, tag: "" }));
+                } else {
+                  setCreatingTag(false);
+                  setNewTag("");
+                  setForm((p) => ({ ...p, tag: e.target.value }));
+                }
+              }}
+              required
+            >
               <option value="">-- Pilih Kategori --</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+
+              {availableTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
                 </option>
               ))}
+
+              <option value="__new__">+ Tambah kategori baru</option>
             </select>
+
+            {creatingTag && (
+              <input
+                placeholder="Nama kategori baru"
+                value={newTag}
+                onChange={(e) => {
+                  setNewTag(e.target.value);
+                  setForm((p) => ({ ...p, tag: e.target.value }));
+                }}
+                required
+              />
+            )}
 
             <textarea
               name="description"

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 
-// Chart.js global type
 declare global {
   interface Window {
     Chart: any;
@@ -52,7 +51,7 @@ function StatisticsPointsModule({ moduleType }: Props) {
   useEffect(() => {
     fetch(`http://72.62.65.202:8080/api/${moduleType}/statistic/trend_points/`)
       .then(res => res.json())
-      .then(setTrendPoints)
+      .then(data => setTrendPoints(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, [moduleType]);
 
@@ -68,7 +67,7 @@ function StatisticsPointsModule({ moduleType }: Props) {
   useEffect(() => {
     fetch(`http://72.62.65.202:8080/api/${moduleType}/statistic/points_by_tag/`)
       .then(res => res.json())
-      .then(setPointsByTag)
+      .then(data => setPointsByTag(Array.isArray(data) ? data : []))
       .catch(console.error);
   }, [moduleType]);
 
@@ -125,7 +124,12 @@ function StatisticsPointsModule({ moduleType }: Props) {
     }
 
     // Tag Distribution Pie Chart
-    if (tagDistribution && window.Chart) {
+    if (
+      tagDistribution &&
+      Array.isArray(tagDistribution.distribution) &&
+      tagDistribution.distribution.length > 0 &&
+      window.Chart
+    ) {
       const ctx = (document.getElementById(`${moduleType}-tagChart`) as HTMLCanvasElement)?.getContext("2d");
       if (!ctx) return;
 
@@ -151,10 +155,10 @@ function StatisticsPointsModule({ moduleType }: Props) {
         options: { 
           responsive: true,
           plugins: { 
-            legend: { position: "bottom" }, // ✅ this now works
+            legend: { position: "bottom" }, 
           },
-        }, // ✅ properly close options
-      }); // ✅ properly close Chart constructor
+        }, 
+      }); 
     }
   }, [trendPoints, tagDistribution, moduleType]);
 
