@@ -25,7 +25,7 @@ export const authFetch = async (url: string, options: RequestInit = {}) => {
     if (refreshToken) {
       try {
         const refreshRes = await fetch(
-          "http://localhost:8080/api/authentication/token/refresh",
+          "https://backend.eduqr.cloud/api/authentication/token/refresh",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
