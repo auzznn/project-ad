@@ -166,3 +166,26 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
 }
+
+.export-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  z-index: 999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.export-modal h3 {
+  margin-bottom: 10px;
+}
+.export-modal label {
+  display: block;
+  margin-bottom: 5px;
+}
+.export-modal button {
+  margin-top: 10px;
+  margin-right: 10px;
+}

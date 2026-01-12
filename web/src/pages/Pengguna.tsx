@@ -5,21 +5,20 @@ import "./Pengguna.css";
 
 interface UserItem {
   id: number;
-  fullname: string;
-  role: string;
-}
-
-interface Classroom {
-  id: string;
-  name: string;
-}
-
-interface StudentRow {
   first_name: string;
   last_name: string;
-  date_of_birth: string;
-  classroom: string;
+  role: string;
+  children: StudentChild[] | null;
+}
+
+interface StudentChild {
+  id: number;
+  name: string;
+  grade: number;
+  section: string;
+  academic_year: string;
   rmt_elligible: boolean;
+  qr_code: string;
 }
 
 const PAGE_SIZE = 8;
@@ -33,7 +32,8 @@ export default function UserManagement() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
@@ -46,11 +46,6 @@ export default function UserManagement() {
     password: "",
     role: "teacher", 
   });
-
-
-  /* ---------- Linked Students ---------- */
-  const [students, setStudents] = useState<StudentRow[]>([]);
-  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
 
   /* ---------- Fetch Users ---------- */
   const fetchUsers = async (pageNumber = 1) => {
@@ -84,40 +79,79 @@ export default function UserManagement() {
     setPage(1);
   }, [searchTerm]);
 
+  //helper for fullname
+  const getFullName = (u: UserItem) =>
+  `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || "-";
+
   /* ---------- Modal Open ---------- */
-  const handleCreate = () => {
+
+  const openCreateModal = () => {
+  setForm({
+    username: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    role: "parent",
+  });
+  setEditingUser(null);
+  setCreateModalOpen(true);
+};
+
+  const openEditModal = (user: UserItem) => {
     setForm({
       username: "",
-      first_name: "",
-      last_name: "",
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: "",
-      password: "",
-      role: "parent",
-    });
-    setStudents([]);
-    setEditingUser(null);
-    setModalOpen(true);
-
-    // Fetch classrooms for student dropdown
-    authFetch("https://backend.eduqr.cloud/api/authentication/classroom/")
-      .then(res => res.json())
-      .then(data => setClassrooms(data.entry ?? []))
-      .catch(err => console.error("Failed to fetch classrooms:", err));
-  };
-
-  const handleEdit = (user: UserItem) => {
-    setForm({
-      username: "", // For simplicity, don't prefill sensitive info
-      first_name: user.fullname,
-      last_name: "",
-      email: "",
-      password: "",
+      password: "", // not editable
       role: user.role,
     });
-    setStudents([]);
     setEditingUser(user);
-    setModalOpen(true);
+    setEditModalOpen(true);
   };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const res = await authFetch(
+      "https://backend.eduqr.cloud/api/authentication/user/",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      }
+    );
+
+    if (!res.ok) return alert("Gagal cipta pengguna");
+
+    setCreateModalOpen(false);
+    fetchUsers(page);
+  };
+
+const handleEditSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!editingUser) return;
+
+  const res = await authFetch(
+    `https://backend.eduqr.cloud/api/authentication/user/${editingUser.id}/`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        first_name: form.first_name,
+        last_name: form.last_name,
+        role: form.role,
+      }),
+    }
+  );
+
+  if (!res.ok) return alert("Gagal kemaskini pengguna");
+
+  setEditModalOpen(false);
+  setEditingUser(null);
+  fetchUsers(page);
+};
 
   const handleDelete = async () => {
     if (!confirmDeleteId) return;
@@ -132,71 +166,6 @@ export default function UserManagement() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  /* ---------- Student Row Handlers ---------- */
-  const addStudentRow = () => {
-    setStudents(prev => [
-      ...prev,
-      { first_name: "", last_name: "", date_of_birth: "", classroom: "", rmt_elligible: false },
-    ]);
-  };
-
-  const handleStudentChange = <K extends keyof StudentRow>(
-    index: number,
-    field: K,
-    value: StudentRow[K] // ensures the value matches the field type
-  ) => {
-    setStudents(prev => {
-      const copy = [...prev];
-      copy[index][field] = value;
-      return copy;
-    });
-  };
-
-  /* ---------- Submit Parent + Students ---------- */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      // 1️⃣ Create parent/user
-      const userRes = await authFetch(
-        editingUser
-          ? `https://backend.eduqr.cloud/api/authentication/user/${editingUser.id}/`
-          : "https://backend.eduqr.cloud/api/authentication/user/",
-        {
-          method: editingUser ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        }
-      );
-
-      if (!userRes.ok) {
-        alert("Gagal menyimpan pengguna.");
-        return;
-      }
-
-      const userData = await userRes.json();
-      const parentId = userData.id;
-
-      // 2️⃣ Create students linked to parent (only if new parent)
-      if (!editingUser && students.length > 0) {
-        for (const s of students) {
-          await authFetch("https://backend.eduqr.cloud/api/authentication/student/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...s, parent: parentId }),
-          });
-        }
-      }
-
-      alert("Berjaya menyimpan pengguna!");
-      setModalOpen(false);
-      fetchUsers(page);
-    } catch (err) {
-      console.error("Save error:", err);
-      alert("Ralat semasa menyimpan. Sila cuba lagi.");
-    }
   };
 
   /* ---------- Bulk Upload Handlers ---------- */
@@ -234,7 +203,13 @@ export default function UserManagement() {
   const filtered = users.filter(u => {
     if (!searchTerm) return true;
     const t = searchTerm.toLowerCase();
-    return u.fullname.toLowerCase().includes(t) || u.role.toLowerCase().includes(t);
+
+    const fullName = `${u.first_name} ${u.last_name}`.toLowerCase();
+
+    return (
+      fullName.includes(t) ||
+      u.role.toLowerCase().includes(t)
+    );
   });
 
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
@@ -251,7 +226,7 @@ export default function UserManagement() {
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
-          <button className="add-btn" onClick={handleCreate}>
+          <button className="add-btn" onClick={openCreateModal}>
             + Tambah
           </button>
         </div>
@@ -263,34 +238,58 @@ export default function UserManagement() {
                 <th>Urutan</th>
                 <th>Nama Penuh</th>
                 <th>Peranan</th>
+                <th>Pelajar</th>
                 <th>Tindakan</th>
               </tr>
             </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={4} className="empty-row">Memuatkan rekod...</td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="empty-row">Tiada rekod</td>
-                </tr>
-              ) : (
-                filtered.map((u, i) => (
-                  <tr key={u.id}>
-                    <td>{(page - 1) * PAGE_SIZE + i + 1}</td>
-                    <td>{u.fullname}</td>
-                    <td>{u.role}</td>
-                    <td>
-                      <div className="action-btns-wrapper">
-                        <button className="action-btn edit-btn" onClick={() => handleEdit(u)}>Ubah</button>
-                        <button className="action-btn delete-btn" onClick={() => setConfirmDeleteId(u.id)}>Padam</button>
-                      </div>
-                    </td>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="empty-row">Memuatkan rekod...</td>
                   </tr>
-                ))
-              )}
-            </tbody>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="empty-row">Tiada rekod</td>
+                  </tr>
+                ) : (
+                  filtered.map((u, i) => (
+                    <tr key={u.id}>
+                      <td>{(page - 1) * PAGE_SIZE + i + 1}</td>
+
+                      {/* ✅ Full name derived */}
+                      <td>{getFullName(u)}</td>
+
+                      <td>{u.role}</td>
+
+                      {/* ✅ Students column */}
+                      <td>
+                        {u.children && u.children.length > 0 ? (
+                          <ul className="student-list">
+                            {u.children.map(c => (
+                              <li key={c.id}>
+                                {c.name} ({c.grade}{c.section})
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+
+                      <td>
+                        <div className="action-btns-wrapper">
+                          <button className="action-btn edit-btn" onClick={() => openEditModal(u)}>
+                            Ubah
+                          </button>
+                          <button className="action-btn delete-btn" onClick={() => setConfirmDeleteId(u.id)}>
+                            Padam
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
           </table>
         </div>
 
@@ -298,12 +297,12 @@ export default function UserManagement() {
       </div>
 
       {/* ---------- Modal ---------- */}
-      {modalOpen && (
-        <div className="modal-backdrop">
-          <form className="modal-box" onSubmit={handleSubmit}>
-            <h2 className="modal-title">{editingUser ? "Edit Pengguna" : "Tambah Pengguna"}</h2>
 
-            {/* Parent Fields */}
+      {createModalOpen && (
+        <div className="modal-backdrop">
+          <form className="modal-box" onSubmit={handleCreateSubmit}>
+            <h2 className="modal-title">Tambah Pengguna</h2>
+
             <input
               name="username"
               placeholder="Username"
@@ -311,6 +310,7 @@ export default function UserManagement() {
               onChange={handleChange}
               required
             />
+
             <input
               name="first_name"
               placeholder="First Name"
@@ -318,6 +318,7 @@ export default function UserManagement() {
               onChange={handleChange}
               required
             />
+
             <input
               name="last_name"
               placeholder="Last Name"
@@ -325,6 +326,7 @@ export default function UserManagement() {
               onChange={handleChange}
               required
             />
+
             <input
               name="email"
               type="email"
@@ -333,6 +335,7 @@ export default function UserManagement() {
               onChange={handleChange}
               required
             />
+
             <input
               name="password"
               type="password"
@@ -341,44 +344,62 @@ export default function UserManagement() {
               onChange={handleChange}
               required
             />
-            <select name="role" value={form.role} onChange={handleChange} required>
+
+            <select name="role" value={form.role} onChange={handleChange}>
               <option value="teacher">Teacher</option>
               <option value="parent">Parent</option>
             </select>
 
-            {/* Students Section */}
-            {form.role === "parent" && (
-              <div className="students-section">
-                <h3>Linked Students</h3>
-                {students.map((s, idx) => (
-                  <div key={idx} className="student-row">
-                    <input placeholder="First Name" value={s.first_name} onChange={e => handleStudentChange(idx, "first_name", e.target.value)} />
-                    <input placeholder="Last Name" value={s.last_name} onChange={e => handleStudentChange(idx, "last_name", e.target.value)} />
-                    <input placeholder="Date of Birth (dd/mm/yyyy)" value={s.date_of_birth} onChange={e => handleStudentChange(idx, "date_of_birth", e.target.value)} />
-                    <select value={s.classroom} onChange={e => handleStudentChange(idx, "classroom", e.target.value)}>
-                      <option value="">Select Classroom</option>
-                      {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                    <label>
-                      RMT Eligible
-                      <input type="checkbox" checked={s.rmt_elligible} onChange={e => handleStudentChange(idx, "rmt_elligible", e.target.checked)} />
-                    </label>
-                  </div>
-                ))}
-                <button type="button" onClick={addStudentRow}>+ Add Student</button>
-              </div>
-            )}
-
-            {/* Bulk Upload */}
+            {/* Bulk upload ONLY here */}
             <div className="file-upload-section">
               <input type="file" accept=".xlsx" onChange={handleFileChange} />
-              <button type="button" onClick={handleFileUpload} disabled={!selectedFile}>Muat Naik Excel</button>
+              <button type="button" onClick={handleFileUpload} disabled={!selectedFile}>
+                Muat Naik Excel
+              </button>
             </div>
 
-            {/* Modal Buttons */}
-            <div className="modal-btn-row" style={{ marginTop: "1rem" }}>
-              <button type="button" className="modal-cancel" onClick={() => setModalOpen(false)}>Batal</button>
-              <button type="submit" className="modal-save">Simpan</button>
+            <div className="modal-btn-row">
+              <button type="button" onClick={() => setCreateModalOpen(false)}>
+                Batal
+              </button>
+              <button type="submit">Simpan</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+
+      {editModalOpen && editingUser && (
+        <div className="modal-backdrop">
+          <form className="modal-box" onSubmit={handleEditSubmit}>
+            <h2 className="modal-title">Edit Pengguna</h2>
+
+            <input
+              name="first_name"
+              placeholder="First Name"
+              value={form.first_name}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              name="last_name"
+              placeholder="Last Name"
+              value={form.last_name}
+              onChange={handleChange}
+              required
+            />
+
+            <select name="role" value={form.role} onChange={handleChange}>
+              <option value="teacher">Teacher</option>
+              <option value="parent">Parent</option>
+            </select>
+
+            <div className="modal-btn-row">
+              <button type="button" onClick={() => setEditModalOpen(false)}>
+                Batal
+              </button>
+              <button type="submit">Simpan</button>
             </div>
           </form>
         </div>
