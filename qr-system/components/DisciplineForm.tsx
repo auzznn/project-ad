@@ -214,7 +214,7 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
             >
               <View style={styles.violationLeft}>
                 <Text style={[styles.violationName, { color: textColor }]}>{type.name}</Text>
-                <Text style={[styles.violationPoints, { color: dangerColor }]}>-{type.points} points</Text>
+                <Text style={[styles.violationPoints, { color: dangerColor }]}>{type.points} points</Text>
               </View>
               <View style={styles.violationRight}>
                 <Ionicons name="chevron-forward" size={14} color={mutedColor} />

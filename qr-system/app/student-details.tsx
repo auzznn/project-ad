@@ -51,7 +51,7 @@ const ActivityItem = memo(({
             <Text className="text-sm ml-2 font-medium" style={{
               color: activity.type === 'sahsiah' ? successColor : errorColor
             }}>
-              {activity.type === 'sahsiah' ? '+' : '-'}{activity.points} {t('points')}
+              {activity.type === 'sahsiah' ? '+' : ''}{activity.points} {t('points')}
             </Text>
           )}
         </View>
