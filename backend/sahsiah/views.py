@@ -60,10 +60,10 @@ class SahsiahLeaderboardView(GeneralLeaderboardView):
                 )
             )
         )
-        .order_by("-total_sahsiah_point")
         .select_related("class_room")
     )
     point_field = "total_sahsiah_point"
+    order_ascending = False
 
 
 class SahsiahAnalyticsViewSet(GeneralMeritAnalyticView):

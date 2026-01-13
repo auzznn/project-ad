@@ -90,7 +90,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         queryset = self.get_queryset()
-        queryset = queryset.filter(migrate_student_id__class_room=class_room_instance)
+        queryset = queryset.filter(student_id__class_room=class_room_instance)
 
         page = self.paginate_queryset(queryset)
 

@@ -15,6 +15,7 @@ from .const import MONTH_NAMES
 # Create your views here.
 class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
     point_field = ""
+    order_ascending = True
     serializer_class = GeneralLeaderboardSerializer
     pagination_class = StandardResultsSetPagination
     
@@ -26,6 +27,8 @@ class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
         rank = 0
         last_points = None
 
+        order_by_field = ("-" if not self.order_ascending else "") + self.point_field
+        queryset = queryset.order_by(order_by_field)
         for i, student in enumerate(queryset):
             current_points = getattr(student, self.point_field) or 0
 
@@ -85,6 +88,7 @@ class GeneralMeritAnalyticView(viewsets.GenericViewSet):
                 total_points=Sum(self.get_point_name()),
                 record_count=Count("id"),
             )
+            .order_by()
         )
 
     def get_point_name(self):
@@ -199,6 +203,7 @@ class GeneralMeritAnalyticView(viewsets.GenericViewSet):
             .values(tag=F(f"{self.record_type}__tag"))
             .annotate(count=Count("id"))
             .filter(count__gt=0)
+            .order_by()
         )
 
         # 3. Calculate percentages
