@@ -79,13 +79,13 @@ class StudentRMTAnalyticsSerializer(Serializer):
     class_room = SerializerMethodField()
     
     def get_fullname(self, obj):
-        first_name_field = "migrate_student_id__first_name"
-        last_name_field = "migrate_student_id__last_name"
+        first_name_field = "student_id__first_name"
+        last_name_field = "student_id__last_name"
         
         return f"{obj[first_name_field]} {obj[last_name_field]}"
     
     def get_class_room(self, obj):
-        class_section_field = 'migrate_student_id__class_room__class_section'
-        class_grade_field = 'migrate_student_id__class_room__grade'
+        class_section_field = 'student_id__class_room__class_section'
+        class_grade_field = 'student_id__class_room__grade'
         
         return f"{obj[class_grade_field]} {obj[class_section_field]}"
