@@ -78,7 +78,7 @@ export const useStudentData = () => {
         showAlert("Attendance already marked", "info");
         return;
       }
-      
+
       // Mark attendance
       const attendancePayload: AttendancePayload = {
         id: student.id,
@@ -183,7 +183,7 @@ export const useStudentData = () => {
   /**
    * Handles the recording of good deeds (Sahsiah) for students
    * This function makes an API call to record the sahsiah data
-   *
+   * 
    * @param student - The student object
    * @param sahsiahType - The ID of the sahsiah type (integer)
    * @param notes - Optional notes about the good deed
