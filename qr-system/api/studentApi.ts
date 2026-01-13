@@ -154,16 +154,31 @@ export const studentApi = {
   // Check if student already has attendance for today
   checkAttendanceStatus: async (studentId: string): Promise<any> => {
     // Get all attendance for today and filter by student_id on the client side
-    const response = await apiRequest.get('student_attendance/daily/');
-    console.log(response)
+    let response = await apiRequest.get('student_attendance/daily/');
     
     // Create a hash map for O(1) lookups
     const attendanceMap: { [key: string]: any } = {};
-    response.entry.forEach((record: any) => {
-      if (record.student && record.student.id) {
-        attendanceMap[record.student.id.toString()] = record;
+    
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        response.entry.forEach((record: any) => {
+          if (record.student && record.student.id) {
+            attendanceMap[record.student.id.toString()] = record;
+          }
+        });
       }
-    });
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
+    }
     
     // Direct lookup for the specific student - O(1) complexity
     const studentRecord = attendanceMap[studentId] || null;
@@ -220,8 +235,27 @@ export const studentApi = {
   
   // Get sahsiah records for a specific student
   getStudentSahsiahRecords: async (studentId: string): Promise<any> => {
-    const response = await apiRequest.get(`/sahsiah/record/student/${studentId}`);
-    return response.entry || response;
+    let response = await apiRequest.get(`/sahsiah/record/student/${studentId}`);
+    const allRecords: any[] = [];
+    
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        allRecords.push(...response.entry);
+      }
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
+    }
+    
+    return allRecords;
   },
   
   // Record RMT for a student
@@ -237,18 +271,30 @@ export const studentApi = {
   
   // Check if student already has RMT for today
   checkRMTStatus: async (studentId: string): Promise<any> => {
-    const response = await apiRequest.get('rmt/daily/');
+    let response = await apiRequest.get('rmt/daily/');
     
     // Create a hash map for O(1) lookups
     const rmtMap: { [key: string]: any } = {};
     
-    // Check if response.entry exists and is an array
-    if (response && Array.isArray(response)) {
-      response.forEach((record: any) => {
-        if (record.student && record.student.id) {
-          rmtMap[record.student.id.toString()] = record;
-        }
-      });
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        response.entry.forEach((record: any) => {
+          if (record.student && record.student.id) {
+            rmtMap[record.student.id.toString()] = record;
+          }
+        });
+      }
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
     }
     
     // Direct lookup for the specific student - O(1) complexity
@@ -303,8 +349,27 @@ export const studentApi = {
   
   // Get discipline records for a specific student
   getStudentDisciplineRecords: async (): Promise<any> => {
-    const response = await apiRequest.get(`/discipline/record/`);
-    return response.entry || response;
+    let response = await apiRequest.get(`/discipline/record/`);
+    const allRecords: any[] = [];
+    
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        allRecords.push(...response.entry);
+      }
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
+    }
+    
+    return allRecords;
   },
   
   // Get discipline types from API

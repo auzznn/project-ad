@@ -78,7 +78,7 @@ export const useStudentData = () => {
         showAlert("Attendance already marked", "info");
         return;
       }
-
+      
       // Mark attendance
       const attendancePayload: AttendancePayload = {
         id: student.id,

@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "eb067e75-53a4-4795-903f-e0ebc7815936"
+      }
+    },
+    "android": {
+      "package": "com.anakindo.eduqr"
+    }
+  }
+}

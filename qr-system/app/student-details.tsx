@@ -297,6 +297,7 @@ export default function StudentDetailsScreen() {
           rmtLastClaim = studentData.rmt?.lastClaim || 'Never';
         }
         
+        
         // Transform the API response to match our expected structure
         const transformedData: StudentDetails = {
           id: studentData.id || studentId,
@@ -437,7 +438,7 @@ export default function StudentDetailsScreen() {
             <View className="w-[30%] rounded-2xl p-4 items-center shadow-sm border" style={{ backgroundColor: cardColor, borderColor }}>
               <Ionicons name="checkmark-circle" size={24} color={successColor} />
               <Text className="text-2xl font-bold mt-2 mb-1" style={{ color: textColor }}>
-                {student.attendance.rate}%
+                {student.attendance.rate.toFixed(2)}%
               </Text>
               <Text className="text-xs text-center" style={{ color: mutedColor }}>
                 {t('attendance')} Rate
@@ -517,7 +518,7 @@ export default function StudentDetailsScreen() {
             <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
               {t('recentActivity')}
             </Text>
-            
+
             <ScrollView style={{ maxHeight: 300 }}>
               {student.recentActivity.map((activity, index) => (
                 <ActivityItem
