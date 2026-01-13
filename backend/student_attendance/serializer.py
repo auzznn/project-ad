@@ -19,11 +19,11 @@ from .utils import (
 )
 from base.utils import set_timezone
 
-from sahsiah.const import PUNCTUALITY_NAME
+from sahsiah.const import PUNCTUALITY_ID, PUNCTUALITY_NAME
 from sahsiah.models import SahsiahType, SahsiahRecord
 
 from record_discipline.models import DisciplineRecord, DisciplineType
-from record_discipline.const import LATE_NAME
+from record_discipline.const import LATE_NAME, LATE_ID
 
 from . import const
 
@@ -55,7 +55,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
         self, student: MigrateStudent, timestamp: timezone.datetime
     ):
         try:
-            punctuality_sahsiah = SahsiahType.objects.get(name=PUNCTUALITY_NAME)
+            punctuality_sahsiah = SahsiahType.objects.get(pk=PUNCTUALITY_ID)
         except SahsiahType.DoesNotExist:
             raise ValidationError(f"unable to find sahsiah punctuality")
 
@@ -67,7 +67,7 @@ class RecordStudentAttendanceSerializer(ModelSerializer):
 
     def create_late_discipline(self, student: MigrateStudent, timestamp: timezone.datetime):
         try:
-            late_discipline_type = DisciplineType.objects.get(name=LATE_NAME)
+            late_discipline_type = DisciplineType.objects.get(pk=LATE_ID)
         except DisciplineType.DoesNotExist:
             raise ValidationError(f"unable to find record discipline {LATE_NAME}")
 

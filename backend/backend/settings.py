@@ -192,7 +192,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update_student_qr_code": {
         "task": "authentication.tasks.update_qr_code",
-        "schedule": get_schedule(WEEKDAY_MIDNIGHT_SCHEDULE),
+        "schedule": get_schedule(DEBUG_SCHEDULE),
     },
     "create_rmt_record": {
         "task": "rmt.tasks.create_rmt_record",
