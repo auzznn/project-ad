@@ -88,4 +88,4 @@ class StudentRMTAnalyticsSerializer(Serializer):
         class_section_field = 'student_id__class_room__class_section'
         class_grade_field = 'student_id__class_room__grade'
         
-        return f"{obj[class_grade_field]} {obj[class_section_field]}"
+        return f"{obj[class_grade_field]}{obj[class_section_field]}"
