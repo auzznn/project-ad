@@ -43,26 +43,47 @@ function Dashboard() {
 
       // Temporarily make the module visible offscreen if hidden
       const originalDisplay = element.style.display;
-      element.style.position = "absolute";
-      element.style.left = "-9999px";
-      element.style.top = "0";
+      const originalVisibility = element.style.visibility;
+
       element.style.display = "block";
+      element.style.visibility = "visible";
 
       // Capture the element as a canvas
-      const canvas = await html2canvas(element, { scale: 2 });
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        windowWidth: element.scrollWidth,
+      });
       const imgData = canvas.toDataURL("image/png");
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       if (i !== 0) pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      let renderHeight = pdfHeight;
+      let renderWidth = pdfWidth;
+
+      if (pdfHeight > pageHeight) {
+        const scale = pageHeight / pdfHeight;
+        renderHeight = pageHeight;
+        renderWidth = pdfWidth * scale;
+      }
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        (pdfWidth - renderWidth) / 2,
+        0,
+        renderWidth,
+        renderHeight
+      );
 
       // Restore original style
       element.style.display = originalDisplay;
-      element.style.position = "";
-      element.style.left = "";
-      element.style.top = "";
+      element.style.visibility = originalVisibility;
     }
 
     pdf.save("dashboard_statistics.pdf");

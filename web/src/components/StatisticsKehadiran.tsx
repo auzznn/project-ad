@@ -97,8 +97,8 @@ const DISTRIBUTION_COLOR_MAP: Record<string, string> = {
       ],
     },
     options: {
-      responsive: false,
-      maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: true,
       plugins: {
         legend: { position: "bottom" },
       },
@@ -143,8 +143,8 @@ useEffect(() => {
         ],
       },
       options: {
-        responsive: false,
-        maintainAspectRatio: false,
+        responsive: true,
+        maintainAspectRatio: true,
         plugins: {
           legend: { position: "bottom" },
         },
@@ -194,13 +194,13 @@ useEffect(() => {
             {/* Status Pie */}
             <div className="chart-wrapper">
               <h4>Status Kehadiran</h4>
-              <canvas ref={pieChartRef} width={300} height={300}></canvas>
+              <canvas ref={pieChartRef}></canvas>
             </div>
 
             {/* Distribution Pie */}
             <div className="chart-wrapper">
               <h4>Taburan Kadar Kehadiran</h4>
-              <canvas ref={distributionChartRef} width={300} height={300}></canvas>
+              <canvas ref={distributionChartRef}></canvas>
             </div>
           </div>
         ) : (

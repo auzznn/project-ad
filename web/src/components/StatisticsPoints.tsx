@@ -123,6 +123,16 @@ function StatisticsPointsModule({ moduleType }: Props) {
 
     }
 
+        const colors = [
+      "#3b82f6",
+      "#10b981",
+      "#f59e0b",
+      "#ef4444",
+      "#8b5cf6",
+      "#ec4899",
+      "#22c55e",
+    ];
+
     // Tag Distribution Pie Chart
     if (
       tagDistribution &&
@@ -138,8 +148,16 @@ function StatisticsPointsModule({ moduleType }: Props) {
         (window as any)[`${moduleType}TagChart`].destroy();
       }
 
-      const labels = tagDistribution.distribution.map(d => d.tag);
-      const data = tagDistribution.distribution.map(d => d.record_count);
+      const grouped = tagDistribution.distribution.reduce<Record<string, number>>(
+        (acc, curr) => {
+          acc[curr.tag] = (acc[curr.tag] || 0) + curr.record_count;
+          return acc;
+        },
+        {}
+      );
+
+      const labels = Object.keys(grouped);
+      const data = Object.values(grouped);
 
       (window as any)[`${moduleType}TagChart`] = new window.Chart(ctx, {
         type: "pie",
@@ -148,7 +166,7 @@ function StatisticsPointsModule({ moduleType }: Props) {
           datasets: [
             {
               data,
-              backgroundColor: ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"],
+              backgroundColor: labels.map((_, i) => colors[i % colors.length]),
             },
           ],
         },

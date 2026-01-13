@@ -136,9 +136,14 @@
 }
 
 .chart-wrapper {
+  width: 320px;
+  height: 360px;
   display: flex;
   flex-direction: column;
-  align-items: center;   
-  justify-content: center;
-  text-align: center;   
+  align-items: center;
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 300px !important;
 }
