@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+
 
 // Get the correct IP address for your development machine
 // For Android emulator, use 10.0.2.2 (special alias to your host loopback interface)
@@ -23,7 +23,7 @@ import { Platform } from 'react-native';
 //   }
 // };
 
-export const baseURL = 'http://10.217.96.207:8080/api/';
+export const baseURL = 'http://backend.eduqr.cloud:8080//api/';
 
 export const API_CONFIG = {
   BASE_URL: baseURL,

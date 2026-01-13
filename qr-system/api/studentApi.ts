@@ -25,7 +25,7 @@ export interface AttendancePayload {
 
 export interface SahsiahRecord {
   timestamp: string;
-  migrate_student_id: number;
+  student_id: string;
   sahsiah_type: number;
 }
 
@@ -48,7 +48,7 @@ export interface SahsiahCategory {
 
 export interface DisciplineRecord {
   timestamp: string | null;
-  student_id: number | null;
+  student_id: string | null;
   discipline_type: number | null;
 }
 
@@ -154,16 +154,31 @@ export const studentApi = {
   // Check if student already has attendance for today
   checkAttendanceStatus: async (studentId: string): Promise<any> => {
     // Get all attendance for today and filter by student_id on the client side
-    const response = await apiRequest.get('student_attendance/daily/');
-    console.log(response)
+    let response = await apiRequest.get('student_attendance/daily/');
     
     // Create a hash map for O(1) lookups
     const attendanceMap: { [key: string]: any } = {};
-    response.entry.forEach((record: any) => {
-      if (record.student && record.student.id) {
-        attendanceMap[record.student.id.toString()] = record;
+    
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        response.entry.forEach((record: any) => {
+          if (record.student && record.student.id) {
+            attendanceMap[record.student.id.toString()] = record;
+          }
+        });
       }
-    });
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
+    }
     
     // Direct lookup for the specific student - O(1) complexity
     const studentRecord = attendanceMap[studentId] || null;
@@ -220,8 +235,27 @@ export const studentApi = {
   
   // Get sahsiah records for a specific student
   getStudentSahsiahRecords: async (studentId: string): Promise<any> => {
-    const response = await apiRequest.get(`/sahsiah/record/student/${studentId}`);
-    return response.entry || response;
+    let response = await apiRequest.get(`/sahsiah/record/student/${studentId}`);
+    const allRecords: any[] = [];
+    
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        allRecords.push(...response.entry);
+      }
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
+    }
+    
+    return allRecords;
   },
   
   // Record RMT for a student
@@ -237,18 +271,30 @@ export const studentApi = {
   
   // Check if student already has RMT for today
   checkRMTStatus: async (studentId: string): Promise<any> => {
-    const response = await apiRequest.get('rmt/daily/');
+    let response = await apiRequest.get('rmt/daily/');
     
     // Create a hash map for O(1) lookups
     const rmtMap: { [key: string]: any } = {};
     
-    // Check if response.entry exists and is an array
-    if (response && Array.isArray(response)) {
-      response.forEach((record: any) => {
-        if (record.student && record.student.id) {
-          rmtMap[record.student.id.toString()] = record;
-        }
-      });
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        response.entry.forEach((record: any) => {
+          if (record.student && record.student.id) {
+            rmtMap[record.student.id.toString()] = record;
+          }
+        });
+      }
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
     }
     
     // Direct lookup for the specific student - O(1) complexity
@@ -276,21 +322,24 @@ export const studentApi = {
   },
   
   // Get leaderboard data from sahsiah/leaderboard/
-  getLeaderboard: async (): Promise<any> => {
-    const response = await apiRequest.get('/sahsiah/leaderboard/');
-    return response.entry;
+  getLeaderboard: async (url?: string): Promise<any> => {
+    const requestUrl = url || '/sahsiah/leaderboard/';
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get leaderboard data filtered by grade from sahsiah/leaderboard/{grade}
-  getLeaderboardByGrade: async (grade: string): Promise<any> => {
-    const response = await apiRequest.get(`/sahsiah/leaderboard/${grade}`);
-    return response.entry;
+  getLeaderboardByGrade: async (grade: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/sahsiah/leaderboard/${grade}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get leaderboard data filtered by grade and section from sahsiah/leaderboard/{grade}/{section}
-  getLeaderboardByGradeAndSection: async (grade: string, section: string): Promise<any> => {
-    const response = await apiRequest.get(`/sahsiah/leaderboard/${grade}/${section}`);
-    return response.entry;
+  getLeaderboardByGradeAndSection: async (grade: string, section: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/sahsiah/leaderboard/${grade}/${section}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Record discipline for a student
@@ -300,8 +349,27 @@ export const studentApi = {
   
   // Get discipline records for a specific student
   getStudentDisciplineRecords: async (): Promise<any> => {
-    const response = await apiRequest.get(`/discipline/record/`);
-    return response.entry || response;
+    let response = await apiRequest.get(`/discipline/record/`);
+    const allRecords: any[] = [];
+    
+    // Loop through all pages if pagination exists
+    while (response) {
+      // Process current page's entries
+      if (response.entry && Array.isArray(response.entry)) {
+        allRecords.push(...response.entry);
+      }
+      
+      // Check if there's a next page
+      if (response.links && response.links.next) {
+        // Fetch the next page
+        response = await apiRequest.get(response.links.next);
+      } else {
+        // No more pages, exit the loop
+        break;
+      }
+    }
+    
+    return allRecords;
   },
   
   // Get discipline types from API
@@ -316,21 +384,24 @@ export const studentApi = {
   },
   
   // Get discipline leaderboard data from discipline/leaderboard/
-  getDisciplineLeaderboard: async (): Promise<any> => {
-    const response = await apiRequest.get('/discipline/leaderboard/');
-    return response.entry;
+  getDisciplineLeaderboard: async (url?: string): Promise<any> => {
+    const requestUrl = url || '/discipline/leaderboard/';
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get discipline leaderboard data filtered by grade from discipline/leaderboard/{grade}
-  getDisciplineLeaderboardByGrade: async (grade: string): Promise<any> => {
-    const response = await apiRequest.get(`/discipline/leaderboard/${grade}`);
-    return response.entry;
+  getDisciplineLeaderboardByGrade: async (grade: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/discipline/leaderboard/${grade}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
   // Get discipline leaderboard data filtered by grade and section from discipline/leaderboard/{grade}/{section}
-  getDisciplineLeaderboardByGradeAndSection: async (grade: string, section: string): Promise<any> => {
-    const response = await apiRequest.get(`/discipline/leaderboard/${grade}/${section}`);
-    return response.entry;
+  getDisciplineLeaderboardByGradeAndSection: async (grade: string, section: string, url?: string): Promise<any> => {
+    const requestUrl = url || `/discipline/leaderboard/${grade}/${section}`;
+    const response = await apiRequest.get(requestUrl);
+    return response;
   },
   
 };

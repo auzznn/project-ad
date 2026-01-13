@@ -7,9 +7,11 @@ import ModalManager from "../components/ModalManager";
 import { useQRScanner } from "../hooks/useQRScanner";
 import { useStudentData } from "../hooks/useStudentData";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { useTranslation } from "../hooks/useTranslation";
 
 
 export default function scanner() {
+  const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<"back" | "front">("back");
   const [student, setStudent] = useState<Student | null>(null);
@@ -87,7 +89,7 @@ export default function scanner() {
   if (!permission) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.message}>Loading camera permissions...</Text>
+        <Text style={styles.message}>{t('loading')}</Text>
       </SafeAreaView>
     );
   }
@@ -96,9 +98,9 @@ export default function scanner() {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.message}>
-          We need your permission to show the camera
+          {t('scanner')}
         </Text>
-        <Button onPress={requestPermission} title="Grant Permission" />
+        <Button onPress={requestPermission} title={t('loginButton')} />
       </SafeAreaView>
     );
   }

@@ -4,11 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Ionicons } from "@expo/vector-icons";
 import { studentApi } from "@/api/studentApi";
 import { ParentOnly } from "@/components/RoleBasedUI";
 
 export default function TabIndex() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuth();
   const [childrenData, setChildrenData] = useState<any[]>([]);
@@ -19,11 +21,11 @@ export default function TabIndex() {
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
-      return "Good Morning";
+      return t('goodMorning');
     } else if (hour >= 12 && hour < 18) {
-      return "Good Afternoon";
+      return t('goodAfternoon');
     } else {
-      return "Good Evening";
+      return t('goodEvening');
     }
   };
 
@@ -110,7 +112,7 @@ export default function TabIndex() {
     // Only add scan action for admin/teacher
     if (user?.role === "admin" || user?.role === "teacher") {
       baseActions.push({
-        title: "Scan QR Code",
+        title: t('scanQRCode'),
         icon: "qr-code-outline",
         onPress: async () => router.push("/scanner"),
         primary: true,
@@ -162,7 +164,7 @@ export default function TabIndex() {
               {user?.first_name} {user?.last_name}!
             </Text>
             <Text className="text-base" style={{ color: mutedColor }}>
-              Welcome back to your dashboard
+              {t('welcomeBack')}
             </Text>
           </View>
         </View>
@@ -183,7 +185,7 @@ export default function TabIndex() {
               className="text-xl font-semibold mb-4 px-5"
               style={{ color: textColor }}
             >
-              Quick Actions
+              {t('quickActions')}
             </Text>
             <View className="px-5">
               {quickActions.map((action, index) => (
@@ -223,7 +225,7 @@ export default function TabIndex() {
                 className="text-xl font-semibold"
                 style={{ color: textColor }}
               >
-                My Children
+                {t('myChildren')}
               </Text>
               <TouchableOpacity
                 className="p-2 rounded-full"
@@ -252,7 +254,7 @@ export default function TabIndex() {
                     className="text-center py-4"
                     style={{ color: mutedColor }}
                   >
-                    Loading children data...
+                    {t('loadingChildrenData')}
                   </Text>
                 ) : childrenData.length > 0 ? (
                   childrenData.map((child, index) => (
@@ -285,7 +287,7 @@ export default function TabIndex() {
                               className="text-sm"
                               style={{ color: mutedColor }}
                             >
-                              Class: {child.grade}
+                              {t('class')}: {child.grade}
                             </Text>
                           </View>
                         </View>
@@ -309,7 +311,7 @@ export default function TabIndex() {
                             className="text-xs opacity-70"
                             style={{ color: mutedColor }}
                           >
-                            Last seen: {child.lastSeen}
+                            {t('lastSeen')}: {child.lastSeen}
                           </Text>
                         </View>
                       </View>
@@ -320,7 +322,7 @@ export default function TabIndex() {
                     className="text-center py-4"
                     style={{ color: mutedColor }}
                   >
-                    No children data available
+                    {t('noChildrenDataAvailable')}
                   </Text>
                 )}
               </ScrollView>

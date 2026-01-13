@@ -78,7 +78,7 @@ export const useStudentData = () => {
         showAlert("Attendance already marked", "info");
         return;
       }
-
+      
       // Mark attendance
       const attendancePayload: AttendancePayload = {
         id: student.id,
@@ -198,11 +198,12 @@ export const useStudentData = () => {
     setLoading((prev) => ({ ...prev, sahsiah: true }));
     try {
       const timestamp = getKualaLumpurTimestamp();
+      console.log(timestamp)
 
       // Create sahsiah record for API
       const sahsiahRecord = {
         timestamp: timestamp,
-        migrate_student_id: parseInt(student.id),
+        student_id: student.id,
         sahsiah_type: sahsiahType,
       };
 
@@ -252,7 +253,7 @@ export const useStudentData = () => {
       // Create discipline record for API with exact payload structure
       const disciplineRecord = {
         timestamp: timestamp,
-        student_id: parseInt(student.id),
+        student_id: student.id,
         discipline_type: disciplineType,
       };
 

@@ -1,39 +1,44 @@
 import { Stack } from "expo-router";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import "../global.css";
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-          }}
-          initialRouteName="index"
-        >
-          <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="login"
-            options={{
-              presentation: "modal",
+        <LanguageProvider>
+          <Stack
+            screenOptions={{
               headerShown: false,
-              gestureEnabled: true,
-              animation: "slide_from_bottom",
-              contentStyle: { backgroundColor: 'transparent' },
             }}
-          />
+            initialRouteName="index"
+          >
             <Stack.Screen
-            name="scanner"
-            options={{
-              headerShown: false,
-              presentation: 'modal'
-            }}
-          />
-
-        </Stack>
+              name="(onboarding)"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="login"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+                gestureEnabled: true,
+                animation: "slide_from_bottom",
+                contentStyle: { backgroundColor: "transparent" },
+              }}
+            />
+            <Stack.Screen
+              name="scanner"
+              options={{
+                headerShown: false,
+                presentation: "modal",
+              }}
+            />
+          </Stack>
+        </LanguageProvider>
       </AuthProvider>
     </ThemeProvider>
   );

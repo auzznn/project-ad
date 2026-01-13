@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/hooks/useTranslation";
 import { studentApi } from "@/api/studentApi";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +16,7 @@ import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const router = useRouter();
   const [children, setChildren] = useState<any[]>([]);
@@ -44,14 +46,14 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t('logout'), t('logoutConfirmation'), [
+      { text: t('cancel'), style: "cancel" },
       {
-        text: "Logout",
+        text: t('logout'),
         style: "destructive",
         onPress: async () => {
           await logout();
-          router.replace("/login");
+          router.replace("/(onboarding)");
         },
       },
     ]);
@@ -59,10 +61,10 @@ export default function ProfileScreen() {
 
   const getRoleDisplayName = (role: string) => {
     const roleNames: { [key: string]: string } = {
-      admin: "Administrator",
-      teacher: "Teacher",
-      parent: "Parent",
-      student: "Student",
+      admin: t('administrator'),
+      teacher: t('teacher'),
+      parent: t('parent'),
+      student: t('student'),
     };
     return roleNames[role] || role.charAt(0).toUpperCase() + role.slice(1);
   };
@@ -71,7 +73,7 @@ export default function ProfileScreen() {
     return (
       <View style={[styles.container, { backgroundColor }, styles.centered]}>
         <Text style={[styles.loadingText, { color: textColor }]}>
-          No user data available
+          {t('noUserDataAvailable')}
         </Text>
       </View>
     );
@@ -103,13 +105,13 @@ export default function ProfileScreen() {
           style={[styles.section, { backgroundColor: cardColor, borderColor }]}
         >
           <Text style={[styles.sectionTitle, { color: textColor }]}>
-            Account Information
+            {t('accountInformation')}
           </Text>
 
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={20} color={textColor} />
             <Text style={[styles.infoLabel, { color: textColor }]}>
-              Full Name
+              {t('fullName')}
             </Text>
             <Text style={[styles.infoValue, { color: textColor }]}>
               {user?.first_name} {user?.last_name}
@@ -130,29 +132,29 @@ export default function ProfileScreen() {
           style={[styles.section, { backgroundColor: cardColor, borderColor }]}
         >
           <Text style={[styles.sectionTitle, { color: textColor }]}>
-            Actions
+            {t('actions')}
           </Text>
 
           <TouchableOpacity
             style={[styles.actionButton, { borderColor }]}
             onPress={() =>
-              Alert.alert("Settings", "Settings page coming soon!")
+              router.push("/language")
             }
           >
             <Ionicons name="settings-outline" size={20} color={textColor} />
             <Text style={[styles.actionText, { color: textColor }]}>
-              Settings
+              {t('changeLanguage')}
             </Text>
             <Ionicons name="chevron-forward" size={20} color={textColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.actionButton, { borderColor }]}
-            onPress={() => Alert.alert("Help", "Help page coming soon!")}
+            onPress={() => Alert.alert(t('helpAndSupport'), t('helpComingSoon'))}
           >
             <Ionicons name="help-circle-outline" size={20} color={textColor} />
             <Text style={[styles.actionText, { color: textColor }]}>
-              Help & Support
+              {t('helpAndSupport')}
             </Text>
             <Ionicons name="chevron-forward" size={20} color={textColor} />
           </TouchableOpacity>
@@ -162,7 +164,7 @@ export default function ProfileScreen() {
             onPress={handleLogout}
           >
             <Ionicons name="log-out-outline" size={20} color="#ef4444" />
-            <Text style={[styles.actionText, styles.logoutText]}>Logout</Text>
+            <Text style={[styles.actionText, styles.logoutText]}>{t('logout')}</Text>
             <Ionicons name="chevron-forward" size={20} color="#ef4444" />
           </TouchableOpacity>
         </View>
