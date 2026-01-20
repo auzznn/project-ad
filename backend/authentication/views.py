@@ -44,6 +44,7 @@ class MyUserView(ModelViewSet):
 class StudentView(ModelViewSet):
     queryset = MigrateStudent.objects.all()
     parser_classes = [parsers.MultiPartParser, parsers.JSONParser]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -146,3 +147,4 @@ class StudentView(ModelViewSet):
 class ClassroomView(ModelViewSet):
     queryset = Classroom.objects.all()
     serializer_class = ClassroomSerializer
+    permission_classes = [IsAuthenticated]

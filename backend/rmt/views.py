@@ -1,4 +1,5 @@
 from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated
 from django.db.models.functions import ExtractWeekDay, ExtractMonth, ExtractDay
 from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max
 from django.conf import settings
@@ -27,6 +28,7 @@ class RMTView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = RMTRecord.objects.all().order_by("-date")
     serializer_class = RMTRecordSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == "record":
@@ -51,6 +53,7 @@ class RMTView(viewsets.GenericViewSet, mixins.ListModelMixin):
 class RMTStatisticView(viewsets.GenericViewSet):
     queryset = RMTRecord.objects.all()
     now = set_timezone(timezone.now())
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == self.list_rmt_student.__name__:

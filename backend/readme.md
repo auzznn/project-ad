@@ -7,6 +7,7 @@ The backend is built using **Django** and **Django REST Framework (DRF)**, provi
 - 📋 Student Attendance
 - 🍱 RMT (Rancangan Makanan Tambahan)
 - ⭐ Sahsiah (Student Character Evaluation)
+- ⭐ Record Discipline (Student Bad Deeds Evaluation)
 - 📊 Reporting & Analytics
 
 ---
@@ -17,52 +18,23 @@ Before starting, ensure you have the following installed:
 
 | Tool | Version | Check Command |
 |------|----------|----------------|
-| Python | 3.10+ | `python --version` |
-| pip | Latest | `pip --version` |
-| Git | Latest | `git --version` |
-| MySQL | 9.1.0 | `mysql --version` |
-
-**note**: make sure your MySQL is already running before running the django file ([How to run MySQL Server](https://phoenixnap.com/kb/start-mysql-server))
+| Docker | latest | docker version |
 
 ---
 
-## 📦 2. Create and Activate Virtual Environment
-note: make sure you already on the `backend` directory when creating or activating the virtual environment
+## 📦 2. Create docker compose
+note: make sure you already on the `project-ad` directory when creating or activating the virtual environment
+to create docker compose, simply use this command:
 
-### Create
-```bash
-python -m venv env
+```bash 
+docker compose -f compose.yaml up --build -d
 ```
+ 
+once all of the container are running, the backend will be host in `http://127.0.0.1:8080`
 
-### Activate (Windows)
-note: the following command should be run on powershell
-``` bash
-.\env\bin\activate
-```
+---
 
-### Activate (Mac/Linux)
-```bash
-source venv/bin/activate
-```
+## Note
+- if you have any issue where the docker can't find the run.sh, simply change the end of line segment of "run.sh" to LF if you are on windows
 
-## 📥 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-## 🧩 4. Run Migrations
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-## 💾 5. Loadding Dummy Data
-```bash
-python manage.py loaddata fixtures/dummydata.json
-```
-
-## 🚀 6. Run the Development Server
-```bash
-python manage.py runserver
-```
-for the development purpose, the backend will be hosted on `localhost:8000`
+---

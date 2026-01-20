@@ -8,6 +8,7 @@ from django.db.models import (
     Count,
 )
 from django.db.models.functions import Coalesce
+from rest_framework.permissions import IsAuthenticated
 
 from authentication.models import Classroom, MigrateStudent
 from .serializer import (
@@ -26,6 +27,7 @@ class StudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = StudentAttendance.objects.all()
     serializer_class = StudentAttendanceSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         endpoint_action = ["record_student_attendance"]
@@ -75,6 +77,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
 
     serializer_class = StudentAttendanceSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     @action(
         detail=False, methods=["get"], url_path=r"(?P<grade>[0-9]+)/(?P<section>[^/.]+)"
@@ -154,6 +157,7 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
 
     queryset = StudentAttendance.objects.all()
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         view = [

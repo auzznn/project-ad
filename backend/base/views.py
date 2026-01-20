@@ -1,3 +1,4 @@
+from rest_framework.permissions import IsAuthenticated
 from django.urls import get_resolver
 from django.shortcuts import render
 from django.db.models import F, Count, Sum
@@ -18,6 +19,7 @@ class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
     order_ascending = True
     serializer_class = GeneralLeaderboardSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
     
     def create_ranking_student(self, queryset=None):
         if not queryset:
@@ -79,6 +81,7 @@ class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
 class GeneralMeritAnalyticView(viewsets.GenericViewSet):
     record_type = None
     student_id = None
+    permission_classes = [IsAuthenticated]
 
     def get_tag_summary(self):
         return (

@@ -1,3 +1,4 @@
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -20,12 +21,14 @@ class DisciplineTypeView(viewsets.ModelViewSet):
     queryset = DisciplineType.objects.all()
     serializer_class = DisciplineTypeSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
 
 class DisciplineRecordView(viewsets.ModelViewSet):
     queryset = DisciplineRecord.objects.all()
     serializer_class = DisciplineRecordSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
     
     @action(detail=False, methods=["get"], url_path=r"student/(?P<student_id>[0-9]+)")
     def retrieve_by_student(self, request: Request, student_id: int, *args, **kwargs):
