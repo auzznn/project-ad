@@ -132,7 +132,7 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
       // Show success message to user
       Alert.alert(
         'Discipline Issue Recorded!',
-        `${selectedViolation.violation.name} has been recorded for ${student.name}. -${selectedViolation.violation.points} points deducted.`,
+        `${selectedViolation.violation.name} has been recorded for ${student.name}. ${selectedViolation.violation.points} points deducted.`,
         [{ text: 'OK', onPress: () => {
           // Reset form state after successful submission
           setShowConfirmation(false);
@@ -214,7 +214,7 @@ export default function DisciplineForm({ student, onSubmit, onCancel, loading = 
             >
               <View style={styles.violationLeft}>
                 <Text style={[styles.violationName, { color: textColor }]}>{type.name}</Text>
-                <Text style={[styles.violationPoints, { color: dangerColor }]}>-{type.points} points</Text>
+                <Text style={[styles.violationPoints, { color: dangerColor }]}>{type.points} points</Text>
               </View>
               <View style={styles.violationRight}>
                 <Ionicons name="chevron-forward" size={14} color={mutedColor} />

@@ -1,13 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Ionicons } from '@expo/vector-icons';
 import { studentApi, StudentDetails } from '@/api/studentApi';
 
+// Memoized activity item component to prevent unnecessary re-renders
+const ActivityItem = memo(({
+  activity,
+  textColor,
+  mutedColor,
+  successColor,
+  errorColor,
+  getActivityIcon,
+  getActivityColor,
+  t
+}: {
+  activity: any;
+  textColor: string;
+  mutedColor: string;
+  successColor: string;
+  errorColor: string;
+  getActivityIcon: (type: string) => string;
+  getActivityColor: (type: string) => string;
+  t: (key: string) => string;
+}) => {
+  return (
+    <View className="flex-row items-center mb-3 p-3 rounded-xl" style={{ borderWidth: 1, borderColor: mutedColor }}>
+      <View
+        className="w-10 h-10 rounded-full justify-center items-center mr-3"
+        style={{ backgroundColor: getActivityColor(activity.type) }}
+      >
+        <Ionicons
+          name={getActivityIcon(activity.type) as any}
+          size={18}
+          color="white"
+        />
+      </View>
+      <View className="flex-1">
+        <Text className="text-base font-medium" style={{ color: textColor }}>
+          {activity.description}
+        </Text>
+        <View className="flex-row items-center">
+          <Text className="text-sm" style={{ color: mutedColor }}>
+            {activity.date}
+          </Text>
+          {activity.points !== undefined && (
+            <Text className="text-sm ml-2 font-medium" style={{
+              color: activity.type === 'sahsiah' ? successColor : errorColor
+            }}>
+              {activity.type === 'sahsiah' ? '+' : ''}{activity.points} {t('points')}
+            </Text>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+});
+
 
 export default function StudentDetailsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
   
@@ -26,175 +81,201 @@ export default function StudentDetailsScreen() {
   const [student, setStudent] = useState<StudentDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load student data from API
+  // Load student data from API - Optimized with parallel calls
   useEffect(() => {
     const loadStudentDetails = async () => {
       try {
         setLoading(true);
         
-        // Fetch student data from API
+        console.log('[StudentDetails] Loading student details for ID:', studentId);
+        
+        // Fetch student data from API first
         const studentData: any = await studentApi.getStudentDetails(studentId);
+        console.log('[StudentDetails] Student data received:', studentData);
         
         // Extract grade and section from student data
         const grade = studentData.grade || studentData.class || 'N/A';
         const section = studentData.section || 'N/A';
         
-        // Fetch sahsiah points from leaderboard API using grade and section
-        let sahsiahPoints = 0;
+        // Prepare parallel API calls
+        const apiPromises: Promise<any>[] = [];
         
+        console.log('[StudentDetails] Grade:', grade, 'Section:', section);
+        
+        // Add leaderboard calls if grade and section are available
         if (grade !== 'N/A' && section !== 'N/A') {
-          try {
-            const leaderboardData = await studentApi.getLeaderboardByGradeAndSection(grade, section);
-            
-            // Find the student in the leaderboard data
-            const studentEntry = leaderboardData?.find((entry: any) =>
-              entry.student_id?.toString() === studentId
-            );
-            
-            if (studentEntry) {
-              sahsiahPoints = studentEntry.point || 0;
-            }
-          } catch (sahsiahError) {
-            // Use default values if API call fails
-            sahsiahPoints = studentData.sahsiah?.points || 0;
-          }
+          apiPromises.push(
+            studentApi.getLeaderboardByGradeAndSection(grade, section)
+              .catch((error) => {
+                console.error('[StudentDetails] Leaderboard API error:', error);
+                return null;
+              })
+          );
+          apiPromises.push(
+            studentApi.getDisciplineLeaderboardByGradeAndSection(grade, section)
+              .catch((error) => {
+                console.error('[StudentDetails] Discipline leaderboard API error:', error);
+                return null;
+              })
+          );
+        }
+        
+        // Add other API calls
+        apiPromises.push(
+          studentApi.getSahsiahTypes()
+            .catch((error) => {
+              console.error('[StudentDetails] Sahsiah types API error:', error);
+              return [];
+            }),
+          studentApi.getStudentSahsiahRecords(studentId)
+            .catch((error) => {
+              console.error('[StudentDetails] Sahsiah records API error:', error);
+              return [];
+            }),
+          studentApi.getDisciplineTypes()
+            .catch((error) => {
+              console.error('[StudentDetails] Discipline types API error:', error);
+              return [];
+            }),
+          studentApi.getStudentDisciplineRecords()
+            .catch((error) => {
+              console.error('[StudentDetails] Discipline records API error:', error);
+              return [];
+            }),
+          studentApi.getAttendanceStatistics(new Date().getFullYear().toString())
+            .catch((error) => {
+              console.error('[StudentDetails] Attendance stats API error:', error);
+              return [];
+            }),
+          studentApi.getRMTStatistics()
+            .catch((error) => {
+              console.error('[StudentDetails] RMT stats API error:', error);
+              return [];
+            })
+        );
+        
+        // Execute all API calls in parallel
+        const [
+          leaderboardData,
+          disciplineLeaderboardData,
+          sahsiahTypes,
+          sahsiahRecords,
+          disciplineTypes,
+          disciplineRecords,
+          attendanceStats,
+          rmtStats
+        ] = await Promise.all(apiPromises);
+        
+        // Process sahsiah points
+        let sahsiahPoints = 0;
+        if (grade !== 'N/A' && section !== 'N/A' && leaderboardData) {
+          // Handle both array and object responses with entry property
+          const leaderboardArray = Array.isArray(leaderboardData)
+            ? leaderboardData
+            : (leaderboardData?.entry || []);
+          
+          console.log('[StudentDetails] Leaderboard array:', leaderboardArray);
+          
+          const studentEntry = leaderboardArray?.find((entry: any) =>
+            entry.student_id?.toString() === studentId
+          );
+          sahsiahPoints = studentEntry?.point || studentData.sahsiah?.points || 0;
         } else {
-          // Use default values if grade or section is not available
           sahsiahPoints = studentData.sahsiah?.points || 0;
         }
         
-        // Fetch discipline points from leaderboard API using grade and section
+        // Process discipline points
         let disciplinePoints = 0;
         let disciplineIncidents = 0;
-        
-        if (grade !== 'N/A' && section !== 'N/A') {
-          try {
-            const disciplineLeaderboardData = await studentApi.getDisciplineLeaderboardByGradeAndSection(grade, section);
-            
-            // Find the student in the discipline leaderboard data
-            const disciplineStudentEntry = disciplineLeaderboardData?.find((entry: any) =>
-              entry.student_id?.toString() === studentId
-            );
-            
-            if (disciplineStudentEntry) {
-              disciplinePoints = disciplineStudentEntry.point || 0;
-            }
-          } catch (disciplineError) {
-            // Use default values if API call fails
-            disciplinePoints = studentData.discipline?.points || 0;
-            disciplineIncidents = studentData.discipline?.incidents || 0;
-          }
+        if (grade !== 'N/A' && section !== 'N/A' && disciplineLeaderboardData) {
+          // Handle both array and object responses with entry property
+          const disciplineLeaderboardArray = Array.isArray(disciplineLeaderboardData)
+            ? disciplineLeaderboardData
+            : (disciplineLeaderboardData?.entry || []);
+          
+          console.log('[StudentDetails] Discipline leaderboard array:', disciplineLeaderboardArray);
+          
+          const disciplineStudentEntry = disciplineLeaderboardArray?.find((entry: any) =>
+            entry.student_id?.toString() === studentId
+          );
+          disciplinePoints = disciplineStudentEntry?.point || studentData.discipline?.points || 0;
+          disciplineIncidents = studentData.discipline?.incidents || 0;
         } else {
-          // Use default values if grade or section is not available
           disciplinePoints = studentData.discipline?.points || 0;
           disciplineIncidents = studentData.discipline?.incidents || 0;
         }
         
-        // Fetch sahsiah records for recent activity
+        // Process recent activity - Optimize with type maps
         let recentActivity: any[] = [];
-        try {
-          // Fetch sahsiah types to get type information
-          const sahsiahTypes = await studentApi.getSahsiahTypes();
-          
-          // Create a map of sahsiah_type id to type information
-          const sahsiahTypeMap = new Map<number, any>();
-          sahsiahTypes.forEach((type: any) => {
-            sahsiahTypeMap.set(type.id, type);
-          });
-          
-          // Fetch sahsiah records for the student
-          const sahsiahRecords = await studentApi.getStudentSahsiahRecords(studentId);
-          
-          // Transform sahsiah records to recent activity format using sahsiah_type key
-          if (Array.isArray(sahsiahRecords)) {
-            recentActivity = sahsiahRecords.map((record: any) => {
-              const typeId = record.sahsiah_type;
-              const typeInfo = sahsiahTypeMap.get(typeId);
-              const timestamp = record.timestamp ? new Date(record.timestamp).getTime() : 0;
-              
-              return {
-                type: 'sahsiah' as const,
-                description: typeInfo?.name || 'Sahsiah Record',
-                date: record.timestamp ? new Date(record.timestamp).toLocaleString() : 'Unknown',
-                timestamp: timestamp,
-                points: typeInfo?.points || 0
-              };
-            });
-          }
-        } catch (sahsiahRecordsError) {
-          // Use default recent activity if API call fails
-          recentActivity = studentData.recentActivity || [];
-        }
         
-        // Fetch discipline records for recent activity
-        try {
-          // Fetch discipline types to get type information
-          const disciplineTypes = await studentApi.getDisciplineTypes();
-          
-          // Create a map of discipline_type id to type information
-          const disciplineTypeMap = new Map<number, any>();
-          disciplineTypes.forEach((type: any) => {
-            disciplineTypeMap.set(type.id, type);
-          });
-          
-          // Fetch discipline records for the student
-          const disciplineRecords = await studentApi.getStudentDisciplineRecords();
-          
-          const studentDiscipline = Array.isArray(disciplineRecords) ? disciplineRecords.filter((record: any) => {
-                        return record.student_id?.toString() === studentId;
-
-          }) : [];
-          
-          // Transform discipline records to recent activity format
-          if (Array.isArray(studentDiscipline)) {
-            const disciplineActivities = studentDiscipline.map((record: any) => {
-              const typeId = record.discipline_type;
-              const typeInfo = disciplineTypeMap.get(typeId);
-              const timestamp = record.timestamp ? new Date(record.timestamp).getTime() : 0;
-              
-              return {
-                type: 'discipline' as const,
-                description: typeInfo?.name || 'Discipline Record',
-                date: record.timestamp ? new Date(record.timestamp).toLocaleString() : 'Unknown',
-                timestamp: timestamp,
-                points: typeInfo?.points || 0
-              };
-            });
+        // Create type maps for efficient lookup
+        const sahsiahTypeMap = new Map<number, any>();
+        sahsiahTypes?.forEach((type: any) => sahsiahTypeMap.set(type.id, type));
+        
+        const disciplineTypeMap = new Map<number, any>();
+        disciplineTypes?.forEach((type: any) => disciplineTypeMap.set(type.id, type));
+        
+        // Process sahsiah records
+        if (Array.isArray(sahsiahRecords)) {
+          recentActivity = sahsiahRecords.map((record: any) => {
+            const typeInfo = sahsiahTypeMap.get(record.sahsiah_type);
+            const dateObj = record.timestamp ? new Date(record.timestamp) : null;
+            const timestamp = dateObj ? dateObj.getTime() : 0;
             
-            // Combine sahsiah and discipline activities, sorted by timestamp
-            recentActivity = [...recentActivity, ...disciplineActivities].sort((a, b) => {
-              return (b.timestamp || 0) - (a.timestamp || 0);
-            });
-          }
-        } catch (disciplineRecordsError) {
-          // If discipline records fail, continue with only sahsiah activities
+            return {
+              type: 'sahsiah' as const,
+              description: typeInfo?.name || 'Sahsiah Record',
+              date: dateObj ? dateObj.toLocaleString() : 'Unknown',
+              timestamp,
+              points: typeInfo?.points || 0
+            };
+          });
         }
         
-        // Fetch attendance statistics to get detailed information
+        // Process discipline records
+        if (Array.isArray(disciplineRecords)) {
+          const studentDiscipline = disciplineRecords.filter((record: any) =>
+            record.student_id?.toString() === studentId
+          );
+          
+          const disciplineActivities = studentDiscipline.map((record: any) => {
+            const typeInfo = disciplineTypeMap.get(record.discipline_type);
+            const dateObj = record.timestamp ? new Date(record.timestamp) : null;
+            const timestamp = dateObj ? dateObj.getTime() : 0;
+            
+            return {
+              type: 'discipline' as const,
+              description: typeInfo?.name || 'Discipline Record',
+              date: dateObj ? dateObj.toLocaleString() : 'Unknown',
+              timestamp,
+              points: typeInfo?.points || 0
+            };
+          });
+          
+          // Combine and sort activities
+          recentActivity = [...recentActivity, ...disciplineActivities].sort((a, b) =>
+            (b.timestamp || 0) - (a.timestamp || 0)
+          );
+        }
+        
+        // Process attendance statistics
         let attendanceData = {
           present: 0,
           absent: 0,
           late: 0,
           rate: 0
         };
-        try {
-          const currentYear = new Date().getFullYear().toString();
-          const attendanceStats = await studentApi.getAttendanceStatistics(currentYear);
-          
-          // Filter attendance records for the current student
-          const studentAttendance = Array.isArray(attendanceStats) ? attendanceStats.find((record: any) =>
+        if (Array.isArray(attendanceStats)) {
+          const studentAttendance = attendanceStats.find((record: any) =>
             record.student_id?.toString() === studentId
-          ) : null;
-          
-          // Calculate attendance statistics
+          );
           attendanceData = {
-            present: studentAttendance?.present,
-            absent: studentAttendance?.absent,
-            late: studentAttendance?.late,
-            rate: studentAttendance?.attendance_rate * 100
+            present: studentAttendance?.present ?? studentData.attendance?.present ?? 0,
+            absent: studentAttendance?.absent ?? studentData.attendance?.absent ?? 0,
+            late: studentAttendance?.late ?? studentData.attendance?.late ?? 0,
+            rate: (studentAttendance?.attendance_rate ?? 0) * 100
           };
-        } catch (attendanceStatsError) {
-          // Use default values if API call fails
+        } else {
           attendanceData = {
             present: studentData.attendance?.present || 0,
             absent: studentData.attendance?.absent || 0,
@@ -203,31 +284,26 @@ export default function StudentDetailsScreen() {
           };
         }
         
-        // Fetch RMT statistics to get last claim
+        // Process RMT statistics
         let rmtLastClaim = 'Never';
-        try {
-          const rmtStats = await studentApi.getRMTStatistics();
-          
-          // Find the student in the RMT statistics array
-          const studentRMT = Array.isArray(rmtStats) ? rmtStats.find((stat: any) =>
+        if (Array.isArray(rmtStats)) {
+          const studentRMT = rmtStats.find((stat: any) =>
             stat.student_id?.toString() === studentId
-          ) : null;
-          
-          // Extract last claim date from RMT statistics using latest_present
-          if (studentRMT && studentRMT.latest_present) {
+          );
+          if (studentRMT?.latest_present) {
             rmtLastClaim = new Date(studentRMT.latest_present).toLocaleDateString('en-MY');
           }
-        } catch (rmtStatsError) {
-          // Use default value if API call fails
+        } else {
           rmtLastClaim = studentData.rmt?.lastClaim || 'Never';
         }
+        
         
         // Transform the API response to match our expected structure
         const transformedData: StudentDetails = {
           id: studentData.id || studentId,
           name: studentData.name || studentData.username || 'Unknown',
-          grade: grade,
-          section: section,
+          grade,
+          section,
           attendance: attendanceData,
           discipline: {
             points: disciplinePoints,
@@ -242,24 +318,29 @@ export default function StudentDetailsScreen() {
             claimed: studentData.rmt?.claimed || false,
             lastClaim: rmtLastClaim
           },
-          recentActivity: recentActivity
+          recentActivity
         };
         
         setStudent(transformedData);
         setLoading(false);
         
       } catch (error) {
+        console.error('[StudentDetails] Error loading student details:', error);
         setLoading(false);
-        Alert.alert('Error', 'Failed to load student details');
+        Alert.alert(t('error'), t('somethingWentWrong'));
       }
     };
 
     if (studentId) {
       loadStudentDetails();
+    } else {
+      console.error('[StudentDetails] No studentId provided');
+      setLoading(false);
     }
-  }, [studentId]);
+  }, [studentId, t]);
 
-  const getActivityIcon = (type: string) => {
+  // Memoize callback functions to prevent unnecessary re-renders
+  const getActivityIcon = useCallback((type: string) => {
     switch (type) {
       case 'attendance':
         return 'checkmark-circle';
@@ -272,9 +353,9 @@ export default function StudentDetailsScreen() {
       default:
         return 'ellipse';
     }
-  };
+  }, []);
 
-  const getActivityColor = (type: string) => {
+  const getActivityColor = useCallback((type: string) => {
     switch (type) {
       case 'attendance':
         return successColor;
@@ -287,7 +368,7 @@ export default function StudentDetailsScreen() {
       default:
         return mutedColor;
     }
-  };
+  }, [successColor, primaryColor, warningColor, mutedColor]);
 
   if (loading) {
     return (
@@ -295,7 +376,7 @@ export default function StudentDetailsScreen() {
         <View className="flex-1 justify-center items-center">
           <Ionicons name="refresh" size={40} color={mutedColor} />
           <Text className="mt-4 text-base" style={{ color: mutedColor }}>
-            Loading student details...
+            {t('loading')}
           </Text>
         </View>
       </SafeAreaView>
@@ -308,14 +389,14 @@ export default function StudentDetailsScreen() {
         <View className="flex-1 justify-center items-center px-5">
           <Ionicons name="alert-circle" size={40} color={mutedColor} />
           <Text className="mt-4 text-lg text-center" style={{ color: mutedColor }}>
-            Student not found
+            {t('noDataAvailable')}
           </Text>
           <TouchableOpacity
             className="mt-4 px-6 py-3 rounded-xl"
             style={{ backgroundColor: primaryColor }}
             onPress={() => router.back()}
           >
-            <Text className="text-white font-semibold">Go Back</Text>
+            <Text className="text-white font-semibold">{t('cancel')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -338,7 +419,7 @@ export default function StudentDetailsScreen() {
                 {student.name}
               </Text>
               <Text className="text-base opacity-80" style={{ color: mutedColor }}>
-                Class {student.grade} • {student.section}
+                {t('class')} {student.grade} • {student.section}
               </Text>
             </View>
             <TouchableOpacity
@@ -357,10 +438,10 @@ export default function StudentDetailsScreen() {
             <View className="w-[30%] rounded-2xl p-4 items-center shadow-sm border" style={{ backgroundColor: cardColor, borderColor }}>
               <Ionicons name="checkmark-circle" size={24} color={successColor} />
               <Text className="text-2xl font-bold mt-2 mb-1" style={{ color: textColor }}>
-                {student.attendance.rate}%
+                {student.attendance.rate.toFixed(2)}%
               </Text>
               <Text className="text-xs text-center" style={{ color: mutedColor }}>
-                Attendance Rate
+                {t('attendance')} Rate
               </Text>
             </View>
             
@@ -370,17 +451,17 @@ export default function StudentDetailsScreen() {
                 {student.sahsiah.points}
               </Text>
               <Text className="text-xs text-center" style={{ color: mutedColor }}>
-                Sahsiah Points
+                {t('sahsiah')} {t('points')}
               </Text>
             </View>
             
             <View className="w-[30%] rounded-2xl p-4 items-center shadow-sm border" style={{ backgroundColor: cardColor, borderColor }}>
               <Ionicons name="warning" size={24} color={warningColor} />
               <Text className="text-2xl font-bold mt-2 mb-1" style={{ color: textColor }}>
-                - {student.discipline.points}
+                {student.discipline.points}
               </Text>
               <Text className="text-xs text-center" style={{ color: mutedColor }}>
-                Discipline Points
+                {t('discipline')} {t('points')}
               </Text>
             </View>
           </View>
@@ -390,24 +471,24 @@ export default function StudentDetailsScreen() {
         <View className="px-5 mb-6">
           <View className="rounded-2xl p-5 border shadow-sm" style={{ backgroundColor: cardColor, borderColor }}>
             <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
-              Detailed Information
+              {t('studentDetails')}
             </Text>
             
             {/* Attendance Details */}
             <View className="mb-4">
               <Text className="text-base font-semibold mb-2" style={{ color: textColor }}>
-                Attendance
+                {t('attendance')}
               </Text>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm" style={{ color: mutedColor }}>Present:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('present')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.attendance.present} days</Text>
               </View>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm" style={{ color: mutedColor }}>Absent:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('absent')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.attendance.absent} days</Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-sm" style={{ color: mutedColor }}>Late:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('late')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.attendance.late} times</Text>
               </View>
             </View>
@@ -415,16 +496,16 @@ export default function StudentDetailsScreen() {
             {/* RMT Information */}
             <View className="mb-4">
               <Text className="text-base font-semibold mb-2" style={{ color: textColor }}>
-                RMT Program
+                {t('rmt')} Program
               </Text>
               <View className="flex-row justify-between mb-2">
-                <Text className="text-sm" style={{ color: mutedColor }}>Eligible:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('eligible')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>
                   {student.rmt.eligible ? 'Yes' : 'No'}
                 </Text>
               </View>
               <View className="flex-row justify-between">
-                <Text className="text-sm" style={{ color: mutedColor }}>Last Claim:</Text>
+                <Text className="text-sm" style={{ color: mutedColor }}>{t('lastClaim')}:</Text>
                 <Text className="text-sm font-medium" style={{ color: textColor }}>{student.rmt.lastClaim}</Text>
               </View>
             </View>
@@ -435,41 +516,23 @@ export default function StudentDetailsScreen() {
         <View className="px-5 mb-6">
           <View className="rounded-2xl p-5 border shadow-sm" style={{ backgroundColor: cardColor, borderColor }}>
             <Text className="text-xl font-semibold mb-4" style={{ color: textColor }}>
-              Recent Activity
+              {t('recentActivity')}
             </Text>
-            
+
             <ScrollView style={{ maxHeight: 300 }}>
               {student.recentActivity.map((activity, index) => (
-              <View key={index} className="flex-row items-center mb-3 p-3 rounded-xl" style={{ backgroundColor: cardColor, borderWidth: 1, borderColor }}>
-                <View 
-                  className="w-10 h-10 rounded-full justify-center items-center mr-3"
-                  style={{ backgroundColor: getActivityColor(activity.type) }}
-                >
-                  <Ionicons 
-                    name={getActivityIcon(activity.type) as any} 
-                    size={18} 
-                    color="white" 
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-medium" style={{ color: textColor }}>
-                    {activity.description}
-                  </Text>
-                  <View className="flex-row items-center">
-                    <Text className="text-sm" style={{ color: mutedColor }}>
-                      {activity.date}
-                    </Text>
-                    {activity.points !== undefined && (
-                      <Text className="text-sm ml-2 font-medium" style={{ 
-                        color: activity.type === 'sahsiah' ? successColor : errorColor 
-                      }}>
-                        {activity.type === 'sahsiah' ? '+' : '-'}{activity.points} points
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-            ))}
+                <ActivityItem
+                  key={`${activity.type}-${activity.date}-${index}`}
+                  activity={activity}
+                  textColor={textColor}
+                  mutedColor={mutedColor}
+                  successColor={successColor}
+                  errorColor={errorColor}
+                  getActivityIcon={getActivityIcon}
+                  getActivityColor={getActivityColor}
+                  t={t}
+                />
+              ))}
             </ScrollView>
           </View>
         </View>

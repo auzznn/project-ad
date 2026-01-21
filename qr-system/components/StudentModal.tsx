@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Student, studentApi } from '../api/studentApi';
 import ActionButton from './ActionButton';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface StudentModalProps {
   visible: boolean;
@@ -51,6 +52,7 @@ export default function StudentModal({
   onAttendanceSuccess
 }: StudentModalProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [canMarkAttendance, setCanMarkAttendance] = useState(true);
   const [checkingAttendance, setCheckingAttendance] = useState(false);
   
@@ -93,24 +95,24 @@ export default function StudentModal({
           onPress={onClose}
         />
         <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
-          <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Student Information</Text>
+        <View style={styles.modalHeader}>
+          <Text style={[styles.modalTitle, { color: theme.text }]}>{t('studentDetails')}</Text>
             {allActionsCompleted && (
               <View style={styles.completedBadge}>
                 <Ionicons name="checkmark-circle" size={20} color={theme.success} />
-                <Text style={[styles.completedText, { color: theme.success }]}>All actions completed</Text>
+                <Text style={[styles.completedText, { color: theme.success }]}>{t('allActionsCompleted')}</Text>
               </View>
             )}
             {sahsiahCount > 0 && (
               <View style={styles.sahsiahBadge}>
                 <Ionicons name="star" size={16} color={theme.primary} />
-                <Text style={[styles.sahsiahText, { color: theme.primary }]}>{sahsiahCount} deed{sahsiahCount > 1 ? 's' : ''} recorded</Text>
+                <Text style={[styles.sahsiahText, { color: theme.primary }]}>{sahsiahCount} {t('sahsiah')} {sahsiahCount > 1 ? t('recorded') + 's' : t('recorded')}</Text>
               </View>
             )}
             {disciplineCount > 0 && (
               <View style={styles.disciplineBadge}>
                 <Ionicons name="warning" size={16} color={theme.error} />
-                <Text style={[styles.disciplineText, { color: theme.error }]}>{disciplineCount} issue{disciplineCount > 1 ? 's' : ''} recorded</Text>
+                <Text style={[styles.disciplineText, { color: theme.error }]}>{disciplineCount} {t('discipline')} {disciplineCount > 1 ? 'issue' + 's' : 'issue'} {t('recorded')}</Text>
               </View>
             )}
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -120,7 +122,7 @@ export default function StudentModal({
           
           <View style={[styles.studentInfoContainer, { backgroundColor: theme.card }]}>
             <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: theme.muted }]}>Name</Text>
+              <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('fullName')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>{student.name}</Text>
             </View>
             
@@ -130,12 +132,12 @@ export default function StudentModal({
             </View>
             
             <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: theme.muted }]}>Class</Text>
+              <Text style={[styles.infoLabel, { color: theme.muted }]}>{t('class')}</Text>
               <Text style={[styles.infoValue, { color: theme.text }]}>{student.class}</Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: theme.muted }]}>RMT Eligible</Text>
+              <Text style={[styles.infoLabel, { color: theme.muted }]}>RMT {t('eligible')}</Text>
               <Text style={[
                 styles.infoValue,
                 { color: student.rmt_elligible ? theme.success : theme.error }
@@ -147,7 +149,7 @@ export default function StudentModal({
           
           <View style={styles.actionsContainer}>
             <ActionButton
-              title="Take Attendance"
+              title={t('takeAttendance')}
               icon="checkmark-circle"
               color={!canMarkAttendance ? theme.muted : theme.success}
               onPress={async () => {
@@ -162,7 +164,7 @@ export default function StudentModal({
             
             {student.rmt_elligible && (
               <ActionButton
-                title="Record RMT"
+                title={t('recordRMT')}
                 icon="restaurant"
                 color={theme.accent}
                 onPress={onRMT}
@@ -173,7 +175,7 @@ export default function StudentModal({
             )}
             
             <ActionButton
-              title="Record Good Deed"
+              title={t('recordGoodDeed')}
               icon="star"
               color={theme.primary}
               onPress={onOpenSahsiahForm}
@@ -183,7 +185,7 @@ export default function StudentModal({
             />
             
             <ActionButton
-              title="Record Discipline Issue"
+              title={t('recordDisciplineIssue')}
               icon="warning"
               color={theme.error}
               onPress={onOpenDisciplineForm}
