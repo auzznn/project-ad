@@ -1,6 +1,6 @@
 # QR-System
 
-A mobile application for school attendance and student management system built with React Native and Expo. This app enables teachers and administrators to efficiently track student attendance, monitor student behavior, and manage student records using QR code scanning technology.
+A mobile application for school attendance and student management system built with React Native and Expo. This app enables teachers to efficiently track student attendance, monitor student behavior, and manage student records using QR code scanning technology. This app also allows parents to view their children information.
 
 ## Features
 
