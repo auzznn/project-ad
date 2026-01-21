@@ -8,6 +8,7 @@ from django.db.models import (
     Count,
 )
 from django.db.models.functions import Coalesce
+from rest_framework.permissions import IsAuthenticated
 
 from authentication.models import Classroom, MigrateStudent
 from .serializer import (
@@ -26,6 +27,7 @@ class StudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = StudentAttendance.objects.all()
     serializer_class = StudentAttendanceSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         endpoint_action = ["record_student_attendance"]
@@ -75,6 +77,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
 
     serializer_class = StudentAttendanceSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     @action(
         detail=False, methods=["get"], url_path=r"(?P<grade>[0-9]+)/(?P<section>[^/.]+)"
@@ -90,7 +93,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         queryset = self.get_queryset()
-        queryset = queryset.filter(migrate_student_id__class_room=class_room_instance)
+        queryset = queryset.filter(student_id__class_room=class_room_instance)
 
         page = self.paginate_queryset(queryset)
 
@@ -101,7 +104,7 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=["get"], url_path=r"(?P<attend_status>[^/.]+)")
+    @action(detail=False, methods=["get"], url_path=rf"(?P<attend_status>{const.STATUS_REGEX})")
     def by_status(self, request, attend_status: str, *args, **kwargs):
         queryset = self.get_queryset()
         queryset = queryset.filter(status=attend_status)
@@ -113,7 +116,18 @@ class GeneralStudentAttendanceViewSet(viewsets.GenericViewSet, mixins.ListModelM
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
+    @action(detail=False, methods=["get"], url_path=r"(?P<class_grade>[0-6]{1})")
+    def by_grade(self, requst, class_grade: int, *args, **kwargs):
+        queryset = self.get_queryset().filter(migrate_student_id__class_room__grade=class_grade)
+        
+        page = self.paginate_queryset(queryset=queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DailyStudentAttendanceViewSet(GeneralStudentAttendanceViewSet):
     queryset = StudentAttendance.objects.today()
@@ -141,8 +155,9 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
     Subclasses must provide a 'queryset'.
     """
 
-    queryset = None
+    queryset = StudentAttendance.objects.all()
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         view = [
@@ -218,7 +233,7 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
         )
 
         count = queryset.count()
-        average_attendance = 0 if count == 0 else (stats["on_time"] / queryset.count())
+        average_attendance = 0 if count == 0 else (( stats["on_time"] + stats["late"] ) / queryset.count())
         attendance_rate_distribution = self.get_attendance_rate_status_distribution()
 
         data = {
@@ -238,21 +253,21 @@ class GeneralAttendanceStatsViewSet(viewsets.GenericViewSet):
         raw_data = (
             self.get_queryset()
             .values(
-                "migrate_student_id__class_room__grade",
-                "migrate_student_id__class_room__class_section",
+                "student_id__class_room__grade",
+                "student_id__class_room__class_section",
                 "status",
             )
             .annotate(count=Count("id"))
             .order_by(
-                "migrate_student_id__class_room__grade",
-                "migrate_student_id__class_room__class_section",
+                "student_id__class_room__grade",
+                "student_id__class_room__class_section",
             )
         )
 
         structured_data = {}
         for entry in raw_data:
-            grade = entry["migrate_student_id__class_room__grade"]
-            section = entry["migrate_student_id__class_room__class_section"]
+            grade = entry["student_id__class_room__grade"]
+            section = entry["student_id__class_room__class_section"]
 
             if grade is None:
                 continue
@@ -306,8 +321,9 @@ class YearlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
 
     # Using the manager method we created earlier for consistency
     def get_queryset(self):
+        queryset = super().get_queryset()
         year = self.kwargs.get("year")
-        return StudentAttendance.objects.by_year(year)
+        return queryset.by_year(year)
 
 
 class MonthlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
@@ -317,6 +333,7 @@ class MonthlyAttendanceStatsViewSet(GeneralAttendanceStatsViewSet):
 
     # Using the manager method we created earlier for consistency
     def get_queryset(self):
+        queryset = super().get_queryset()
         year = self.kwargs.get("year")
         month = self.kwargs.get("month")
-        return StudentAttendance.objects.by_year(year).by_month(month)
+        return queryset.by_year(year).by_month(month)

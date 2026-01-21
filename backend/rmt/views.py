@@ -1,7 +1,7 @@
-from django.shortcuts import render
 from django.utils import timezone
+from rest_framework.permissions import IsAuthenticated
 from django.db.models.functions import ExtractWeekDay, ExtractMonth, ExtractDay
-from django.db.models import Count, Q, ExpressionWrapper, F, IntegerField, FloatField, Max
+from django.db.models import Count, Q, ExpressionWrapper, F, FloatField, Max
 from django.conf import settings
 
 from rest_framework.decorators import action
@@ -20,6 +20,7 @@ from .serializer import (
     RecordRMTRecordSerializer,
     StudentRMTAnalyticsSerializer,
 )
+from .utils import MonthHelper
 
 
 # Create your views here.
@@ -27,6 +28,7 @@ class RMTView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = RMTRecord.objects.all().order_by("-date")
     serializer_class = RMTRecordSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == "record":
@@ -51,6 +53,7 @@ class RMTView(viewsets.GenericViewSet, mixins.ListModelMixin):
 class RMTStatisticView(viewsets.GenericViewSet):
     queryset = RMTRecord.objects.all()
     now = set_timezone(timezone.now())
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == self.list_rmt_student.__name__:
@@ -72,7 +75,7 @@ class RMTStatisticView(viewsets.GenericViewSet):
         # We subtract present from total eligible to find the absentees
         not_present_count = max(0, total_eligible - present_count)
 
-        attendance_percentage = present_count / total_eligible
+        attendance_percentage = 0 if total_eligible == 0 else present_count / total_eligible
 
         return Response(
             {
@@ -118,16 +121,13 @@ class RMTStatisticView(viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"], url_path="rmt_trends/monthly")
     def monthly_rmt_trends(self, request, *args, **kwargs):
+        month_helper = MonthHelper(year=self.now.year, month=self.now.month)
+
         records = (
             self.get_queryset()
             .filter(date__month=self.now.month, date__year=self.now.year)
             .annotate(day_of_month=ExtractDay("date"))
-            .annotate(
-                week=ExpressionWrapper(
-                    (F("day_of_month") - 1) / 7 + 1, output_field=IntegerField()
-                )
-            )
-            .values("week")
+            .values("day_of_month")
             .annotate(
                 is_present_count=Count("id", filter=Q(is_present=True)),
                 not_present_count=Count("id", filter=Q(is_present=False)),
@@ -135,12 +135,16 @@ class RMTStatisticView(viewsets.GenericViewSet):
         )
 
         data = {
-            f'Week {record["week"]}': {
-                "is_present_count": record["is_present_count"],
-                "not_present_count": record["not_present_count"],
-            }
-            for record in records
+            f"Week {week + 1}": {"is_present_count": 0, "not_present_count": 0}
+            for week in range(month_helper.get_num_week())
         }
+
+        for record in records:
+            week_index = month_helper.get_week_of_date(record["day_of_month"])
+            week_key = f"Week {week_index}"
+
+            data[week_key]["is_present_count"] += record["is_present_count"]
+            data[week_key]["not_present_count"] += record["not_present_count"]
 
         return Response(data)
 
@@ -175,12 +179,15 @@ class RMTStatisticView(viewsets.GenericViewSet):
     def list_rmt_student(self, request, *args, **kwargs):
         records = (
             self.get_queryset()
-            .filter(date__range=[settings.ACADEMIC_YEAR_START, settings.ACADEMIC_YEAR_END])
+            .filter(
+                date__range=[settings.ACADEMIC_YEAR_START, settings.ACADEMIC_YEAR_END]
+            )
             .values(
-                "migrate_student_id",
-                "migrate_student_id__first_name",
-                "migrate_student_id__last_name",
-                "migrate_student_id__class_room",
+                "student_id",
+                "student_id__first_name",
+                "student_id__last_name",
+                "student_id__class_room__class_section",
+                "student_id__class_room__grade",
             )
             .annotate(
                 average_rmt_percentage=ExpressionWrapper(
@@ -188,7 +195,7 @@ class RMTStatisticView(viewsets.GenericViewSet):
                     output_field=FloatField(),
                 ),
                 today_is_present=F("is_present"),
-                latest_present=Max("date", filter=Q(is_present=True))
+                latest_present=Max("date", filter=Q(is_present=True)),
             )
         )
 

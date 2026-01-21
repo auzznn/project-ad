@@ -168,7 +168,7 @@ export default function ManagementType({
           <table className="custom-table">
             <thead>
               <tr>
-                <th>No.</th>
+                <th>Urutan</th>
                 <th>Nama</th>
                 <th>Mata</th>
                 <th>Kategori</th>

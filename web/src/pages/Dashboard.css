@@ -1,3 +1,20 @@
+/* ===== Global Page Layout ===== */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px;
+  padding-left: 60px;
+  background: #f3f6fc;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1d2d6c;
+  margin-bottom: 20px;
+}
+
 .dashboard-container {
   padding: 20px 30px;
   background-color: #f4f7f9;
@@ -99,24 +116,29 @@
 }
 
 .module-selector {
-  display: flex;              /* horizontal layout */
+  display: flex;
   flex-direction: row;
-  gap: 10px;                  /* spacing between buttons */
+  gap: 10px;
   margin-bottom: 20px;
-  flex-wrap: wrap;            /* wrap only if needed */
-  width: 100%;
+
+  align-items: center;
+  justify-content: flex-start; /* or center if you prefer */
+
+  flex-wrap: wrap;
 }
 
 .module-btn {
   padding: 6px 14px;
   font-size: 14px;
   border: 1px solid #3b82f6;
-  border-radius: 6px;
+  border-radius: 999px;
   background-color: #fff;
   color: #3b82f6;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;        /* prevent text wrap */
+  flex: 0 0 auto;   /* 🚨 key line: prevents stretching */
+  width: auto;
 }
 
 .module-btn:hover {

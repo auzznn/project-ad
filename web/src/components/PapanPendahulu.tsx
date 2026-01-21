@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Pagination from "./pagination";
 import SearchBar from "./SearchBar";
 import FilterDropdown from "./FilterDropdown";
@@ -84,7 +84,7 @@ export default function PapanPendahulu({
   const fetchClassrooms = async () => {
     try {
       const res = await fetch(
-        "http://localhost:8080/api/authentication/classroom/"
+        "http://72.62.65.202:8080/api/authentication/classroom/"
       );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);
@@ -231,7 +231,7 @@ export default function PapanPendahulu({
           <table className="custom-table">
             <thead>
               <tr>
-                <th>Urutan</th>
+                <th>Kedudukan</th>
                 <th>Nama Pelajar</th>
                 <th>Kelas</th>
                 <th>Jumlah Mata</th>

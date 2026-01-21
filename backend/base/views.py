@@ -1,10 +1,12 @@
+from rest_framework.permissions import IsAuthenticated
+from django.urls import get_resolver
 from django.shortcuts import render
 from django.db.models import F, Count, Sum
 from django.db.models.functions import ExtractMonth
 
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 
 from .serializer import GeneralLeaderboardSerializer
 from .pagination import StandardResultsSetPagination
@@ -14,8 +16,10 @@ from .const import MONTH_NAMES
 # Create your views here.
 class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
     point_field = ""
+    order_ascending = True
     serializer_class = GeneralLeaderboardSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
     
     def create_ranking_student(self, queryset=None):
         if not queryset:
@@ -25,6 +29,8 @@ class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
         rank = 0
         last_points = None
 
+        order_by_field = ("-" if not self.order_ascending else "") + self.point_field
+        queryset = queryset.order_by(order_by_field)
         for i, student in enumerate(queryset):
             current_points = getattr(student, self.point_field) or 0
 
@@ -75,6 +81,7 @@ class GeneralLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
 class GeneralMeritAnalyticView(viewsets.GenericViewSet):
     record_type = None
     student_id = None
+    permission_classes = [IsAuthenticated]
 
     def get_tag_summary(self):
         return (
@@ -84,6 +91,7 @@ class GeneralMeritAnalyticView(viewsets.GenericViewSet):
                 total_points=Sum(self.get_point_name()),
                 record_count=Count("id"),
             )
+            .order_by()
         )
 
     def get_point_name(self):
@@ -198,6 +206,7 @@ class GeneralMeritAnalyticView(viewsets.GenericViewSet):
             .values(tag=F(f"{self.record_type}__tag"))
             .annotate(count=Count("id"))
             .filter(count__gt=0)
+            .order_by()
         )
 
         # 3. Calculate percentages
@@ -215,3 +224,33 @@ class GeneralMeritAnalyticView(viewsets.GenericViewSet):
             )
 
         return Response({"total_records": total_records, "distribution": data})
+
+@api_view(['GET'])
+def list_all_endpoints(request):
+    """
+    Dynamically crawls the project's URL patterns and returns 
+    a list of all accessible API endpoints.
+    """
+    resolver = get_resolver()
+    # Extracting URL patterns
+    # This ignores administrative and internal Django URLs
+    url_list = []
+    
+    def collect_urls(patterns, prefix=''):
+        for pattern in patterns:
+            if hasattr(pattern, 'url_patterns'):
+                # It's an include() or a nested router
+                collect_urls(pattern.url_patterns, prefix + str(pattern.pattern))
+            else:
+                # It's a direct path
+                full_path = prefix + str(pattern.pattern)
+                # Clean up the regex/path strings for readability
+                clean_path = full_path.replace('^', '').replace('$', '').replace('\\', '')
+                url_list.append(clean_path)
+
+    collect_urls(resolver.url_patterns)
+    
+    return Response({
+        "total_endpoints": len(url_list),
+        "endpoints": sorted(list(set(url_list)))
+    }, status=status.HTTP_200_OK)

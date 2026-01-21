@@ -1,3 +1,4 @@
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django.db.models import F, When, Case, Sum, IntegerField, Count
 from rest_framework.decorators import action
@@ -22,16 +23,18 @@ class SahsiahTypeView(viewsets.ModelViewSet):
     queryset = SahsiahType.objects.all()
     serializer_class = SahsiahTypeSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
 
 class SahsiahRecordView(viewsets.ModelViewSet):
     queryset = SahsiahRecord.objects.all().order_by("-timestamp")
     serializer_class = SahsiahRecordSerializer
     pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=["get"], url_path=r"student/(?P<student_id>[0-9]+)")
     def retrieve_by_student(self, request: Request, student_id: int, *args, **kwargs):
-        queryset = self.get_queryset().filter(migrate_student_id=student_id)
+        queryset = self.get_queryset().filter(student_id=student_id)
         page = self.paginate_queryset(queryset)
 
         if page is not None:
@@ -60,13 +63,13 @@ class SahsiahLeaderboardView(GeneralLeaderboardView):
                 )
             )
         )
-        .order_by("-total_sahsiah_point")
         .select_related("class_room")
     )
     point_field = "total_sahsiah_point"
+    order_ascending = False
 
 
 class SahsiahAnalyticsViewSet(GeneralMeritAnalyticView):
     queryset = SahsiahRecord.objects.all()
     record_type = "sahsiah_type"
-    student_id = "migrate_student_id"
+    student_id = "student_id"

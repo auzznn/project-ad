@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./AttendanceTable.css";
 import Pagination from "../components/pagination";
 import SearchBar from "../components/SearchBar";
@@ -51,7 +51,7 @@ export default function RMTPage() {
   const fetchRMT = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/rmt/daily/");
+      const res = await fetch("http://72.62.65.202:8080/api/rmt/daily/");
       const data: RMTRecord[] = await res.json();
 
       let filtered = Array.isArray(data) ? data : [];
@@ -89,7 +89,7 @@ export default function RMTPage() {
   const fetchClassrooms = async () => {
     try {
       const res = await fetch(
-        "http://127.0.0.1:8080/api/authentication/classroom/"
+        "http://72.62.65.202:8080/api/authentication/classroom/"
       );
       const data = await res.json();
       setClassrooms(Array.isArray(data) ? data : []);
@@ -180,7 +180,7 @@ export default function RMTPage() {
           <table className="custom-table">
             <thead>
               <tr>
-                <th>No.</th>
+                <th>Urutan</th>
                 <th>Nama</th>
                 <th>Kelas</th>
                 <th>Waktu</th>

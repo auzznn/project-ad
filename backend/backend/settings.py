@@ -31,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-l7k9wz6=p@n@qx%ecp!18*!&+fl^rs9vnump6$)iq$%%qr)7=&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(os.getenv("DEBUG", "1")))
 
 ALLOWED_HOSTS = []
 
@@ -95,7 +95,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": os.getenv("MYSQL_DATABASE"),
-        "USER": os.getenv("MYSQL_USER"),
+        "USER": os.getenv("MYSQL_USERNAME"),
         "PASSWORD": os.getenv("MYSQL_ROOT_PASSWORD"),
         "HOST": os.getenv("MYSQL_HOST"),
         "PORT": os.getenv("MYSQL_PORT"),
@@ -140,6 +140,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", str(Path(BASE_DIR).joinpath("media")))
+STATIC_ROOT = os.getenv("STATIC_ROOT", str(Path(BASE_DIR).joinpath("static")))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -165,7 +166,7 @@ ACADEMIC_YEAR_END = timezone.now().replace(
     month=12, day=30, hour=0, minute=0, second=0, microsecond=0
 )
 
-DOMAIN_NAME = 'localhost:8080'
+DOMAIN_NAME = os.getenv("DOMAIN_NAME", 'localhost:8080')
 
 # Celery Setting
 
@@ -174,35 +175,33 @@ CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_TIMEZONE = "Asia/Kuala_Lumpur"
 CELERY_ENABLE_UTC = False
 
-CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM = {"hour": 0, "day_of_week": "mon-fri"}
+DEBUG_SCHEDULE = 10
 
-CREATE_STUDENT_ATTENDANCE_SCHEDULE_1 = crontab(
-    **CREATE_STUDENT_ATTENDANCE_CRONTAB_PARAM
+WEEKDAY_MIDNIGHT_SCHEDULE = crontab(
+    hour=0, day_of_week="mon-fri"
 )
-CREATE_STUDENT_ATTENDANCE_SCHEDULE_2 = 10
 
-CREATE_STUDENT_ATTENDANCE_SCHEDULE = (
-    CREATE_STUDENT_ATTENDANCE_SCHEDULE_2
-    if DEBUG
-    else CREATE_STUDENT_ATTENDANCE_SCHEDULE_1
-)
+def get_schedule(schedule: crontab) -> crontab:
+    return DEBUG_SCHEDULE if DEBUG else schedule
 
 
 CELERY_BEAT_SCHEDULE = {
     "create_student_attendance": {
         "task": "student_attendance.tasks.create_student_attendance",
-        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+        "schedule": get_schedule(WEEKDAY_MIDNIGHT_SCHEDULE),
     },
     "update_student_qr_code": {
         "task": "authentication.tasks.update_qr_code",
-        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+        "schedule": get_schedule(DEBUG_SCHEDULE),
     },
     "create_rmt_record": {
         "task": "rmt.tasks.create_rmt_record",
-        "schedule": CREATE_STUDENT_ATTENDANCE_SCHEDULE,
+        "schedule": get_schedule(WEEKDAY_MIDNIGHT_SCHEDULE),
     },
 }
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://eduqr.cloud",
+    "https://eduqr.cloud"
 ]

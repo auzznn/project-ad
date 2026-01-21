@@ -4,7 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.reverse import reverse
 from django.conf import settings
 
-from .models import MyUser, Student, MigrateStudent, Classroom
+from .models import MyUser, MigrateStudent, Classroom
 from .const import TOKEN_REFRESH_PATH_NAME
 
 
@@ -43,13 +43,34 @@ class StudentSerializer(ModelSerializer):
         student.generate_qr(request=request)
         student.save()
         return student
+    
+    def update(self, instance, validated_data):
+        # 1. Handle standard fields directly on the MigrateStudent model
+        instance.rmt_elligible = validated_data.get('rmt_elligible', instance.rmt_elligible)
+        if instance.rmt_elligible is None:
+            instance.rmt_elligible = False
+
+        # 2. Handle nested source fields (class_room)
+        # Note: This assumes instance.class_room already exists.
+        if 'class_room' in validated_data:
+            classroom_data = validated_data.pop('class_room')
+            for attr, value in classroom_data.items():
+                setattr(instance.class_room, attr, value)
+            instance.class_room.save()
+
+        # 3. Logic for QR code (matching your create method)
+        request = self.context.get('request')
+        instance.generate_qr(request=request)
+        
+        instance.save()
+        return instance
 
 class MyUserRetrieveSerializer(ModelSerializer):
     children = serializers.SerializerMethodField()
     
     class Meta:
         model = MyUser
-        fields = ["id", "fullname", "role", "children"]
+        fields = ["id", "first_name", "last_name", "role", "children"]
     
     def get_children(self, instance: Meta.model):
         if not instance.role == 'parent':
@@ -83,3 +104,11 @@ class ClassroomSerializer(ModelSerializer):
     class Meta:
         model = Classroom
         fields = '__all__'
+
+class StudentBulkUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def validate_file(self, value):
+        if not value.name.endswith(('.xlsx', '.xls')):
+            raise serializers.ValidationError("Invalid file format. Please upload an Excel file.")
+        return value

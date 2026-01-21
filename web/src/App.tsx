@@ -4,7 +4,6 @@ import SideBar from "./components/SideBar";
 import Dashboard from "./pages/Dashboard";
 import Kehadiran from "./pages/Kehadiran";
 import RMT from "./pages/RMT";
-import PapanPendahulu from "./pages/PendahuluSahsiah";
 import Sahsiah from "./pages/Sahsiah";
 import Disiplin from "./pages/Disiplin";
 import Pengguna from "./pages/Pengguna";
