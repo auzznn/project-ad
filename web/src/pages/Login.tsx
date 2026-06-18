@@ -51,7 +51,7 @@ function Login({ setIsAuthenticated }: LoginProps) {
 
     try {
       const response = await fetch(
-        "http://72.62.65.202:8080/api/authentication/token",
+        "http://localhost:8080/api/authentication/token",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

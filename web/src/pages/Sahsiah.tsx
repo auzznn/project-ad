@@ -13,13 +13,13 @@ export default function SahsiahPage() {
   return (
     <ManagementType
       title="Pengurusan Sahsiah"
-      fetchUrl="http://72.62.65.202:8080/api/sahsiah/type/"
+      fetchUrl="http://localhost:8080/api/sahsiah/type/"
       saveUrl={(id) =>
         id
-          ? `http://72.62.65.202:8080/api/sahsiah/type/${id}/`
-          : "http://72.62.65.202:8080/api/sahsiah/type/"
+          ? `http://localhost:8080/api/sahsiah/type/${id}/`
+          : "http://localhost:8080/api/sahsiah/type/"
       }
-      deleteUrl={(id) => `http://72.62.65.202:8080/api/sahsiah/type/${id}/`}
+      deleteUrl={(id) => `http://localhost:8080/api/sahsiah/type/${id}/`}
       categories={categories}
     />
   );
